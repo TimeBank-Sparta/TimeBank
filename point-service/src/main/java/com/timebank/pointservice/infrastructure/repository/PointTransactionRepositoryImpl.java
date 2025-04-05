@@ -17,4 +17,10 @@ public class PointTransactionRepositoryImpl implements PointTransactionRepositor
 	public PointTransaction save(PointTransaction pointTransaction) {
 		return pointTransactionJpaRepository.save(pointTransaction);
 	}
+
+	@Override
+	public void deleteAll() {
+		pointTransactionJpaRepository.deleteAll();
+	}
+
 }

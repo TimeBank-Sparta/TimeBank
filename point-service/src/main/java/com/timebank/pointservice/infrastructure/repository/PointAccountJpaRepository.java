@@ -14,7 +14,12 @@ import jakarta.persistence.LockModeType;
 
 @Repository
 public interface PointAccountJpaRepository extends JpaRepository<PointAccount, Long> {
+
+	// 기본 조회용
+	Optional<PointAccount> findByUserId(Long userId);
+
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
-	@Query("SELECT p FROM PointAccount p WHERE p.accountId = :accountId")
-	Optional<PointAccount> findByIdForUpdate(@Param("accountId") Long accountId);
+	@Query("SELECT p FROM PointAccount p WHERE p.userId = :userId")
+	Optional<PointAccount> findByUserIdForUpdate(@Param("userId") Long userId);
+
 }

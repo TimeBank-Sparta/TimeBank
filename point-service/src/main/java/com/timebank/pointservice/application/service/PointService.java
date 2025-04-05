@@ -3,6 +3,7 @@ package com.timebank.pointservice.application.service;
 import java.util.NoSuchElementException;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.timebank.pointservice.application.dto.PointTransferCommand;
 import com.timebank.pointservice.domain.entity.PointAccount;
@@ -10,7 +11,6 @@ import com.timebank.pointservice.domain.entity.PointTransaction;
 import com.timebank.pointservice.domain.repository.PointAccountRepository;
 import com.timebank.pointservice.domain.repository.PointTransactionRepository;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -38,8 +38,8 @@ public class PointService {
 
 	@Transactional
 	public void transferPoints(PointTransferCommand command) {
-		Long senderId = command.getSenderAccountId();
-		Long receiverId = command.getReceiverAccountId();
+		Long senderUserId = command.getSenderUserId();
+		Long receiverUserId = command.getReceiverUserId();
 		int amount = command.getAmount();
 		String reason = command.getReason();
 
@@ -47,12 +47,19 @@ public class PointService {
 			throw new IllegalArgumentException("보낼 포인트는 1 이상이어야 합니다.");
 		}
 
-		// 🔒 비관적 락으로 계좌 row 선점
-		PointAccount sender = pointAccountRepository.findByIdForUpdate(senderId)
-			.orElseThrow(() -> new NoSuchElementException("송신자 계좌를 찾을 수 없습니다."));
+		// ✅ 항상 userId 오름차순으로 락 획득
+		Long firstUserId = Math.min(senderUserId, receiverUserId);
+		Long secondUserId = Math.max(senderUserId, receiverUserId);
 
-		PointAccount receiver = pointAccountRepository.findByIdForUpdate(receiverId)
-			.orElseThrow(() -> new NoSuchElementException("수신자 계좌를 찾을 수 없습니다."));
+		PointAccount firstAccount = pointAccountRepository.findByUserIdForUpdate(firstUserId)
+			.orElseThrow(() -> new NoSuchElementException("계좌를 찾을 수 없습니다. userId=" + firstUserId));
+
+		PointAccount secondAccount = pointAccountRepository.findByUserIdForUpdate(secondUserId)
+			.orElseThrow(() -> new NoSuchElementException("계좌를 찾을 수 없습니다. userId=" + secondUserId));
+
+		// 🔁 원래 송수신자와 매칭
+		PointAccount sender = senderUserId.equals(firstUserId) ? firstAccount : secondAccount;
+		PointAccount receiver = receiverUserId.equals(firstUserId) ? firstAccount : secondAccount;
 
 		if (sender.getTotalPoints() < amount) {
 			throw new IllegalArgumentException("송신자의 포인트가 부족합니다.");
@@ -79,8 +86,9 @@ public class PointService {
 		pointTransactionRepository.save(sendTx);
 		pointTransactionRepository.save(receiveTx);
 
-		// 👉 연관 관계 추가 (영속 상태이므로 컬렉션 직접 조작 가능)
+		// 👉 연관 관계 추가
 		sender.getPointTransactions().add(sendTx);
 		receiver.getPointTransactions().add(receiveTx);
 	}
+
 }
