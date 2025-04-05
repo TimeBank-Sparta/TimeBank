@@ -38,5 +38,14 @@ public class PointAccount {
 	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
 	private List<PointTransaction> pointTransactions;
 
+	public void decreasePoints(int amount) {
+		if (this.totalPoints < amount) {
+			throw new IllegalArgumentException("포인트가 부족합니다.");
+		}
+		this.totalPoints -= amount;
+	}
 
+	public void increasePoints(int amount) {
+		this.totalPoints += amount;
+	}
 }

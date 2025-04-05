@@ -25,6 +25,9 @@ public class PointAccountRepositoryImpl implements PointAccountRepository {
 		return pointAccountJpaRepository.findById(accountId);
 	}
 
-
+	@Override
+	public Optional<PointAccount> findByIdForUpdate(Long accountId) {
+		return pointAccountJpaRepository.findByIdForUpdate(accountId);
+	}
 
 }

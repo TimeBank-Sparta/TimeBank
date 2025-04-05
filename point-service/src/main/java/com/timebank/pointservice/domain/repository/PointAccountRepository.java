@@ -12,4 +12,5 @@ public interface PointAccountRepository {
 
 	Optional<PointAccount> findById(Long accountId);
 
+	Optional<PointAccount> findByIdForUpdate(Long accountId); // 🔐 비관적 락 메서드
 }

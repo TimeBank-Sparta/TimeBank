@@ -1,5 +1,7 @@
 package com.timebank.pointservice.application.service;
 
+import java.util.NoSuchElementException;
+
 import org.springframework.stereotype.Service;
 
 import com.timebank.pointservice.application.dto.PointTransferCommand;
@@ -45,21 +47,22 @@ public class PointService {
 			throw new IllegalArgumentException("보낼 포인트는 1 이상이어야 합니다.");
 		}
 
-		PointAccount sender = pointAccountRepository.findById(senderId)
-			.orElseThrow(() -> new IllegalArgumentException("송신자 계정을 찾을 수 없습니다."));
+		// 🔒 비관적 락으로 계좌 row 선점
+		PointAccount sender = pointAccountRepository.findByIdForUpdate(senderId)
+			.orElseThrow(() -> new NoSuchElementException("송신자 계좌를 찾을 수 없습니다."));
 
-		PointAccount receiver = pointAccountRepository.findById(receiverId)
-			.orElseThrow(() -> new IllegalArgumentException("수신자 계정을 찾을 수 없습니다."));
+		PointAccount receiver = pointAccountRepository.findByIdForUpdate(receiverId)
+			.orElseThrow(() -> new NoSuchElementException("수신자 계좌를 찾을 수 없습니다."));
 
 		if (sender.getTotalPoints() < amount) {
 			throw new IllegalArgumentException("송신자의 포인트가 부족합니다.");
 		}
 
-		// 포인트 이동
+		// 💳 포인트 이체
 		sender.setTotalPoints(sender.getTotalPoints() - amount);
 		receiver.setTotalPoints(receiver.getTotalPoints() + amount);
 
-		// 거래 내역 생성
+		// 🧾 거래 내역 생성
 		PointTransaction sendTx = PointTransaction.builder()
 			.account(sender)
 			.amount(-amount)
@@ -76,9 +79,8 @@ public class PointService {
 		pointTransactionRepository.save(sendTx);
 		pointTransactionRepository.save(receiveTx);
 
-		// sender, receiver 는 영속 상태이므로 pointTransactions 컬렉션에 수동 추가 가능
+		// 👉 연관 관계 추가 (영속 상태이므로 컬렉션 직접 조작 가능)
 		sender.getPointTransactions().add(sendTx);
 		receiver.getPointTransactions().add(receiveTx);
 	}
-
 }
