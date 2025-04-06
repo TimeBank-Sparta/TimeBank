@@ -6,6 +6,15 @@ spring:
     username: root
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
+  kafka:
+    bootstrap-servers: localhost:9092
+    listener:
+      concurrency: 4 # 🔧 반드시 토픽 partition 수보다 작지 않게
+    consumer:
+      group-id: point-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
 
   jpa:
     hibernate:

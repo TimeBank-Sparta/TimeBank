@@ -90,5 +90,4 @@ public class PointService {
 		sender.getPointTransactions().add(sendTx);
 		receiver.getPointTransactions().add(receiveTx);
 	}
-
 }
