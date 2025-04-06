@@ -1,8 +1,8 @@
 package com.timebank.pointservice.infrastructure.kafka.dto;
 
 public record PointTransferRequestMessage(
-	Long senderAccountId,
-	Long receiverAccountId,
+	Long senderUserId,
+	Long receiverUserId,
 	int amount,
 	String reason
 ) {}

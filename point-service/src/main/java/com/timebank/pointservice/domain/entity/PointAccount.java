@@ -33,19 +33,43 @@ public class PointAccount {
 	private Long userId;
 
 	@Column(nullable = false)
-	private Integer totalPoints;
+	private Integer availablePoints; // 사용 가능한 포인트
+
+	@Column(nullable = false)
+	private Integer holdingPoints;   // 보류 중인 포인트
 
 	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
 	private List<PointTransaction> pointTransactions;
 
-	public void decreasePoints(int amount) {
-		if (this.totalPoints < amount) {
-			throw new IllegalArgumentException("포인트가 부족합니다.");
+	// ✅ 포인트 차감 (글 작성 시)
+	public void holdPoints(int amount) {
+		if (this.availablePoints < amount) {
+			throw new IllegalArgumentException("사용 가능한 포인트가 부족합니다.");
 		}
-		this.totalPoints -= amount;
+		this.availablePoints -= amount;
+		this.holdingPoints += amount;
 	}
 
-	public void increasePoints(int amount) {
-		this.totalPoints += amount;
+	// ✅ 거래 성사: 보류 → 상대방으로 전송
+	public void confirmHolding(int amount) {
+		if (this.holdingPoints < amount) {
+			throw new IllegalArgumentException("보류 중인 포인트가 부족합니다.");
+		}
+		this.holdingPoints -= amount;
+		// 상대방 계좌로 increase는 외부에서 처리
+	}
+
+	// ✅ 거래 취소: 보류 → 다시 사용 가능으로 복귀
+	public void releaseHolding(int amount) {
+		if (this.holdingPoints < amount) {
+			throw new IllegalArgumentException("보류 중인 포인트가 부족합니다.");
+		}
+		this.holdingPoints -= amount;
+		this.availablePoints += amount;
+	}
+
+	// ✅ 일반 지급 (상대방이 포인트 받는 경우)
+	public void increaseAvailablePoints(int amount) {
+		this.availablePoints += amount;
 	}
 }
