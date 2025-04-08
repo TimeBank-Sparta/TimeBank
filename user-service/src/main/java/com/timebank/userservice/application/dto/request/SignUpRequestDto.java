@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SignUpRequestDto {
+	//todo: 글자수같은 조건 설정하기
 	private String username;
 	private String password;
 	private String email;

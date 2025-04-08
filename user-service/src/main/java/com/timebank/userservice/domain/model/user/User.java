@@ -50,6 +50,8 @@ public class User {
 	@Enumerated(EnumType.STRING)
 	private Role role;
 
+	//todo : profile이랑 일대일 관계 매핑하기
+
 	public static User of(
 		String username,
 		String password,
