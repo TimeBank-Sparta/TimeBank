@@ -1,0 +1,89 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.4'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'maven-publish'
+}
+
+group = 'com.timebank'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+    archiveClassifier.set('')  // classifier 제거
+}
+
+repositories {
+    mavenCentral()
+}
+ext {
+    set('springCloudVersion', "2024.0.0")
+}
+
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // ✅ JPA
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // ✅ OpenFeign (Spring Cloud)
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    // ✅ Spring Boot Redis Starter (Spring Data Redis + 기본 클라이언트 Lettuce 포함)
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    compileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'org.postgresql:postgresql'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    implementation 'com.timebank:common:0.0.1-SNAPSHOT'
+
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
