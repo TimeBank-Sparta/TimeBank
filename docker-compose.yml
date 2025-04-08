@@ -6,7 +6,8 @@ services:
     container_name: config-server
     ports:
       - "8888:8888"
-    environment:
+    env_file:
+      - .env
     networks:
       - msanet
 
