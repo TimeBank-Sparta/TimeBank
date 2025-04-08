@@ -1,4 +1,4 @@
-package com.timebank.userservice.infrastructure.config;
+package com.timebank.userservice.user.infrastructure.config;
 
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -29,9 +29,9 @@ public class SecurityConfig {
 			.formLogin(formLogin -> formLogin.disable())
 			.authorizeHttpRequests(authrize -> authrize
 				.requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-				.requestMatchers("/api/auth/signup").permitAll()
-				.requestMatchers("/api/auth/login").permitAll()
-				.requestMatchers("/api/**").permitAll()
+				.requestMatchers("/api/v1/auth/signup").permitAll()
+				.requestMatchers("/api/v1/auth/login").permitAll()
+				.requestMatchers("/api/v1/**").permitAll()
 				.anyRequest().authenticated()
 			)
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
