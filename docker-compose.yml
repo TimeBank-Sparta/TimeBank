@@ -20,6 +20,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8761
+      - spring.cloud.config.uri=http://config-server:8888
     depends_on:
       - config-server
     networks:
@@ -35,6 +36,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
+      - spring.cloud.config.uri=http://config-server:8888
       # 내부 네트워크에서 Eureka 서버 접근을 위해 서비스명 사용
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
     depends_on:
@@ -42,23 +44,23 @@ services:
     networks:
       - msanet
 
-  auth-service:
-    build:
-      context: .
-      dockerfile: auth/Dockerfile
-    container_name: auth-service
-    environment:
-      - SPRING_PROFILES_ACTIVE=default
-      - SERVER_PORT=8080
-      - SPRING_APPLICATION_NAME=auth-service
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - SPRING_DATA_REDIS_HOST=redis
-      - SPRING_DATA_REDIS_PORT=6379
-    depends_on:
-      - redis
-      - eureka-server
-    networks:
-      - msanet
+  #  auth-service:
+  #    build:
+  #      context: .
+  #      dockerfile: auth/Dockerfile
+  #    container_name: auth-service
+  #    environment:
+  #      - SPRING_PROFILES_ACTIVE=default
+  #      - SERVER_PORT=8080
+  #      - SPRING_APPLICATION_NAME=auth-service
+  #      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+  #      - SPRING_DATA_REDIS_HOST=redis
+  #      - SPRING_DATA_REDIS_PORT=6379
+  #    depends_on:
+  #      - redis
+  #      - eureka-server
+  #    networks:
+  #      - msanet
 
   # Kafka 및 Zookeeper 추가
   zookeeper:
@@ -67,6 +69,7 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+        - spring.cloud.config.uri=http://config-server:8888
     ports:
       - "2181:2181"
     networks:
@@ -86,6 +89,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        - spring.cloud.config.uri=http://config-server:8888
     networks:
       - msanet
 
@@ -94,6 +98,8 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
+    environment:
+      - spring.cloud.config.uri=http://config-server:8888
     networks:
       - msanet
 
@@ -102,6 +108,8 @@ services:
     container_name: zipkin
     ports:
       - "9411:9411"
+    environment:
+      - spring.cloud.config.uri=http://config-server:8888
     networks:
       - msanet
 
