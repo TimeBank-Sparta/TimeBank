@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: point-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/timebank
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    listener:
+      concurrency: 4 # 🔧 반드시 토픽 partition 수보다 작지 않게
+    consumer:
+      group-id: point-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+points:
+  topics:
+    transfer: points.transfer.request       # 즉시 송금
+    hold:
+      cancel: points.hold.cancel            # 보류 취소
+      confirm: points.hold.confirm          # 보류 확정 (거래 확정)
