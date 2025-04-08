@@ -6,10 +6,10 @@ import org.springframework.stereotype.Service;
 import com.timebank.userservice.application.dto.request.LoginRequestDto;
 import com.timebank.userservice.application.dto.request.SignUpRequestDto;
 import com.timebank.userservice.application.dto.response.LoginResponseDto;
+import com.timebank.userservice.domain.jwt.JwtProvider;
 import com.timebank.userservice.domain.model.user.Role;
 import com.timebank.userservice.domain.model.user.User;
 import com.timebank.userservice.domain.repository.user.UserRepository;
-import com.timebank.userservice.infrastructure.util.JwtUtil;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthService {
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
-	private final JwtUtil jwtUtil;
+	private final JwtProvider jwtProvider;
 
 	//todo:환경변수로 관리하기
 	private final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
@@ -52,7 +52,7 @@ public class AuthService {
 		}
 
 		//토큰 생성
-		String accessToken = jwtUtil.createAccessToken(user.getId(), user.getRole());
+		String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole());
 
 		return new LoginResponseDto(user.getUsername(), accessToken, user.getRole());
 	}
