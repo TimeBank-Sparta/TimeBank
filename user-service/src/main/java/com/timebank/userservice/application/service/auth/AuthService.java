@@ -1,15 +1,15 @@
-package com.timebank.userservice.user.application.service;
+package com.timebank.userservice.application.service.auth;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.timebank.userservice.user.application.dto.request.LoginRequestDto;
-import com.timebank.userservice.user.application.dto.request.SignUpRequestDto;
-import com.timebank.userservice.user.application.dto.response.LoginResponseDto;
-import com.timebank.userservice.user.domain.model.Role;
-import com.timebank.userservice.user.domain.model.User;
-import com.timebank.userservice.user.domain.repository.UserRepository;
-import com.timebank.userservice.user.infrastructure.util.JwtUtil;
+import com.timebank.userservice.application.dto.request.LoginRequestDto;
+import com.timebank.userservice.application.dto.request.SignUpRequestDto;
+import com.timebank.userservice.application.dto.response.LoginResponseDto;
+import com.timebank.userservice.domain.model.user.Role;
+import com.timebank.userservice.domain.model.user.User;
+import com.timebank.userservice.domain.repository.user.UserRepository;
+import com.timebank.userservice.infrastructure.util.JwtUtil;
 
 import lombok.RequiredArgsConstructor;
 

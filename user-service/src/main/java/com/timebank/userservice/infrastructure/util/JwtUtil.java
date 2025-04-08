@@ -1,4 +1,4 @@
-package com.timebank.userservice.user.infrastructure.util;
+package com.timebank.userservice.infrastructure.util;
 
 import java.util.Base64;
 import java.util.Date;
@@ -8,7 +8,7 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.timebank.userservice.user.domain.model.Role;
+import com.timebank.userservice.domain.model.user.Role;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

@@ -1,4 +1,4 @@
-package com.timebank.userservice.user.domain.model;
+package com.timebank.userservice.domain.model.user;
 
 public enum Role {
 	USER("USER"),

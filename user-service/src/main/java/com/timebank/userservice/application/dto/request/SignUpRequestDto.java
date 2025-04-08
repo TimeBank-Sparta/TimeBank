@@ -1,4 +1,4 @@
-package com.timebank.userservice.user.application.dto.request;
+package com.timebank.userservice.application.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

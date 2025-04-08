@@ -1,4 +1,4 @@
-package com.timebank.userservice.user.presentation.controller;
+package com.timebank.userservice.presentation.controller.auth;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.timebank.userservice.user.application.dto.request.LoginRequestDto;
-import com.timebank.userservice.user.application.dto.request.SignUpRequestDto;
-import com.timebank.userservice.user.application.dto.response.LoginResponseDto;
-import com.timebank.userservice.user.application.service.AuthService;
+import com.timebank.userservice.application.dto.request.LoginRequestDto;
+import com.timebank.userservice.application.dto.request.SignUpRequestDto;
+import com.timebank.userservice.application.dto.response.LoginResponseDto;
+import com.timebank.userservice.application.service.auth.AuthService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

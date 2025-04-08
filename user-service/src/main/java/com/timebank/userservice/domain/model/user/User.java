@@ -1,4 +1,4 @@
-package com.timebank.userservice.user.domain.model;
+package com.timebank.userservice.domain.model.user;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -1,6 +1,6 @@
-package com.timebank.userservice.user.application.dto.response;
+package com.timebank.userservice.application.dto.response;
 
-import com.timebank.userservice.user.domain.model.Role;
+import com.timebank.userservice.domain.model.user.Role;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
