@@ -8,6 +8,7 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.timebank.userservice.domain.jwt.JwtProvider;
 import com.timebank.userservice.domain.model.user.Role;
 
 import io.jsonwebtoken.Jwts;
@@ -17,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j(topic = "JwtUtil")
 @Component
-public class JwtUtil {
+public class JwtUtil implements JwtProvider {
 	public static final String AUTHORIZATION_HEADER = "Authorization";
 	public static final String BEARER_PREFIX = "Bearer ";
 	public static final String AUTHORIZATION_KEY = "auth";
@@ -36,11 +37,12 @@ public class JwtUtil {
 	}
 
 	//토큰 생성
+	@Override
 	public String createAccessToken(Long userId, Role role) {
 		Date now = new Date();
 		return BEARER_PREFIX +
 			Jwts.builder()
-				.claim("user_id", userId)
+				.claim("user-id", userId)
 				.claim(AUTHORIZATION_KEY, role)
 				.expiration(new Date(now.getTime() + ACCESS_TOKEN_TIME))
 				.issuedAt(now)
