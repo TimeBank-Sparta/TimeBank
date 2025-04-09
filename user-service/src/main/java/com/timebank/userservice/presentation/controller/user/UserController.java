@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.timebank.userservice.application.dto.request.UserUpdateRequestDto;
-import com.timebank.userservice.application.dto.response.UserResponseDto;
+import com.timebank.userservice.application.dto.request.user.UserUpdateRequestDto;
+import com.timebank.userservice.application.dto.response.user.UserResponseDto;
 import com.timebank.userservice.application.service.user.UserService;
 
 import lombok.RequiredArgsConstructor;
