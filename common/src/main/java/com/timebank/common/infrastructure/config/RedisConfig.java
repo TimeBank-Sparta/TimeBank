@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.CacheKeyPrefix;
@@ -32,11 +31,11 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @EnableRedisRepositories
 public class RedisConfig {
 
-	@Value("${spring.data.redis.host}")
-	private String host;
+	// @Value("${spring.data.redis.host}")
+	private String host = "redis";
 
-	@Value("${spring.data.redis.port}")
-	private int port;
+	// @Value("${spring.data.redis.port}")
+	private int port = 1234;
 
 	@Bean
 	public RedisConnectionFactory redisConnectionFactory() {
