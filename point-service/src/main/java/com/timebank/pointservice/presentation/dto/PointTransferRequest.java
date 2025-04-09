@@ -10,13 +10,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PointTransferRequest {
-	private Long senderAccountId;
-	private Long receiverAccountId;
+	private Long senderUserId;
+	private Long receiverUserId;
 	private Integer amount;
 	private String reason;
 
 	public PointTransferCommand toCommand() {
-		return new PointTransferCommand(senderAccountId, receiverAccountId, amount, reason);
+		return new PointTransferCommand(senderUserId, receiverUserId, amount, reason);
 	}
 
 }

@@ -10,6 +10,8 @@ import com.timebank.pointservice.domain.entity.PointAccount;
 import com.timebank.pointservice.domain.entity.PointTransaction;
 import com.timebank.pointservice.domain.repository.PointAccountRepository;
 import com.timebank.pointservice.domain.repository.PointTransactionRepository;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,6 +21,7 @@ public class PointService {
 
 	private final PointAccountRepository pointAccountRepository;
 	private final PointTransactionRepository pointTransactionRepository;
+	private final MeterRegistry meterRegistry;
 
 	// 계정 생성
 	public PointAccount createAccount(Long userId) {
@@ -123,54 +126,132 @@ public class PointService {
 	// ✅ 즉시 송금 처리: 보류 없이 바로 이동 (ex. 선물하기, 즉시 결제 등)
 	@Transactional
 	public void transferPoints(PointTransferCommand command) {
-		Long senderUserId = command.getSenderUserId();
-		Long receiverUserId = command.getReceiverUserId();
-		int amount = command.getAmount();
-		String reason = command.getReason();
+		Timer.Sample sample = Timer.start(meterRegistry); // ⏱ 시작
 
-		if (amount <= 0) {
-			throw new IllegalArgumentException("보낼 포인트는 1 이상이어야 합니다.");
+		try {
+			Long senderUserId = command.getSenderUserId();
+			Long receiverUserId = command.getReceiverUserId();
+			int amount = command.getAmount();
+			String reason = command.getReason();
+
+			if (amount <= 0) {
+				meterRegistry.counter("point.transfer.failure", "reason", "amount_le_zero").increment();
+				throw new IllegalArgumentException("보낼 포인트는 1 이상이어야 합니다.");
+			}
+
+			Long firstUserId = Math.min(senderUserId, receiverUserId);
+			Long secondUserId = Math.max(senderUserId, receiverUserId);
+
+			PointAccount firstAccount = pointAccountRepository.findByUserIdForUpdate(firstUserId)
+				.orElseThrow(() -> new NoSuchElementException("계좌를 찾을 수 없습니다. userId=" + firstUserId));
+			PointAccount secondAccount = pointAccountRepository.findByUserIdForUpdate(secondUserId)
+				.orElseThrow(() -> new NoSuchElementException("계좌를 찾을 수 없습니다. userId=" + secondUserId));
+
+			PointAccount sender = senderUserId.equals(firstUserId) ? firstAccount : secondAccount;
+			PointAccount receiver = receiverUserId.equals(firstUserId) ? firstAccount : secondAccount;
+
+			if (sender.getAvailablePoints() < amount) {
+				meterRegistry.counter("point.transfer.failure", "reason", "insufficient").increment();
+				throw new IllegalArgumentException("송신자의 사용 가능 포인트가 부족합니다.");
+			}
+
+			sender.setAvailablePoints(sender.getAvailablePoints() - amount);
+			receiver.setAvailablePoints(receiver.getAvailablePoints() + amount);
+
+			PointTransaction sendTx = PointTransaction.builder()
+				.account(sender)
+				.amount(-amount)
+				.transactionReason("Send: " + reason)
+				.build();
+
+			PointTransaction receiveTx = PointTransaction.builder()
+				.account(receiver)
+				.amount(amount)
+				.transactionReason("Receive: " + reason)
+				.relatedTransaction(sendTx)
+				.build();
+
+			pointTransactionRepository.save(sendTx);
+			pointTransactionRepository.save(receiveTx);
+
+			sender.getPointTransactions().add(sendTx);
+			receiver.getPointTransactions().add(receiveTx);
+
+			meterRegistry.counter("point.transfer.success", "topic", "p1").increment(); // ✅ 성공 카운터
+
+		} catch (Exception e) {
+			meterRegistry.counter("point.transfer.failure", "reason", "exception").increment(); // ✅ 실패 카운터
+			throw e;
+
+		} finally {
+			sample.stop(meterRegistry.timer("point.transfer.latency", "topic", "p1")); // ✅ 처리 시간 기록
 		}
-
-		// 항상 동일한 순서로 락 획득 → 데드락 방지
-		Long firstUserId = Math.min(senderUserId, receiverUserId);
-		Long secondUserId = Math.max(senderUserId, receiverUserId);
-
-		PointAccount firstAccount = pointAccountRepository.findByUserIdForUpdate(firstUserId)
-			.orElseThrow(() -> new NoSuchElementException("계좌를 찾을 수 없습니다. userId=" + firstUserId));
-
-		PointAccount secondAccount = pointAccountRepository.findByUserIdForUpdate(secondUserId)
-			.orElseThrow(() -> new NoSuchElementException("계좌를 찾을 수 없습니다. userId=" + secondUserId));
-
-		PointAccount sender = senderUserId.equals(firstUserId) ? firstAccount : secondAccount;
-		PointAccount receiver = receiverUserId.equals(firstUserId) ? firstAccount : secondAccount;
-
-		// 바로 차감 및 지급
-		if (sender.getAvailablePoints() < amount) {
-			throw new IllegalArgumentException("송신자의 사용 가능 포인트가 부족합니다.");
-		}
-		sender.setAvailablePoints(sender.getAvailablePoints() - amount);
-		receiver.setAvailablePoints(receiver.getAvailablePoints() + amount);
-
-		// 거래 내역 저장
-		PointTransaction sendTx = PointTransaction.builder()
-			.account(sender)
-			.amount(-amount)
-			.transactionReason("Send: " + reason)
-			.build();
-
-		PointTransaction receiveTx = PointTransaction.builder()
-			.account(receiver)
-			.amount(amount)
-			.transactionReason("Receive: " + reason)
-			.relatedTransaction(sendTx)
-			.build();
-
-		pointTransactionRepository.save(sendTx);
-		pointTransactionRepository.save(receiveTx);
-
-		sender.getPointTransactions().add(sendTx);
-		receiver.getPointTransactions().add(receiveTx);
 	}
+
+	// ✅ 즉시 송금 처리: 보류 없이 바로 이동 (ex. 선물하기, 즉시 결제 등)
+	@Transactional
+	public void transferPointsP4(PointTransferCommand command) {
+		Timer.Sample sample = Timer.start(meterRegistry); // ⏱ 시작
+
+		try {
+			Long senderUserId = command.getSenderUserId();
+			Long receiverUserId = command.getReceiverUserId();
+			int amount = command.getAmount();
+			String reason = command.getReason();
+
+			if (amount <= 0) {
+				meterRegistry.counter("point.transfer.failure", "reason", "amount_le_zero").increment();
+				throw new IllegalArgumentException("보낼 포인트는 1 이상이어야 합니다.");
+			}
+
+			Long firstUserId = Math.min(senderUserId, receiverUserId);
+			Long secondUserId = Math.max(senderUserId, receiverUserId);
+
+			PointAccount firstAccount = pointAccountRepository.findByUserIdForUpdate(firstUserId)
+				.orElseThrow(() -> new NoSuchElementException("계좌를 찾을 수 없습니다. userId=" + firstUserId));
+			PointAccount secondAccount = pointAccountRepository.findByUserIdForUpdate(secondUserId)
+				.orElseThrow(() -> new NoSuchElementException("계좌를 찾을 수 없습니다. userId=" + secondUserId));
+
+			PointAccount sender = senderUserId.equals(firstUserId) ? firstAccount : secondAccount;
+			PointAccount receiver = receiverUserId.equals(firstUserId) ? firstAccount : secondAccount;
+
+			if (sender.getAvailablePoints() < amount) {
+				meterRegistry.counter("point.transfer.failure", "reason", "insufficient").increment();
+				throw new IllegalArgumentException("송신자의 사용 가능 포인트가 부족합니다.");
+			}
+
+			sender.setAvailablePoints(sender.getAvailablePoints() - amount);
+			receiver.setAvailablePoints(receiver.getAvailablePoints() + amount);
+
+			PointTransaction sendTx = PointTransaction.builder()
+				.account(sender)
+				.amount(-amount)
+				.transactionReason("Send: " + reason)
+				.build();
+
+			PointTransaction receiveTx = PointTransaction.builder()
+				.account(receiver)
+				.amount(amount)
+				.transactionReason("Receive: " + reason)
+				.relatedTransaction(sendTx)
+				.build();
+
+			pointTransactionRepository.save(sendTx);
+			pointTransactionRepository.save(receiveTx);
+
+			sender.getPointTransactions().add(sendTx);
+			receiver.getPointTransactions().add(receiveTx);
+
+			meterRegistry.counter("point.transfer.success", "topic", "p4").increment(); // ✅ 성공 카운터
+
+		} catch (Exception e) {
+			meterRegistry.counter("point.transfer.failure", "reason", "exception").increment(); // ✅ 실패 카운터
+			throw e;
+
+		} finally {
+			sample.stop(meterRegistry.timer("point.transfer.latency", "topic", "p4")); // ✅ 처리 시간 기록
+		}
+	}
+
 
 }

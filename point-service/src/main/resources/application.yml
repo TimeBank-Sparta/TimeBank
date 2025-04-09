@@ -32,3 +32,14 @@ points:
     hold:
       cancel: points.hold.cancel            # 보류 취소
       confirm: points.hold.confirm          # 보류 확정 (거래 확정)
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
