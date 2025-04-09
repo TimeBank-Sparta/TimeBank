@@ -1,4 +1,4 @@
-package com.timebank.userservice.application.dto.response;
+package com.timebank.userservice.application.dto.response.auth;
 
 import com.timebank.userservice.domain.model.user.Role;
 

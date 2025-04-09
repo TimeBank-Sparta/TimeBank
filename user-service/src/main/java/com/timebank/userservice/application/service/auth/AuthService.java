@@ -3,9 +3,9 @@ package com.timebank.userservice.application.service.auth;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.timebank.userservice.application.dto.request.LoginRequestDto;
-import com.timebank.userservice.application.dto.request.SignUpRequestDto;
-import com.timebank.userservice.application.dto.response.LoginResponseDto;
+import com.timebank.userservice.application.dto.request.auth.LoginRequestDto;
+import com.timebank.userservice.application.dto.request.auth.SignUpRequestDto;
+import com.timebank.userservice.application.dto.response.auth.LoginResponseDto;
 import com.timebank.userservice.domain.jwt.JwtProvider;
 import com.timebank.userservice.domain.model.user.Role;
 import com.timebank.userservice.domain.model.user.User;

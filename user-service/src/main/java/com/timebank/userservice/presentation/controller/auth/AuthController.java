@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.timebank.userservice.application.dto.request.LoginRequestDto;
-import com.timebank.userservice.application.dto.request.SignUpRequestDto;
-import com.timebank.userservice.application.dto.response.LoginResponseDto;
+import com.timebank.userservice.application.dto.request.auth.LoginRequestDto;
+import com.timebank.userservice.application.dto.request.auth.SignUpRequestDto;
+import com.timebank.userservice.application.dto.response.auth.LoginResponseDto;
 import com.timebank.userservice.application.service.auth.AuthService;
 
 import jakarta.validation.Valid;
