@@ -21,15 +21,16 @@ configurations {
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
-
 ext {
-    set('springCloudVersion', "2024.0.1")
+    set('springCloudVersion', "2024.0.0")
+    snippetsDir = file('build/generated-snippets')
 }
 
 dependencies {
     //공통모듈
-//    implementation 'com.timebank:common:0.0.1-SNAPSHOT'
+    implementation 'com.timebank:common:0.0.1-SNAPSHOT'
     //jwt
     implementation 'io.jsonwebtoken:jjwt:0.12.6'
     //feignClient

@@ -21,13 +21,16 @@ configurations {
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
-
 ext {
-    set('springCloudVersion', "2024.0.1")
+    set('springCloudVersion', "2024.0.0")
+    snippetsDir = file('build/generated-snippets')
 }
 
 dependencies {
+    //공통모듈
+    implementation 'com.timebank:common:0.0.1-SNAPSHOT'
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     runtimeOnly 'com.mysql:mysql-connector-j'
