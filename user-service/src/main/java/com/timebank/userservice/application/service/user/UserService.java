@@ -1,11 +1,13 @@
 package com.timebank.userservice.application.service.user;
 
+import static org.springframework.util.StringUtils.*;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.timebank.userservice.application.dto.request.UserUpdateRequestDto;
-import com.timebank.userservice.application.dto.response.UserResponseDto;
+import com.timebank.userservice.application.dto.request.user.UserUpdateRequestDto;
+import com.timebank.userservice.application.dto.response.user.UserResponseDto;
 import com.timebank.userservice.domain.model.user.User;
 import com.timebank.userservice.domain.repository.user.UserRepository;
 
@@ -33,9 +35,21 @@ public class UserService {
 			throw new IllegalArgumentException("동일 회원이 아닙니다.");
 		}
 
-		String password = passwordEncoder.encode(requestDto.getPassword());
+		boolean allFieldsEmpty =
+			!hasText(requestDto.getPassword()) &&
+				!hasText(requestDto.getEmail()) &&
+				!hasText(requestDto.getPhoneNumber());
 
-		user.updateUser(password, requestDto.getEmail(), requestDto.getPhoneNumber());
+		if (allFieldsEmpty) {
+			throw new IllegalArgumentException("수정할 내용이 없습니다.");
+		}
+
+		String encodedPassword =
+			(requestDto.getPassword() != null && !requestDto.getPassword().isEmpty())
+				? passwordEncoder.encode(requestDto.getPassword())
+				: null;
+
+		user.updateUser(encodedPassword, requestDto.getEmail(), requestDto.getPhoneNumber());
 
 		return UserResponseDto.from(user);
 	}
