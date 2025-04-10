@@ -1,5 +1,6 @@
 package com.timebank.helpservice.helper.domain.model;
 
+import com.timebank.common.domain.Timestamped;
 import com.timebank.helpservice.helper.domain.ApplicantStatus;
 import com.timebank.helpservice.helper.domain.vo.HelperInfo;
 
@@ -12,16 +13,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-@EqualsAndHashCode(of = "userId")
 @Entity
 @Table(name = "p_helper")
-public class Helper {
+public class Helper extends Timestamped {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;

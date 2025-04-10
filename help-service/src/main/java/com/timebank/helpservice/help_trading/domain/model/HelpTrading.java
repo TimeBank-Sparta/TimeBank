@@ -2,6 +2,7 @@ package com.timebank.helpservice.help_trading.domain.model;
 
 import java.time.LocalDateTime;
 
+import com.timebank.common.domain.Timestamped;
 import com.timebank.helpservice.help_trading.domain.TradeStatus;
 import com.timebank.helpservice.help_trading.domain.vo.HelpTradingInfo;
 
@@ -19,7 +20,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Entity
 @Table(name = "p_help_trading")
-public class HelpTrading {
+public class HelpTrading extends Timestamped {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
