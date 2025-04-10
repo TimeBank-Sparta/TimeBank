@@ -3,6 +3,7 @@ package com.timebank.helpservice.help_request.presentation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -32,49 +33,58 @@ public class HelpRequestController {
 	private final HelpRequestService helpRequestService;
 
 	@PostMapping
-	public ResponseDto<CreateHelpRequestResponse> createHelpRequest(
+	public ResponseEntity<ResponseDto<CreateHelpRequestResponse>> createHelpRequest(
 		@RequestBody CreateHelpRequest requestDto
 	) {
-		return new ResponseDto<>(HttpStatus.CREATED, helpRequestService.createHelpRequest(requestDto.toCommand()));
+		return ResponseEntity.ok(new ResponseDto<>(HttpStatus.CREATED,
+			helpRequestService.createHelpRequest(requestDto.toCommand())));
 	}
 
 	@GetMapping("/{helpRequestId}")
-	public ResponseDto<HelpRequestResponse> findByHelpRequestId(
+	public ResponseEntity<ResponseDto<HelpRequestResponse>> findByHelpRequestId(
 		@PathVariable Long helpRequestId
 	) {
-		return ResponseDto.success(helpRequestService.findById(helpRequestId));
+		return ResponseEntity.ok(ResponseDto.success(
+			helpRequestService.findById(helpRequestId)));
 	}
 
 	@GetMapping("/search")
-	public PageResponseDto<HelpRequestResponse> searchHelpRequest(
+	public ResponseEntity<PageResponseDto<HelpRequestResponse>> searchHelpRequest(
 		SearchHelpRequest request,
 		Pageable pageable
 	) {
-		Page<HelpRequestResponse> helpRequestResponses = helpRequestService.searchHelpRequest(request, pageable);
-		return new PageResponseDto<>(HttpStatus.OK, helpRequestResponses, "조회 완료");
+		Page<HelpRequestResponse> helpRequestResponses =
+			helpRequestService.searchHelpRequest(request, pageable);
+
+		return ResponseEntity.ok(new PageResponseDto<>(
+			HttpStatus.OK, helpRequestResponses, "조회 완료"));
 	}
 
 	@PatchMapping("/{helpRequestId}")
-	public ResponseDto<UpdateHelpRequestResponse> updateHelpRequest(
+	public ResponseEntity<ResponseDto<UpdateHelpRequestResponse>> updateHelpRequest(
 		@RequestBody UpdateHelpRequest requestDto,
 		@PathVariable Long helpRequestId
 	) {
-		return ResponseDto.success(helpRequestService.updateHelpRequest(requestDto.toCommand(), helpRequestId));
+		return ResponseEntity.ok(ResponseDto.success(
+			helpRequestService.updateHelpRequest(requestDto.toCommand(), helpRequestId)));
 	}
 
 	@PatchMapping("/{helpRequestId}/complete")
-	public ResponseDto<UpdateHelpRequestResponse> completeHelpRequest(
+	public ResponseEntity<ResponseDto<UpdateHelpRequestResponse>> completeHelpRequest(
 		@PathVariable Long helpRequestId
 	) {
-		return ResponseDto.success(helpRequestService.completeHelpRequest(helpRequestId));
+		return ResponseEntity.ok(ResponseDto.success(
+			helpRequestService.completeHelpRequest(helpRequestId)));
 	}
 
 	@DeleteMapping("/{helpRequestId}")
-	public ResponseDto<Void> deleteHelpRequest(
+	public ResponseEntity<ResponseDto<Void>> deleteHelpRequest(
 		@PathVariable Long helpRequestId
 	) {
 		helpRequestService.deleteHelpRequest(helpRequestId);
-		return ResponseDto.responseWithNoData(HttpStatus.NO_CONTENT, "삭제완료");
+
+		return ResponseEntity.ok(ResponseDto.responseWithNoData(
+			HttpStatus.NO_CONTENT, "삭제완료"));
 	}
 
 }
