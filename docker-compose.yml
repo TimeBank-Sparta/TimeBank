@@ -46,6 +46,7 @@ services:
       - config-server
     networks:
       - msanet
+    command: sh -c "./wait-for-it.sh config-server:8888 --timeout=15 -- ./wait-for-it.sh eureka:8761 --timeout=15 -- java -jar gateway.jar"
 
   #  auth-service:
   #    build:
