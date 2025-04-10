@@ -33,6 +33,7 @@ dependencies {
 
     // ✅ 공통 모듈
     implementation 'com.timebank:common:0.0.1-SNAPSHOT'
+    implementation 'org.springframework.kafka:spring-kafka'
 
     runtimeOnly 'com.mysql:mysql-connector-j'
     compileOnly 'org.projectlombok:lombok'
