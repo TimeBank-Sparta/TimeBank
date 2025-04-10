@@ -4,13 +4,13 @@ FROM gradle:7.6-jdk17 as builder
 WORKDIR /app
 
 WORKDIR /app
-COPY config /app/config/
-WORKDIR /app/config
+COPY config-server /app/config-server/
+WORKDIR /app/config-server
 RUN gradle clean bootJar -x test
 
 EXPOSE 8888
 
 # 최종 실행 이미지 설정
 FROM eclipse-temurin:17-jre
-COPY --from=builder /app/config/build/libs/*.jar /app/app.jar
+COPY --from=builder /app/config-server/build/libs/*.jar /app/app.jar
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

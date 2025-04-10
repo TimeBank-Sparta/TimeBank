@@ -19,4 +19,7 @@ public class NotificationService {
 
 	public void deleteNotification(Long notificationId) {
 	}
+
+	public List<NotificationDto> getNotificationsByUser(Long userId) {
+	}
 }

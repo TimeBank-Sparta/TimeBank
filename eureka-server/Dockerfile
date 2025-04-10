@@ -12,11 +12,11 @@ RUN gradle clean build publishToMavenLocal -x test
 
 # order 모듈 복사 및 빌드
 WORKDIR /app
-COPY eureka /app/eureka/
-WORKDIR /app/eureka
+COPY eureka-server /app/eureka-server/
+WORKDIR /app/eureka-server
 RUN gradle clean bootJar -x test
 
 # 최종 실행 이미지 설정
 FROM eclipse-temurin:17-jre
-COPY --from=builder /app/eureka/build/libs/*.jar /app/app.jar
+COPY --from=builder /app/eureka-server/build/libs/*.jar /app/app.jar
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

@@ -50,6 +50,18 @@ public class NotificationController {
 	}
 
 	/**
+	 * 특정 사용자의 알림 조회
+	 * GET /api/v1/users/{userId}/notifications
+	 */
+	@GetMapping
+	public ResponseEntity<ResponseDto<List<NotificationDto>>> getUserNotifications(
+		@PathVariable Long userId) {
+		List<NotificationDto> notifications = notificationService.getNotificationsByUser(userId);
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ResponseDto.success(HttpStatus.OK, notifications));
+	}
+
+	/**
 	 * 알림 상태 업데이트 (읽음 처리)
 	 * PATCH /api/v1/notifications/{notificationId}/read
 	 */

@@ -2,12 +2,17 @@ services:
   config-server:
     build:
       context: .
-      dockerfile: config/Dockerfile
+      dockerfile: config-server/Dockerfile
     container_name: config-server
     ports:
       - "8888:8888"
+    environment:
+      # 내부 네트워크에서 Eureka 서버 접근을 위해 서비스명 사용
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
     env_file:
       - .env
+    depends_on:
+      - eureka-server
     networks:
       - msanet
 
@@ -21,27 +26,24 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8761
-      - spring.cloud.config.uri=http://config-server:8888
-    depends_on:
-      - config-server
     networks:
       - msanet
 
   gateway-service:
     build:
       context: .
-      dockerfile: gateway/Dockerfile
+      dockerfile: gateway-service/Dockerfile
     container_name: gateway-service
     ports:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
-      - spring.cloud.config.uri=http://config-server:8888
       # 내부 네트워크에서 Eureka 서버 접근을 위해 서비스명 사용
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
     depends_on:
       - eureka-server
+      - config-server
     networks:
       - msanet
 
@@ -63,56 +65,56 @@ services:
   #    networks:
   #      - msanet
 
-  # Kafka 및 Zookeeper 추가
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.3.2
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-        - spring.cloud.config.uri=http://config-server:8888
-    ports:
-      - "2181:2181"
-    networks:
-      - msanet
-
-  kafka:
-    image: confluentinc/cp-kafka:7.3.2
-    container_name: kafka
-    depends_on:
-      - zookeeper
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-        - spring.cloud.config.uri=http://config-server:8888
-    networks:
-      - msanet
-
-  redis:
-    image: redis:7
-    container_name: redis
-    ports:
-      - "6379:6379"
-    environment:
-      - spring.cloud.config.uri=http://config-server:8888
-    networks:
-      - msanet
-
-  zipkin:
-    image: openzipkin/zipkin
-    container_name: zipkin
-    ports:
-      - "9411:9411"
-    environment:
-      - spring.cloud.config.uri=http://config-server:8888
-    networks:
-      - msanet
+#  # Kafka 및 Zookeeper 추가
+#  zookeeper:
+#    image: confluentinc/cp-zookeeper:7.3.2
+#    container_name: zookeeper
+#    environment:
+#      ZOOKEEPER_CLIENT_PORT: 2181
+#      ZOOKEEPER_TICK_TIME: 2000
+#        - spring.cloud.config.uri=http://config-server:8888
+#    ports:
+#      - "2181:2181"
+#    networks:
+#      - msanet
+#
+#  kafka:
+#    image: confluentinc/cp-kafka:7.3.2
+#    container_name: kafka
+#    depends_on:
+#      - zookeeper
+#    ports:
+#      - "9092:9092"
+#    environment:
+#      KAFKA_BROKER_ID: 1
+#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+#      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#        - spring.cloud.config.uri=http://config-server:8888
+#    networks:
+#      - msanet
+#
+#  redis:
+#    image: redis:7
+#    container_name: redis
+#    ports:
+#      - "6379:6379"
+#    environment:
+#      - spring.cloud.config.uri=http://config-server:8888
+#    networks:
+#      - msanet
+#
+#  zipkin:
+#    image: openzipkin/zipkin
+#    container_name: zipkin
+#    ports:
+#      - "9411:9411"
+#    environment:
+#      - spring.cloud.config.uri=http://config-server:8888
+#    networks:
+#      - msanet
 
 networks:
   msanet:
