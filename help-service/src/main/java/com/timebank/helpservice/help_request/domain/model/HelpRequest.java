@@ -1,15 +1,11 @@
-package com.timebank.helpservice.domain.model;
+package com.timebank.helpservice.help_request.domain.model;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
-import com.timebank.helpservice.domain.PostStatus;
-import com.timebank.helpservice.domain.vo.HelpRequestInfo;
+import com.timebank.common.domain.Timestamped;
+import com.timebank.helpservice.help_request.domain.PostStatus;
+import com.timebank.helpservice.help_request.domain.vo.HelpRequestInfo;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -17,7 +13,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -31,11 +26,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @Entity
 @Table(name = "p_help_request")
-public class HelpRequest {
+public class HelpRequest extends Timestamped {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "help_request_id")
 	private Long id;
+
+	private Long requesterId;
 
 	private String title;
 
@@ -53,12 +50,6 @@ public class HelpRequest {
 
 	@Enumerated(EnumType.STRING)
 	private PostStatus postStatus;
-
-	@OneToMany(mappedBy = "helpRequest", cascade = CascadeType.ALL, orphanRemoval = true)
-	private Set<Helper> helperSet = new HashSet<>();
-
-	@OneToMany(mappedBy = "helpRequest", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<HelpTrading> helpTradingList = new ArrayList<>();
 
 	@Builder(builderMethodName = "helpRequestOnlyBuilder")
 	public HelpRequest(
@@ -81,7 +72,7 @@ public class HelpRequest {
 		this.postStatus = postStatus;
 	}
 
-	public static HelpRequest createOf(HelpRequestInfo helpRequestInfo) {
+	public static HelpRequest createFrom(HelpRequestInfo helpRequestInfo) {
 		return HelpRequest.helpRequestOnlyBuilder()
 			.title(helpRequestInfo.title())
 			.content(helpRequestInfo.content())
@@ -90,7 +81,7 @@ public class HelpRequest {
 			.requiredTime(helpRequestInfo.requiredTime())
 			.requestedPoint(helpRequestInfo.requestedPoint())
 			.recruitmentCount(helpRequestInfo.recruitmentCount())
-			.postStatus(PostStatus.OPEN)
+			.postStatus(PostStatus.IN_PROGRESS)
 			.build();
 	}
 
@@ -105,13 +96,7 @@ public class HelpRequest {
 		this.postStatus = helpRequestInfo.postStatus();
 	}
 
-	public void addHelper(Helper helper) {
-		this.helperSet.add(helper);
-		helper.addHelpRequest(this);
-	}
-
-	public void addHelpTrading(HelpTrading helpTrading) {
-		this.helpTradingList.add(helpTrading);
-		helpTrading.addHelpRequest(this);
+	public void completePostStatus() {
+		this.postStatus = PostStatus.COMPLETED;
 	}
 }

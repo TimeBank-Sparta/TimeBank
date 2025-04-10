@@ -1,14 +1,14 @@
-package com.timebank.helpservice.presentation.dto.response;
+package com.timebank.helpservice.help_request.application.dto.response;
 
 import java.time.LocalDateTime;
 
-import com.timebank.helpservice.domain.PostStatus;
-import com.timebank.helpservice.domain.model.HelpRequest;
+import com.timebank.helpservice.help_request.domain.PostStatus;
+import com.timebank.helpservice.help_request.domain.model.HelpRequest;
 
 import lombok.Builder;
 
 @Builder
-public record CreateHelpResponseDto(
+public record HelpRequestResponse(
 	Long helpRequestId,
 	String title,
 	String content,
@@ -19,8 +19,8 @@ public record CreateHelpResponseDto(
 	int recruitmentCount,
 	PostStatus postStatus
 ) {
-	public static CreateHelpResponseDto from(HelpRequest helpRequest) {
-		return CreateHelpResponseDto.builder()
+	public static HelpRequestResponse from(HelpRequest helpRequest) {
+		return HelpRequestResponse.builder()
 			.helpRequestId(helpRequest.getId())
 			.title(helpRequest.getTitle())
 			.content(helpRequest.getContent())
