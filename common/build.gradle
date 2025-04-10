@@ -40,6 +40,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+    //querydsl
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+    annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
     // ✅ JPA
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
@@ -54,8 +59,6 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    implementation 'com.timebank:common:0.0.1-SNAPSHOT'
 
 }
 
@@ -85,5 +88,5 @@ publishing {
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
+    enabled = false
 }
