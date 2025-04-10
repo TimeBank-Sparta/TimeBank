@@ -1,6 +1,8 @@
 package com.timebank.helpservice.help_request.presentation;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -10,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.timebank.common.application.dto.PageResponseDto;
+import com.timebank.common.application.dto.ResponseDto;
 import com.timebank.helpservice.help_request.application.dto.response.CreateHelpRequestResponse;
 import com.timebank.helpservice.help_request.application.dto.response.HelpRequestResponse;
 import com.timebank.helpservice.help_request.application.dto.response.UpdateHelpRequestResponse;
@@ -17,7 +21,6 @@ import com.timebank.helpservice.help_request.application.service.HelpRequestServ
 import com.timebank.helpservice.help_request.presentation.dto.request.CreateHelpRequest;
 import com.timebank.helpservice.help_request.presentation.dto.request.SearchHelpRequest;
 import com.timebank.helpservice.help_request.presentation.dto.request.UpdateHelpRequest;
-import com.timebank.helpservice.help_request.presentation.dto.response.PageResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,48 +32,49 @@ public class HelpRequestController {
 	private final HelpRequestService helpRequestService;
 
 	@PostMapping
-	public CreateHelpRequestResponse createHelpRequest(
+	public ResponseDto<CreateHelpRequestResponse> createHelpRequest(
 		@RequestBody CreateHelpRequest requestDto
 	) {
-		return helpRequestService.createHelpRequest(requestDto.toCommand());
+		return new ResponseDto<>(HttpStatus.CREATED, helpRequestService.createHelpRequest(requestDto.toCommand()));
 	}
 
 	@GetMapping("/{helpRequestId}")
-	public HelpRequestResponse findByHelpRequestId(
+	public ResponseDto<HelpRequestResponse> findByHelpRequestId(
 		@PathVariable Long helpRequestId
 	) {
-		return helpRequestService.findById(helpRequestId);
+		return ResponseDto.success(helpRequestService.findById(helpRequestId));
 	}
 
 	@GetMapping("/search")
-	public PageResponse<HelpRequestResponse> searchHelpRequest(
+	public PageResponseDto<HelpRequestResponse> searchHelpRequest(
 		SearchHelpRequest request,
 		Pageable pageable
 	) {
-		return PageResponse.from(helpRequestService.searchHelpRequest(request, pageable));
+		Page<HelpRequestResponse> helpRequestResponses = helpRequestService.searchHelpRequest(request, pageable);
+		return new PageResponseDto<>(HttpStatus.OK, helpRequestResponses, "조회 완료");
 	}
 
 	@PatchMapping("/{helpRequestId}")
-	public UpdateHelpRequestResponse updateHelpRequest(
+	public ResponseDto<UpdateHelpRequestResponse> updateHelpRequest(
 		@RequestBody UpdateHelpRequest requestDto,
 		@PathVariable Long helpRequestId
 	) {
-		return helpRequestService.updateHelpRequest(requestDto.toCommand(), helpRequestId);
+		return ResponseDto.success(helpRequestService.updateHelpRequest(requestDto.toCommand(), helpRequestId));
 	}
 
 	@PatchMapping("/{helpRequestId}/complete")
-	public UpdateHelpRequestResponse completeHelpRequest(
+	public ResponseDto<UpdateHelpRequestResponse> completeHelpRequest(
 		@PathVariable Long helpRequestId
 	) {
-		return helpRequestService.completeHelpRequest(helpRequestId);
+		return ResponseDto.success(helpRequestService.completeHelpRequest(helpRequestId));
 	}
 
 	@DeleteMapping("/{helpRequestId}")
-	public String deleteHelpRequest(
+	public ResponseDto<Void> deleteHelpRequest(
 		@PathVariable Long helpRequestId
 	) {
 		helpRequestService.deleteHelpRequest(helpRequestId);
-		return "deleted";
+		return ResponseDto.responseWithNoData(HttpStatus.NO_CONTENT, "삭제완료");
 	}
 
 }
