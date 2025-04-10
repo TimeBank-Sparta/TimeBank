@@ -10,6 +10,7 @@ import com.timebank.notification_service.application.dto.NotificationDto;
 import com.timebank.notification_service.domain.entity.Notification;
 import com.timebank.notification_service.domain.repository.NotificationRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -28,13 +29,13 @@ public class NotificationService {
 
 	public NotificationDto getNotification(Long notificationId) {
 		Notification notification = notificationRepository.findById(notificationId)
-			.orElseThrow(() -> new RuntimeException("Notification not found with id: " + notificationId));
+			.orElseThrow(() -> new EntityNotFoundException("Notification not found with id: " + notificationId));
 		return NotificationDto.fromEntity(notification);
 	}
 
 	public NotificationDto markAsRead(Long notificationId) {
 		Notification notification = notificationRepository.findById(notificationId)
-			.orElseThrow(() -> new RuntimeException("Notification not found with id: " + notificationId));
+			.orElseThrow(() -> new EntityNotFoundException("Notification not found with id: " + notificationId));
 		notification.setIsRead(true);
 		notification = notificationRepository.save(notification);
 		return NotificationDto.fromEntity(notification);
@@ -42,7 +43,7 @@ public class NotificationService {
 
 	public void deleteNotification(Long notificationId) {
 		if (!notificationRepository.existsById(notificationId)) {
-			throw new RuntimeException("Notification not found with id: " + notificationId);
+			throw new EntityNotFoundException("Notification not found with id: " + notificationId);
 		}
 		notificationRepository.deleteById(notificationId);
 	}

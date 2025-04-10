@@ -10,6 +10,7 @@ import com.timebank.review.application.dto.ReviewDto;
 import com.timebank.review.domain.entity.Review;
 import com.timebank.review.domain.repository.ReviewRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -33,7 +34,7 @@ public class ReviewService {
 
 	public ReviewDto getReview(Long reviewId) {
 		Review review = reviewRepository.findById(reviewId)
-			.orElseThrow(() -> new RuntimeException("Review not found with id: " + reviewId));
+			.orElseThrow(() -> new EntityNotFoundException("Review not found with id: " + reviewId));
 		return ReviewDto.fromEntity(review);
 	}
 
@@ -57,7 +58,7 @@ public class ReviewService {
 
 	public ReviewDto updateReview(Long reviewId, ReviewDto reviewDto) {
 		Review review = reviewRepository.findById(reviewId)
-			.orElseThrow(() -> new RuntimeException("Review not found with id: " + reviewId));
+			.orElseThrow(() -> new EntityNotFoundException("Review not found with id: " + reviewId));
 		// 업데이트할 필드만 수정 (평점, 코멘트 등)
 		review.setRating(reviewDto.getRating());
 		review.setComment(reviewDto.getComment());
@@ -67,7 +68,7 @@ public class ReviewService {
 
 	public void deleteReview(Long reviewId) {
 		if (!reviewRepository.existsById(reviewId)) {
-			throw new RuntimeException("Review not found with id: " + reviewId);
+			throw new EntityNotFoundException("Review not found with id: " + reviewId);
 		}
 		reviewRepository.deleteById(reviewId);
 	}
