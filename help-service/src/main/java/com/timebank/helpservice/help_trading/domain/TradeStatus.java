@@ -1,4 +1,4 @@
-package com.timebank.helpservice.domain;
+package com.timebank.helpservice.help_trading.domain;
 
 public enum TradeStatus {
 	IN_PROGRESS,
