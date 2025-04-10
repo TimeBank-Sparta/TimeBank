@@ -1,7 +1,5 @@
 package com.timebank.notification_service.application.dto;
 
-import java.time.LocalDateTime;
-
 import com.timebank.notification_service.domain.entity.Notification;
 import com.timebank.notification_service.domain.entity.NotificationType;
 
@@ -21,7 +19,6 @@ public class NotificationDto {
 	private NotificationType notificationType;
 	private String message;
 	private Boolean isRead;
-	private LocalDateTime sentAt;
 
 	public static NotificationDto fromEntity(Notification notification) {
 		return new NotificationDto(
@@ -30,8 +27,7 @@ public class NotificationDto {
 			notification.getSenderId(),
 			notification.getNotificationType(),
 			notification.getMessage(),
-			notification.getIsRead(),
-			notification.getSentAt()
+			notification.getIsRead()
 		);
 	}
 
