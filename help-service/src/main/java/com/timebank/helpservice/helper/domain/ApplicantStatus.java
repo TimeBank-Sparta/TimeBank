@@ -1,4 +1,4 @@
-package com.timebank.helpservice.domain;
+package com.timebank.helpservice.helper.domain;
 
 public enum ApplicantStatus {
 	SUPPORTED,

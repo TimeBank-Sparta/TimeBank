@@ -1,17 +1,15 @@
-package com.timebank.helpservice.domain.model;
+package com.timebank.helpservice.helper.domain.model;
 
-import com.timebank.helpservice.domain.ApplicantStatus;
+import com.timebank.helpservice.helper.domain.ApplicantStatus;
+import com.timebank.helpservice.helper.domain.vo.HelperInfo;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -28,9 +26,8 @@ public class Helper {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "help_request_id")
-	private HelpRequest helpRequest;
+	@Column(nullable = false)
+	private Long helpRequestId;
 
 	@Column(nullable = false)
 	private Long userId;
@@ -39,13 +36,21 @@ public class Helper {
 	private ApplicantStatus applicantStatus;
 
 	@Builder
-	public Helper(Long userId, ApplicantStatus applicantStatus) {
+	public Helper(Long helpRequestId, Long userId, ApplicantStatus applicantStatus) {
+		this.helpRequestId = helpRequestId;
 		this.userId = userId;
 		this.applicantStatus = applicantStatus;
 	}
 
-	public void addHelpRequest(HelpRequest helpRequest) {
-		this.helpRequest = helpRequest;
+	public static Helper createFrom(HelperInfo helpInfo) {
+		return Helper.builder()
+			.userId(helpInfo.userId())
+			.helpRequestId(helpInfo.helpRequestId())
+			.applicantStatus(ApplicantStatus.SUPPORTED)
+			.build();
 	}
 
+	public void acceptHelperStatus() {
+		this.applicantStatus = ApplicantStatus.ACCEPTED;
+	}
 }

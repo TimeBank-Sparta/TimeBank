@@ -1,0 +1,13 @@
+### 지원자 생성
+POST http://localhost:19092/api/v1/helpers
+Content-Type: application/json
+
+{
+  "helpRequestId": 1,
+  "userId": 3
+}
+
+### 지원자 승인
+###
+PATCH http://localhost:19092/api/v1/helpers/helpers/1/accept
+
