@@ -1,4 +1,4 @@
-package com.timebank.common.application.dto;
+package com.timebank.common.domain;
 
 import java.time.LocalDateTime;
 
