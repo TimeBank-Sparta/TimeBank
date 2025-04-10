@@ -54,3 +54,6 @@ ehthumbs.db
 
 ### Linux 시스템 파일 ###
 .directory
+
+#배포 환경시에만 직접 환경변수로 설정
+#.env

@@ -1,52 +1,8 @@
-server:
-  port: 8080  # 게이트웨이 서비스가 실행될 포트 번호
-
 spring:
-  main:
-    web-application-type: reactive  # Spring 애플리케이션이 리액티브 웹 애플리케이션으로 설정됨
-  webflux:
-    csrf:
-      enabled: false
   application:
-    name: gateway-service  # 애플리케이션 이름을 'gateway-service'로 설정
+    name: gateway-service
+  config:
+    import: "configserver:http://config-server:8888/"
   cloud:
-    gateway:
-      routes: # Spring Cloud Gateway의 라우팅 설정
-        - id: help-service  # 라우트 식별자
-          uri: lb://help-service
-          predicates:
-            - Path=/api/helps/**
-
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/api/users/**
-      discovery:
-        locator:
-          enabled: true  # 서비스 디스커버리를 통해 동적으로 라우트를 생성하도록 설정
-  zipkin:
-    base-url: http://zipkin:9411
-    sender:
-      type: web
-tracing:
-  sampling:
-    probability: 1.0
-eureka:
-  client:
-    service-url:
-      defaultZone: http://eureka-server:8761/eureka/
-
-logging:
-  level:
-    org.springframework.security: DEBUG
-    org.springframework.web: DEBUG
-    reactor.netty: DEBUG
-    com.timebank: TRACE
-management:
-  tracing:
-    sampling:
-      probability: 1.0
-    enabled: true
-  zipkin:
-    tracing:
-      endpoint: http://zipkin:9411/api/v2/spans
+    config:
+      failFast: false  # 외부 설정 로딩 실패 시 즉시 애플리케이션 종료
