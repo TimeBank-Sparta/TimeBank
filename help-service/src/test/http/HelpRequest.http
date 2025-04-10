@@ -1,0 +1,44 @@
+### 게시글 생성
+POST http://localhost:19092/api/v1/help-requests
+Content-Type: application/json
+
+{
+  "requesterId": 1,
+  "title": "청소인원모집6",
+  "content": "우리집 청소 부탁드립니다.",
+  "address": "서울특별시 강남구 테헤란로 152",
+  "scheduledAt": "2025-04-07T15:30:00",
+  "requiredTime": 2,
+  "requestedPoint": 120,
+  "recruitmentCount": 5,
+  "postStatus": "IN_PROGRESS"
+}
+
+### 게시글 단건 조회
+GET http://localhost:19092/api/v1/help-requests/1
+
+
+### 게시글 검색
+GET http://localhost:19092/api/v1/help-requests/search?title=청소&page=0&size=10&sort=createdAt,desc
+
+### 게시글 수정
+PATCH http://localhost:19092/api/v1/help-requests/1
+Content-Type: application/json
+
+{
+  "requesterId": 1,
+  "title": "설거지 인원모집",
+  "content": "우리집 설거지 부탁드립니다.",
+  "address": "서울특별시 강남구 테헤란로 152",
+  "scheduledAt": "2025-04-07T15:30:00",
+  "requiredTime": 2,
+  "requestedPoint": 120,
+  "recruitmentCount": 5,
+  "postStatus": "CANCELLED"
+}
+
+### 게시글 삭제
+DELETE http://localhost:19092/api/v1/help-requests/5
+
+### 게시글 선별완료
+GET http://localhost:19092/api/v1/help-requests/1
