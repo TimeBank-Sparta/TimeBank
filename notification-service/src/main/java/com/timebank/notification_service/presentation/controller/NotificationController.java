@@ -65,7 +65,7 @@ public class NotificationController {
 	 * 알림 상태 업데이트 (읽음 처리)
 	 * PATCH /api/v1/notifications/{notificationId}/read
 	 */
-	@PatchMapping("/{notificationId}/read")
+	@PatchMapping("/{notificationId}")
 	public ResponseEntity<ResponseDto<NotificationDto>> markNotificationAsRead(
 		@PathVariable Long notificationId) {
 		NotificationDto updatedNotification = notificationService.markAsRead(notificationId);
