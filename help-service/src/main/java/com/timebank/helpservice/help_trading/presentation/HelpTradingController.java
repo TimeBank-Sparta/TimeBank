@@ -1,6 +1,9 @@
 package com.timebank.helpservice.help_trading.presentation;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,7 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.timebank.helpservice.help_request.presentation.dto.response.PageResponse;
+import com.timebank.common.application.dto.PageResponseDto;
+import com.timebank.common.application.dto.ResponseDto;
 import com.timebank.helpservice.help_trading.application.dto.response.CreateTradingResponse;
 import com.timebank.helpservice.help_trading.application.dto.response.FindHelpTradingResponse;
 import com.timebank.helpservice.help_trading.application.service.HelpTradingService;
@@ -25,26 +29,29 @@ public class HelpTradingController {
 	private final HelpTradingService helpTradingService;
 
 	@PostMapping
-	public CreateTradingResponse createTrading(
+	public ResponseEntity<ResponseDto<CreateTradingResponse>> createTrading(
 		@RequestBody CreateTradingRequest requestDto
 	) {
-		return helpTradingService.createHelpTrading(requestDto.toCommand());
+		return ResponseEntity.ok(new ResponseDto<>(HttpStatus.CREATED,
+			helpTradingService.createHelpTrading(requestDto.toCommand())));
 	}
 
 	//TODO유저 권한 체크(자기가 작성한 글에 대한 내역 조회가능)
 	@GetMapping("/{helpRequestId}")
-	public PageResponse<FindHelpTradingResponse> findByHelpRequestId(
+	public ResponseEntity<PageResponseDto<FindHelpTradingResponse>> findByHelpRequestId(
 		@PathVariable Long helpRequestId,
 		Pageable pageable
 	) {
-		return PageResponse.from(helpTradingService.findByHelpRequestId(helpRequestId, pageable));
+		Page<FindHelpTradingResponse> helpRequestPage =
+			helpTradingService.findByHelpRequestId(helpRequestId, pageable);
+		return ResponseEntity.ok(new PageResponseDto<>(HttpStatus.OK, helpRequestPage, "조회완료"));
 	}
 
 	@DeleteMapping("/{helpRequestId}")
-	public String deleteHelpTrading(
+	public ResponseEntity<ResponseDto<Void>> deleteHelpTrading(
 		@PathVariable Long helpRequestId
 	) {
 		helpTradingService.delete(helpRequestId);
-		return "success";
+		return ResponseEntity.ok(ResponseDto.responseWithNoData(HttpStatus.NO_CONTENT, "삭제완료"));
 	}
 }

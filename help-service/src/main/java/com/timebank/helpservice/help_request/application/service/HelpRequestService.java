@@ -1,11 +1,11 @@
 package com.timebank.helpservice.help_request.application.service;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.timebank.common.application.exception.CustomNotFoundException;
 import com.timebank.helpservice.help_request.application.dto.request.CreateHelpRequestCommand;
 import com.timebank.helpservice.help_request.application.dto.request.UpdateHelpRequestCommand;
 import com.timebank.helpservice.help_request.application.dto.response.CreateHelpRequestResponse;
@@ -32,27 +32,24 @@ public class HelpRequestService {
 
 	@Transactional(readOnly = true)
 	public HelpRequestResponse findById(Long helpRequestId) {
-		HelpRequest helpRequest = helpRepository.findById(helpRequestId)
-			.orElseThrow(() -> new IllegalArgumentException("Help not found"));
+		HelpRequest helpRequest = getHelpRequestOrThrow(helpRequestId);
 
 		return HelpRequestResponse.from(helpRequest);
 	}
 
 	@Transactional(readOnly = true)
-	public Page<HelpRequestResponse> searchHelpRequest(SearchHelpRequest request, Pageable pageable) {
-		Page<HelpRequest> search = helpRepository.search(request.toQuery().toHelpRequestQuery(), pageable);
-
-		return new PageImpl<>(search.getContent().stream()
-			.map(HelpRequestResponse::from).toList(),
-			pageable, search.getTotalElements());
+	public Page<HelpRequestResponse> searchHelpRequest(
+		SearchHelpRequest request, Pageable pageable
+	) {
+		return helpRepository.search(request.toQuery().toHelpRequestQuery(), pageable)
+			.map(HelpRequestResponse::from);
 	}
 
 	@Transactional
-	public UpdateHelpRequestResponse updateHelpRequest(UpdateHelpRequestCommand command, Long helpRequestId) {
-
-		HelpRequest helpRequest = helpRepository.findById(helpRequestId)
-			.orElseThrow(() -> new IllegalArgumentException("Help not found"));
-
+	public UpdateHelpRequestResponse updateHelpRequest(
+		UpdateHelpRequestCommand command, Long helpRequestId
+	) {
+		HelpRequest helpRequest = getHelpRequestOrThrow(helpRequestId);
 		helpRequest.update(command.toHelpRequestInfo());
 
 		return UpdateHelpRequestResponse.from(helpRequest);
@@ -60,9 +57,7 @@ public class HelpRequestService {
 
 	@Transactional
 	public UpdateHelpRequestResponse completeHelpRequest(Long helpRequestId) {
-		//게시글 모집완료 로직
-		HelpRequest helpRequest = helpRepository.findById(helpRequestId)
-			.orElseThrow(() -> new IllegalArgumentException("Help not found"));
+		HelpRequest helpRequest = getHelpRequestOrThrow(helpRequestId);
 
 		//TODO 승인된 지원자 제외 전체 삭제
 
@@ -73,10 +68,14 @@ public class HelpRequestService {
 
 	public void deleteHelpRequest(Long helpRequestId) {
 
-		HelpRequest helpRequest = helpRepository.findById(helpRequestId)
-			.orElseThrow(() -> new IllegalArgumentException("Help not found"));
+		HelpRequest helpRequest = getHelpRequestOrThrow(helpRequestId);
 
 		//helpRequest.delete();
+	}
+
+	private HelpRequest getHelpRequestOrThrow(Long helpRequestId) {
+		return helpRepository.findById(helpRequestId)
+			.orElseThrow(() -> new CustomNotFoundException("게시글이 없습니다."));
 	}
 
 }

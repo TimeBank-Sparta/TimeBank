@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.timebank.common.application.exception.CustomNotFoundException;
 import com.timebank.helpservice.helper.application.dto.request.CreateHelperCommand;
 import com.timebank.helpservice.helper.application.dto.response.CreateHelperResponse;
 import com.timebank.helpservice.helper.application.dto.response.FindHelperResponse;
@@ -28,7 +29,7 @@ public class HelperService {
 	@Transactional
 	public UpdateHelperResponse acceptHelper(Long helperId) {
 		Helper helper = helperRepository.findById(helperId).orElseThrow(() ->
-			new IllegalArgumentException("Helper not found"));
+			new CustomNotFoundException("지원자가 없습니다."));
 
 		helper.acceptHelperStatus();
 
@@ -40,7 +41,7 @@ public class HelperService {
 	@Transactional(readOnly = true)
 	public Page<FindHelperResponse> findByHelpRequestId(Long helpRequestId, Pageable pageable) {
 		Page<Helper> helpers = helperRepository.findByHelpRequestId(helpRequestId, pageable).orElseThrow(() ->
-			new IllegalArgumentException("Help request not found"));
+			new CustomNotFoundException("지원자가 없습니다."));
 
 		//TODO 유저 정보 (리뷰평점, 한줄평 등등)가져온후 리턴
 

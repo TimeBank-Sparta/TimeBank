@@ -13,5 +13,5 @@ public interface HelpTradingRepository {
 
 	Optional<HelpTrading> findById(Long helpTradingId);
 
-	Optional<Page<HelpTrading>> findByHelpRequestId(Long helpRequestId, Pageable pageable);
+	Page<HelpTrading> findByHelpRequestId(Long helpRequestId, Pageable pageable);
 }

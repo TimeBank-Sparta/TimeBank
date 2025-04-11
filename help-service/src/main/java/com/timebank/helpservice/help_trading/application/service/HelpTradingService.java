@@ -1,11 +1,11 @@
 package com.timebank.helpservice.help_trading.application.service;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.timebank.common.application.exception.CustomNotFoundException;
 import com.timebank.helpservice.help_trading.application.dto.request.CreateTradingCommand;
 import com.timebank.helpservice.help_trading.application.dto.response.CreateTradingResponse;
 import com.timebank.helpservice.help_trading.application.dto.response.FindHelpTradingResponse;
@@ -27,17 +27,16 @@ public class HelpTradingService {
 	}
 
 	@Transactional(readOnly = true)
-	public Page<FindHelpTradingResponse> findByHelpRequestId(Long helpRequestId, Pageable pageable) {
-		Page<HelpTrading> helpTrading = helpTradingRepository.findByHelpRequestId(helpRequestId, pageable)
-			.orElseThrow(() -> new IllegalArgumentException("Help Trading not found"));
-
-		return new PageImpl<>(helpTrading.getContent().stream()
-			.map(FindHelpTradingResponse::from).toList(),
-			pageable, helpTrading.getTotalElements());
+	public Page<FindHelpTradingResponse> findByHelpRequestId(
+		Long helpRequestId, Pageable pageable
+	) {
+		return helpTradingRepository.findByHelpRequestId(helpRequestId, pageable)
+			.map(FindHelpTradingResponse::from);
 	}
 
 	public void delete(Long helpRequestId) {
 		HelpTrading helpTrading = helpTradingRepository.findById(helpRequestId).orElseThrow(() ->
-			new IllegalArgumentException("Help request not found"));
+			new CustomNotFoundException("거래내역이 없습니다."));
 	}
+
 }

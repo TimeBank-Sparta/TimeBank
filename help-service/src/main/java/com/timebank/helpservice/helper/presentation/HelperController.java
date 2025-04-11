@@ -1,6 +1,9 @@
 package com.timebank.helpservice.helper.presentation;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,10 +12,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.timebank.helpservice.help_request.presentation.dto.response.PageResponse;
+import com.timebank.common.application.dto.PageResponseDto;
+import com.timebank.common.application.dto.ResponseDto;
 import com.timebank.helpservice.helper.application.dto.response.CreateHelperResponse;
 import com.timebank.helpservice.helper.application.dto.response.FindHelperResponse;
-import com.timebank.helpservice.helper.application.dto.response.UpdateHelperResponse;
 import com.timebank.helpservice.helper.application.service.HelperService;
 import com.timebank.helpservice.helper.presentation.dto.request.CreateHelperRequest;
 
@@ -26,26 +29,30 @@ public class HelperController {
 	private final HelperService helperService;
 
 	@PostMapping
-	public CreateHelperResponse createHelper(
+	public ResponseEntity<ResponseDto<CreateHelperResponse>> createHelper(
 		@RequestBody CreateHelperRequest requestDto
 	) {
-		return helperService.createHelper(requestDto.toCommand());
+		return ResponseEntity.ok(new ResponseDto<>(HttpStatus.CREATED,
+			helperService.createHelper(requestDto.toCommand())));
 	}
 
 	//TODO 유저권한체크(자신의글만 조회가능)
 	@GetMapping("/helpers/{helpRequestId}")
-	public PageResponse<FindHelperResponse> findByHelpRequestId(
+	public ResponseEntity<PageResponseDto<FindHelperResponse>> findByHelpRequestId(
 		@PathVariable Long helpRequestId,
 		Pageable pageable
 	) {
-		return PageResponse.from(helperService.findByHelpRequestId(helpRequestId, pageable));
+		Page<FindHelperResponse> helperPage =
+			helperService.findByHelpRequestId(helpRequestId, pageable);
+		return ResponseEntity.ok(new PageResponseDto<>(HttpStatus.OK, helperPage, "조회완료"));
 	}
 
 	@PatchMapping("/helpers/{helperId}/accept")
-	public UpdateHelperResponse acceptHelper(
+	public ResponseEntity<ResponseDto<Void>> acceptHelper(
 		@PathVariable Long helperId
 	) {
-		return helperService.acceptHelper(helperId);
+		helperService.acceptHelper(helperId);
+		return ResponseEntity.ok(ResponseDto.responseWithNoData(HttpStatus.NO_CONTENT, "삭제완료"));
 	}
 
 }
