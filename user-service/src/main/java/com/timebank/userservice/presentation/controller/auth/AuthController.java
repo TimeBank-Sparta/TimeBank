@@ -9,10 +9,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.timebank.common.application.dto.ResponseDto;
 import com.timebank.userservice.application.dto.request.auth.LoginRequestDto;
 import com.timebank.userservice.application.dto.request.auth.SignUpRequestDto;
 import com.timebank.userservice.application.dto.response.auth.LoginResponseDto;
 import com.timebank.userservice.application.service.auth.AuthService;
+import com.timebank.userservice.presentation.dto.request.RefreshTokenRequestDto;
+import com.timebank.userservice.presentation.dto.response.TokenResponseDto;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,8 +37,14 @@ public class AuthController {
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto requestDto) {
+	public ResponseEntity<ResponseDto<LoginResponseDto>> login(@Valid @RequestBody LoginRequestDto requestDto) {
 		LoginResponseDto responseDto = authService.login(requestDto);
-		return ResponseEntity.ok(responseDto);
+		return ResponseEntity.ok(ResponseDto.success(responseDto));
+	}
+
+	@PostMapping("/refresh")
+	public ResponseEntity<ResponseDto<TokenResponseDto>> refreshToken(@RequestBody RefreshTokenRequestDto requestDto) {
+		TokenResponseDto tokenResponseDto = authService.refreshToken(requestDto);
+		return ResponseEntity.ok(ResponseDto.success(tokenResponseDto));
 	}
 }
