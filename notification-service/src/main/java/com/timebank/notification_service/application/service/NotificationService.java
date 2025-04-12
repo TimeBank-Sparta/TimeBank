@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.timebank.notification_service.application.dto.NotificationDto;
 import com.timebank.notification_service.application.event.NotificationEvent;
 import com.timebank.notification_service.domain.entity.Notification;
+import com.timebank.notification_service.domain.entity.NotificationEventType;
 import com.timebank.notification_service.domain.repository.NotificationRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -56,7 +57,7 @@ public class NotificationService {
 		notification = notificationRepository.save(notification);
 
 		// Kafka 이벤트 발행: 업데이트 이벤트
-		NotificationEvent event = new NotificationEvent(notification, "UPDATED");
+		NotificationEvent event = new NotificationEvent(notification, NotificationEventType.UPDATED);
 		kafkaTemplate.send(notificationTopic, event);
 
 		return NotificationDto.fromEntity(notification);
@@ -74,7 +75,7 @@ public class NotificationService {
 		notificationRepository.deleteById(notificationId);
 
 		// Kafka 이벤트 발행: 삭제 이벤트
-		NotificationEvent event = new NotificationEvent(notification, "DELETED");
+		NotificationEvent event = new NotificationEvent(notification, NotificationEventType.DELETED);
 		kafkaTemplate.send(notificationTopic, event);
 	}
 
