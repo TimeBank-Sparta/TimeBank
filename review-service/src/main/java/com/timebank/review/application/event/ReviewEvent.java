@@ -28,3 +28,4 @@ public class ReviewEvent {
 		this.comment = review.getComment();
 		this.eventType = eventType;
 	}
+}
