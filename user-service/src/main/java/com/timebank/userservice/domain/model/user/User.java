@@ -2,7 +2,7 @@ package com.timebank.userservice.domain.model.user;
 
 import static org.springframework.util.StringUtils.*;
 
-import com.timebank.common.application.dto.Timestamped;
+import com.timebank.common.domain.Timestamped;
 import com.timebank.userservice.domain.model.profile.UserProfile;
 
 import jakarta.persistence.CascadeType;

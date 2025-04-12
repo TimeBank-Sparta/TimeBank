@@ -3,7 +3,7 @@ package com.timebank.userservice.domain.model.profile;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.timebank.common.application.dto.Timestamped;
+import com.timebank.common.domain.Timestamped;
 import com.timebank.userservice.domain.model.user.User;
 
 import jakarta.persistence.CollectionTable;
