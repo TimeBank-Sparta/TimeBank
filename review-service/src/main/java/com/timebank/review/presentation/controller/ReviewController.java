@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.timebank.common.application.dto.PageResponseDto;
 import com.timebank.common.application.dto.ResponseDto;
 import com.timebank.review.application.dto.ReviewDto;
 import com.timebank.review.application.service.ReviewService;
@@ -57,12 +58,13 @@ public class ReviewController {
 	 * 전체 리뷰 조회
 	 * GET /api/v1/reviews
 	 */
-
 	@GetMapping
-	public ResponseEntity<ResponseDto<Page<ReviewDto>>> getAllReviews(Pageable pageable) {
+	public ResponseEntity<PageResponseDto<ReviewDto>> getAllReviews(Pageable pageable) {
 		Page<ReviewDto> reviews = reviewService.getAllReviews(pageable);
+		PageResponseDto<ReviewDto> responseDto = PageResponseDto.success(
+			HttpStatus.OK, reviews, "Reviews fetched successfully");
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(ResponseDto.success(HttpStatus.OK, reviews));
+			.body(responseDto);
 	}
 
 	/**
