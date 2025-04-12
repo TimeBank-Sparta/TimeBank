@@ -2,6 +2,8 @@ package com.timebank.review.presentation.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -57,8 +59,8 @@ public class ReviewController {
 	 */
 
 	@GetMapping
-	public ResponseEntity<ResponseDto<List<ReviewDto>>> getAllReviews() {
-		List<ReviewDto> reviews = reviewService.getAllReviews();
+	public ResponseEntity<ResponseDto<Page<ReviewDto>>> getAllReviews(Pageable pageable) {
+		Page<ReviewDto> reviews = reviewService.getAllReviews(pageable);
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ResponseDto.success(HttpStatus.OK, reviews));
 	}
