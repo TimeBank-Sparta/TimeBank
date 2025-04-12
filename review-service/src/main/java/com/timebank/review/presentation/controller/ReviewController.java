@@ -55,6 +55,7 @@ public class ReviewController {
 	 * 전체 리뷰 조회
 	 * GET /api/v1/reviews
 	 */
+
 	@GetMapping
 	public ResponseEntity<ResponseDto<List<ReviewDto>>> getAllReviews() {
 		List<ReviewDto> reviews = reviewService.getAllReviews();

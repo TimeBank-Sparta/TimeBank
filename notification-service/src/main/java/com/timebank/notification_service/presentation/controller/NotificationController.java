@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.timebank.common.application.dto.PageResponseDto;
 import com.timebank.common.application.dto.ResponseDto;
 import com.timebank.notification_service.application.dto.NotificationDto;
 import com.timebank.notification_service.application.service.NotificationService;
@@ -33,10 +34,13 @@ public class NotificationController {
 	 * GET /api/v1/notifications
 	 */
 	@GetMapping
-	public ResponseEntity<ResponseDto<Page<NotificationDto>>> getAllNotifications(Pageable pageable) {
-		Page<NotificationDto> notifications = notificationService.getAllNotifications(pageable);
+	public ResponseEntity<PageResponseDto<NotificationDto>> getAllNotifications(Pageable pageable) {
+		Page<NotificationDto> notificationsPage = notificationService.getAllNotifications(pageable);
+		// PageResponseDto.success(HttpStatus status, Page<T> page, String message) 사용
+		PageResponseDto<NotificationDto> responseDto = PageResponseDto.success(
+			HttpStatus.OK, notificationsPage, "Notifications fetched successfully");
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(ResponseDto.success(HttpStatus.OK, notifications));
+			.body(responseDto);
 	}
 
 	/**

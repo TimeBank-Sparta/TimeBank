@@ -13,7 +13,7 @@ public class PageResponseDto<T> {
 	private int code;
 	private String status;
 	private String message;
-	private List<T> data;
+	private List data;
 	private PaginationDto paginationDto;
 
 	// 기본 생성자
