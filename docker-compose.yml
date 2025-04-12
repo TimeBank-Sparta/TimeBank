@@ -46,47 +46,42 @@ services:
       - config-server
     networks:
       - msanet
-    command: sh -c "./wait-for-it.sh config-server:8888 --timeout=15 -- ./wait-for-it.sh eureka-server:8761 --timeout=15 -- java -jar gateway.jar"
+    command: sh -c "./wait-for-it.sh config-server:8888 --timeout=15 -- ./wait-for-it.sh eureka:8761 --timeout=15 -- java -jar gateway.jar"
 
-  user-service:
-    build:
-      context: .
-      dockerfile: user-service/Dockerfile
-    container_name: user-service
+
+  # Kafka 및 Zookeeper 추가
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.2
+    container_name: zookeeper
     environment:
-      - SPRING_PROFILES_ACTIVE=default
-      - SERVER_PORT=8080
-      - SPRING_APPLICATION_NAME=user-service
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - SPRING_DATA_REDIS_HOST=redis
-      - SPRING_DATA_REDIS_PORT=6379
-      - SPRING_DATASOURCE_URL=jdbc:mysql://user-db:3306/timebank
-      - SPRING_DATASOURCE_USERNAME=timebank
-      - SPRING_DATASOURCE_PASSWORD=1234
-      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
-    depends_on:
-      - redis
-      - user-db
-      - eureka-server
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+        - spring.cloud.config.uri=http://config-server:8888
+    ports:
+      - "2181:2181"
     networks:
       - msanet
 
-  user-db:
-    image: mysql:latest
-    container_name: user-db
-    restart: always
+  kafka:
+    image: confluentinc/cp-kafka:7.3.2
+    container_name: kafka
+    depends_on:
+      - zookeeper
     ports:
-      - "3307:3306"
+      - "9092:9092"
     environment:
-      MYSQL_USER: timebank
-      MYSQL_PASSWORD: 1234
-      MYSQL_ROOT_PASSWORD: 1234
-      MYSQL_DATABASE: timebank
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        - spring.cloud.config.uri=http://config-server:8888
     networks:
       - msanet
 
   redis:
-    image: redis:latest
+    image: redis:7
     container_name: redis
     ports:
       - "6379:6379"
@@ -95,49 +90,16 @@ services:
     networks:
       - msanet
 
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    environment:
+      - spring.cloud.config.uri=http://config-server:8888
+    networks:
+      - msanet
+
 networks:
   msanet:
     driver: bridge
-
-#  # Kafka 및 Zookeeper 추가
-#  zookeeper:
-#    image: confluentinc/cp-zookeeper:7.3.2
-#    container_name: zookeeper
-#    environment:
-#      ZOOKEEPER_CLIENT_PORT: 2181
-#      ZOOKEEPER_TICK_TIME: 2000
-#        - spring.cloud.config.uri=http://config-server:8888
-#    ports:
-#      - "2181:2181"
-#    networks:
-#      - msanet
-#
-#  kafka:
-#    image: confluentinc/cp-kafka:7.3.2
-#    container_name: kafka
-#    depends_on:
-#      - zookeeper
-#    ports:
-#      - "9092:9092"
-#    environment:
-#      KAFKA_BROKER_ID: 1
-#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-#      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-#        - spring.cloud.config.uri=http://config-server:8888
-#    networks:
-#      - msanet
-#
-#
-#  zipkin:
-#    image: openzipkin/zipkin
-#    container_name: zipkin
-#    ports:
-#      - "9411:9411"
-#    environment:
-#      - spring.cloud.config.uri=http://config-server:8888
-#    networks:
-#      - msanet
-
