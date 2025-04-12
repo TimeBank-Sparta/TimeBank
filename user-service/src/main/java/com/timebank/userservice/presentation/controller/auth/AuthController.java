@@ -19,7 +19,9 @@ import com.timebank.userservice.presentation.dto.response.TokenResponseDto;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
@@ -44,7 +46,9 @@ public class AuthController {
 
 	@PostMapping("/refresh")
 	public ResponseEntity<ResponseDto<TokenResponseDto>> refreshToken(@RequestBody RefreshTokenRequestDto requestDto) {
+		log.info("authController에서 refreshToken API를 실행!!!!!");
 		TokenResponseDto tokenResponseDto = authService.refreshToken(requestDto);
+		log.info("authController에서 authService.refreshToken을 무사히 마침!!!!!");
 		return ResponseEntity.ok(ResponseDto.success(tokenResponseDto));
 	}
 }

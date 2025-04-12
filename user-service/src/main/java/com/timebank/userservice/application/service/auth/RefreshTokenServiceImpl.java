@@ -5,7 +5,9 @@ import org.springframework.stereotype.Service;
 import com.timebank.userservice.domain.jwt.RefreshTokenRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenServiceImpl implements RefreshTokenService {
@@ -18,7 +20,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
 	@Override
 	public String get(Long userId) {
-		return refreshTokenRepository.get(userId);
+		log.info("RefeshTokenServiceImpl의 get입니다!");
+		String refreshToken = refreshTokenRepository.get(userId);
+		log.info("RefreshToken : {}", refreshToken);
+		return refreshToken;
 	}
 
 	@Override

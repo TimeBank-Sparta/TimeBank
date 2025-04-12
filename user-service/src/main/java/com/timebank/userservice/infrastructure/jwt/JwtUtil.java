@@ -60,14 +60,13 @@ public class JwtUtil implements JwtProvider {
 	@Override
 	public String createRefreshToken(Long userId, Role role) {
 		Date now = new Date();
-		return BEARER_PREFIX +
-			Jwts.builder()
-				.claim("user-id", userId)
-				.claim(AUTHORIZATION_KEY, role)
-				.issuedAt(now)
-				.expiration(new Date(now.getTime() + REFRESH_TOKEN_TIME))
-				.signWith(key)
-				.compact();
+		return Jwts.builder()
+			.claim("user-id", userId)
+			.claim(AUTHORIZATION_KEY, role)
+			.issuedAt(now)
+			.expiration(new Date(now.getTime() + REFRESH_TOKEN_TIME))
+			.signWith(key)
+			.compact();
 	}
 
 	@Override

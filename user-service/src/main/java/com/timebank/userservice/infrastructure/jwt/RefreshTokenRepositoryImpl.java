@@ -8,7 +8,9 @@ import org.springframework.stereotype.Repository;
 import com.timebank.userservice.domain.jwt.RefreshTokenRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
@@ -22,7 +24,10 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
 
 	@Override
 	public String get(Long userId) {
-		return redisTemplate.opsForValue().get(buildKey(userId));
+		log.info("RefreshTokenRepositoryImpl의 get입니다.");
+		String refreshToken = redisTemplate.opsForValue().get(buildKey(userId));
+		log.info("RefreshToken : {}", refreshToken);
+		return refreshToken;
 	}
 
 	@Override

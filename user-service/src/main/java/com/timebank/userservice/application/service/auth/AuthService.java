@@ -15,7 +15,9 @@ import com.timebank.userservice.presentation.dto.request.RefreshTokenRequestDto;
 import com.timebank.userservice.presentation.dto.response.TokenResponseDto;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -66,8 +68,9 @@ public class AuthService {
 
 	//리프레쉬토큰으로 새로운 accessToken발급받기
 	public TokenResponseDto refreshToken(RefreshTokenRequestDto requestDto) {
+		log.info("authService의 refreshToken 메서드 실행!!");
 		String requestToken = requestDto.getRefreshToken();
-
+		log.info("RefreshToken을 이제 검증 시작할게요!!");
 		// 1. 위변조 및 만료 체크 (서명 무효 or exp 만료)
 		if (!jwtProvider.validateToken(requestToken)) {
 			Long userId = null;
@@ -79,17 +82,17 @@ public class AuthService {
 			}
 			throw new AuthorizationDeniedException("만료된 Refresh Token입니다. 다시 로그인해주세요.");
 		}
-
+		log.info("RefreshToken 검증을 이제 마쳤어요!!");
 		// 2. RefreshToken으로부터 userId, role 추출
 		Long userId = jwtProvider.extractUserId(requestDto.getRefreshToken());
 		Role role = jwtProvider.extractRole(requestDto.getRefreshToken());
-
+		log.info("RefreshToken으로 유저의 정보를 잘 찾았어요!!");
 		// 3. Redis에 저장된 토큰과 일치하는지 확인
 		String savedToken = refreshTokenService.get(userId);
 		if (savedToken == null || !savedToken.equals(requestDto.getRefreshToken())) {
 			throw new AuthorizationDeniedException("Refresh Token이 일치하지 않습니다.");
 		}
-
+		log.info("redis를 다녀왔습니다!!");
 		// 4. AccessToken 재발급
 		String newAccessToken = jwtProvider.createAccessToken(userId, role);
 		return new TokenResponseDto(newAccessToken, requestDto.getRefreshToken());
