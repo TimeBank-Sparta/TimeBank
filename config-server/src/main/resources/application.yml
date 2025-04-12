@@ -14,6 +14,7 @@ spring:
     name: config-server
 encrypt:
   #  key: ${SPRING_CLOUD_CONFIG_SERVER_ENCRYPT_KEY}
+  #  실무에선 서버 환경변수로 관리
   key: timebank
 
 eureka:
