@@ -13,10 +13,10 @@ RUN chmod +x /wait-for-it.sh
 WORKDIR /app/common
 RUN gradle clean build publishToMavenLocal -x test
 
-# user-service 모듈 복사 및 빌드
+# notification-service 모듈 복사 및 빌드
 WORKDIR /app
-COPY user-service /app/user-service/
-WORKDIR /app/user-service
+COPY notification-service /app/notification-service/
+WORKDIR /app/notification-service
 RUN gradle clean bootJar -x test
 
 # ----- Final Runtime Image -----
@@ -25,8 +25,8 @@ FROM eclipse-temurin:17-jre
 # Builder 스테이지에서 wait-for-it.sh를 복사 (최종 이미지에 포함)
 COPY --from=builder /wait-for-it.sh /wait-for-it.sh
 
-# 빌드한 user 애플리케이션 jar 복사
-COPY --from=builder /app/user-service/build/libs/*.jar /app/app.jar
+# 빌드한 notification 애플리케이션 jar 복사
+COPY --from=builder /app/notification-service/build/libs/*.jar /app/app.jar
 
-# ENTRYuser: Config Server와 Eureka가 모두 준비될 때까지 대기한 후 애플리케이션 실행
+# ENTRYPOINT: Config Server와 Eureka가 모두 준비될 때까지 대기한 후 애플리케이션 실행
 ENTRYPOINT ["/wait-for-it.sh", "config-server:8888", "--timeout=15", "--", "/wait-for-it.sh", "eureka:8761", "--timeout=15", "--", "java", "-jar", "/app/app.jar"]
