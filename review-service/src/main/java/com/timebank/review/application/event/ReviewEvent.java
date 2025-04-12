@@ -1,8 +1,7 @@
 package com.timebank.review.application.event;
 
-import java.time.LocalDateTime;
-
 import com.timebank.review.domain.entity.Review;
+import com.timebank.review.domain.entity.ReviewEventType;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,9 +17,9 @@ public class ReviewEvent {
 	private Long revieweeId;
 	private Byte rating;
 	private String comment;
-	private String eventType;  // 예: CREATED, UPDATED, DELETED
+	private ReviewEventType eventType;  // 예: CREATED, UPDATED, DELETED
 
-	public ReviewEvent(Review review, String eventType) {
+	public ReviewEvent(Review review, ReviewEventType eventType) {
 		this.reviewId = review.getReviewId();
 		this.transactionId = review.getTransactionId();
 		this.reviewerId = review.getReviewerId();
