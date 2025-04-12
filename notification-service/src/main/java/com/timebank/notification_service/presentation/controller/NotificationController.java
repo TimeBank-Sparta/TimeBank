@@ -2,6 +2,8 @@ package com.timebank.notification_service.presentation.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,8 +33,8 @@ public class NotificationController {
 	 * GET /api/v1/notifications
 	 */
 	@GetMapping
-	public ResponseEntity<ResponseDto<List<NotificationDto>>> getAllNotifications() {
-		List<NotificationDto> notifications = notificationService.getAllNotifications();
+	public ResponseEntity<ResponseDto<Page<NotificationDto>>> getAllNotifications(Pageable pageable) {
+		Page<NotificationDto> notifications = notificationService.getAllNotifications(pageable);
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ResponseDto.success(HttpStatus.OK, notifications));
 	}
