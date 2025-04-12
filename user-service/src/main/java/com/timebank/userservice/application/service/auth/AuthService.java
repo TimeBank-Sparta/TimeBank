@@ -97,4 +97,8 @@ public class AuthService {
 		String newAccessToken = jwtProvider.createAccessToken(userId, role);
 		return new TokenResponseDto(newAccessToken, requestDto.getRefreshToken());
 	}
+
+	public void logout(String userId) {
+		refreshTokenService.delete(Long.parseLong(userId));
+	}
 }

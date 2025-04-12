@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,13 +30,14 @@ public class AuthController {
 	private final AuthService authService;
 
 	@PostMapping("/signup")
-	public ResponseEntity<Map<String, String>> signup(@Valid @RequestBody SignUpRequestDto requestDto) {
+	public ResponseEntity<ResponseDto<?>> signup(@Valid @RequestBody SignUpRequestDto requestDto) {
 		authService.signUp(requestDto);
 
 		Map<String, String> response = new HashMap<>();
 		response.put("message", "회원가입이 완료되었습니다.");
 
-		return ResponseEntity.ok(response);
+		return ResponseEntity.ok(ResponseDto.success(response));
+
 	}
 
 	@PostMapping("/login")
@@ -50,5 +52,15 @@ public class AuthController {
 		TokenResponseDto tokenResponseDto = authService.refreshToken(requestDto);
 		log.info("authController에서 authService.refreshToken을 무사히 마침!!!!!");
 		return ResponseEntity.ok(ResponseDto.success(tokenResponseDto));
+	}
+
+	@PostMapping("/logout")
+	public ResponseEntity<ResponseDto<?>> logout(@RequestHeader("X-User-Id") String userId) {
+		authService.logout(userId);
+
+		Map<String, String> response = new HashMap<>();
+		response.put("message", "로그아웃이 완료되었습니다.");
+
+		return ResponseEntity.ok(ResponseDto.success(response));
 	}
 }
