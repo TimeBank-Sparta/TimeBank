@@ -10,6 +10,7 @@ import lombok.Builder;
 @Builder
 public record HelpRequestResponse(
 	Long helpRequestId,
+	Long requesterId,
 	String title,
 	String content,
 	String address,
@@ -22,6 +23,7 @@ public record HelpRequestResponse(
 	public static HelpRequestResponse from(HelpRequest helpRequest) {
 		return HelpRequestResponse.builder()
 			.helpRequestId(helpRequest.getId())
+			.requesterId(helpRequest.getRequesterId())
 			.title(helpRequest.getTitle())
 			.content(helpRequest.getContent())
 			.address(helpRequest.getAddress())

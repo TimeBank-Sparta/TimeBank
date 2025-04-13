@@ -9,6 +9,7 @@ import com.timebank.common.application.exception.CustomNotFoundException;
 import com.timebank.helpservice.help_trading.application.dto.request.CreateTradingCommand;
 import com.timebank.helpservice.help_trading.application.dto.response.CreateTradingResponse;
 import com.timebank.helpservice.help_trading.application.dto.response.FindHelpTradingResponse;
+import com.timebank.helpservice.help_trading.application.dto.response.FromHelperKafkaDto;
 import com.timebank.helpservice.help_trading.domain.model.HelpTrading;
 import com.timebank.helpservice.help_trading.domain.repository.HelpTradingRepository;
 
@@ -24,6 +25,11 @@ public class HelpTradingService {
 		//TODO 게시글 존재여부 확인
 		return CreateTradingResponse.from(
 			helpTradingRepository.save(HelpTrading.createFrom(command.toHelpTradingInfo())));
+	}
+
+	@Transactional
+	public void createHelpTradingFromKafka(FromHelperKafkaDto command) {
+		helpTradingRepository.save(HelpTrading.createFrom(command.toHelpTradingInfo()));
 	}
 
 	@Transactional(readOnly = true)

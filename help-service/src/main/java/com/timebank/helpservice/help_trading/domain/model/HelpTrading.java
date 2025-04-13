@@ -8,6 +8,8 @@ import com.timebank.helpservice.help_trading.domain.vo.HelpTradingInfo;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -39,6 +41,7 @@ public class HelpTrading extends Timestamped {
 
 	private boolean helperApproved;
 
+	@Enumerated(EnumType.STRING)
 	private TradeStatus tradeStatus;
 
 	@Column(name = "help_request_id")

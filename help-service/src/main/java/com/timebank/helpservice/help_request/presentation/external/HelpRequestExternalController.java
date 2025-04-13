@@ -1,4 +1,4 @@
-package com.timebank.helpservice.help_request.presentation;
+package com.timebank.helpservice.help_request.presentation.external;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/help-requests")
 @RequiredArgsConstructor
-public class HelpRequestController {
+public class HelpRequestExternalController {
 
 	private final HelpRequestService helpRequestService;
 
@@ -54,7 +54,7 @@ public class HelpRequestController {
 		Pageable pageable
 	) {
 		Page<HelpRequestResponse> helpRequestResponses =
-			helpRequestService.searchHelpRequest(request, pageable);
+			helpRequestService.searchHelpRequest(request.toQuery(), pageable);
 
 		return ResponseEntity.ok(new PageResponseDto<>(
 			HttpStatus.OK, helpRequestResponses, "조회 완료"));
