@@ -5,4 +5,5 @@ public record PointTransferRequestMessage(
 	Long receiverUserId,
 	int amount,
 	String reason
-) {}
+) {
+}

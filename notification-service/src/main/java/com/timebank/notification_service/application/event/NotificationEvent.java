@@ -3,7 +3,6 @@ package com.timebank.notification_service.application.event;
 import java.time.LocalDateTime;
 
 import com.timebank.notification_service.domain.entity.Notification;
-import com.timebank.notification_service.domain.entity.NotificationEventType;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,9 +18,9 @@ public class NotificationEvent {
 	private String message;
 	private Boolean isRead;
 	private LocalDateTime sentAt;
-	private NotificationEventType eventType;
+	private String eventType;
 
-	public NotificationEvent(Notification notification, NotificationEventType eventType) {
+	public NotificationEvent(Notification notification, String eventType) {
 		this.notificationId = notification.getNotificationId();
 		this.recipientId = notification.getRecipientId();
 		this.type = notification.getNotificationType().toString();
