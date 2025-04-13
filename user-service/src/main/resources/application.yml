@@ -1,30 +1,8 @@
-server:
-  port: 8081
-
 spring:
   application:
     name: user-service
-
-  datasource:
-    url: jdbc:mysql://localhost:3306/timebank
-    username: root
-    password: 1234
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-
-#todo : env파일이나 환경변수로 관리하기
-service:
-  jwt:
-    secret-key: "401b09eab3c013d4ca54922bb802bec8fd5318192b0a75f201d8b3727429080fb337591abd3e44453b954555b7a0812e1081c39b740293f765eae731f5a65ed1"
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
+  config:
+    import: "configserver:http://config-server:8888/"
+  cloud:
+    config:
+      failFast: false  # 외부 설정 로딩 실패 시 즉시 애플리케이션 종료
