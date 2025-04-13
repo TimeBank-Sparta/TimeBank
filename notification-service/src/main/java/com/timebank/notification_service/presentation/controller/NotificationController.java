@@ -1,7 +1,5 @@
 package com.timebank.notification_service.presentation.controller;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -53,18 +51,6 @@ public class NotificationController {
 		NotificationDto notification = notificationService.getNotification(notificationId);
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ResponseDto.success(HttpStatus.OK, notification));
-	}
-
-	/**
-	 * 특정 사용자의 알림 조회
-	 * GET /api/v1/users/{userId}/notifications
-	 */
-	@GetMapping
-	public ResponseEntity<ResponseDto<List<NotificationDto>>> getUserNotifications(
-		@PathVariable Long userId) {
-		List<NotificationDto> notifications = notificationService.getNotificationsByUser(userId);
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(ResponseDto.success(HttpStatus.OK, notifications));
 	}
 
 	/**
