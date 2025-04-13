@@ -3,6 +3,7 @@ package com.timebank.userservice.domain.model.profile;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.timebank.common.domain.Timestamped;
 import com.timebank.userservice.domain.model.user.User;
 
 import jakarta.persistence.CollectionTable;
@@ -31,7 +32,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder(access = AccessLevel.PRIVATE, builderMethodName = "innerBuilder")
-public class UserProfile {
+public class UserProfile extends Timestamped {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "user_profile_id")
@@ -52,6 +53,7 @@ public class UserProfile {
 	@Enumerated(EnumType.STRING)
 	@Builder.Default
 	@Column(name = "help_service")
+	@Builder.Default
 	private Set<ServiceCategory> helpServices = new HashSet<>();
 
 	// 도움 받을 서비스
@@ -60,6 +62,7 @@ public class UserProfile {
 	@Enumerated(EnumType.STRING)
 	@Builder.Default
 	@Column(name = "need_service")
+	@Builder.Default
 	private Set<ServiceCategory> needServices = new HashSet<>();
 
 	private String location;

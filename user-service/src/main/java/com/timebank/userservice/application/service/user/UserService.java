@@ -60,6 +60,6 @@ public class UserService {
 		if (!user.getId().equals(Long.parseLong(currentId))) {
 			throw new IllegalArgumentException("동일 회원이 아닙니다.");
 		}
-		//todo:common 적용 후 삭제
+		user.delete(currentId);
 	}
 }

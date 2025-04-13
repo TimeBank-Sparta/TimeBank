@@ -143,6 +143,7 @@ services:
       - config-server
       - user-mysql
       - gateway-service
+
     networks:
       - msanet
 
