@@ -28,7 +28,11 @@ ext {
     set('springCloudVersion', "2024.0.0")
     snippetsDir = file('build/generated-snippets')
 }
-
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
 dependencies {
     //공통모듈
     implementation 'com.timebank:common:0.0.1-SNAPSHOT'
@@ -62,11 +66,6 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    }
-}
 
 tasks.named('test') {
     useJUnitPlatform()

@@ -1,6 +1,6 @@
 spring:
   application:
-    name: point-service
+    name: review-service
   config:
     import: "configserver:http://config-server:8888/"
   cloud:

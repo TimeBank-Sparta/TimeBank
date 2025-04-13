@@ -7,7 +7,6 @@ services:
     ports:
       - "8888:8888"
     environment:
-      # 내부 네트워크에서 Eureka 서버 접근을 위해 서비스명 사용
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
     env_file:
       - .env
@@ -39,7 +38,6 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
-      # 내부 네트워크에서 Eureka 서버 접근을 위해 서비스명 사용
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
     depends_on:
       - eureka-server
@@ -48,40 +46,104 @@ services:
       - msanet
     command: sh -c "./wait-for-it.sh config-server:8888 --timeout=15 -- ./wait-for-it.sh eureka:8761 --timeout=15 -- java -jar gateway.jar"
 
+  help-service:
+    build:
+      context: .
+      dockerfile: help-service/Dockerfile
+    container_name: help-service
+    ports:
+      - "8081:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SERVER_PORT=8080
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      # help-service에서 사용될 MySQL 호스트는 "help-mysql"입니다.
+    depends_on:
+      - eureka-server
+      - config-server
+      - help-mysql
+      - gateway-service
+    networks:
+      - msanet
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
+    container_name: notification-service
+    ports:
+      - "8082:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SERVER_PORT=8080
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      # notification-service에서 사용될 MySQL 호스트는 "notification-mysql"입니다.
+    depends_on:
+      - eureka-server
+      - config-server
+      - notification-mysql
+      - gateway-service
+    networks:
+      - msanet
+
+  review-service:
+    build:
+      context: .
+      dockerfile: review-service/Dockerfile
+    container_name: review-service
+    ports:
+      - "8083:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SERVER_PORT=8080
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      # review-service에서 사용될 MySQL 호스트는 "review-mysql"입니다.
+    depends_on:
+      - eureka-server
+      - config-server
+      - review-mysql
+      - gateway-service
+    networks:
+      - msanet
+
+  point-service:
+    build:
+      context: .
+      dockerfile: point-service/Dockerfile
+    container_name: point-service
+    ports:
+      - "8084:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SERVER_PORT=8080
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      # point-service에서 사용될 MySQL 호스트는 "point-mysql"입니다.
+    depends_on:
+      - eureka-server
+      - config-server
+      - point-mysql
+      - gateway-service
+    networks:
+      - msanet
+
   user-service:
     build:
       context: .
       dockerfile: user-service/Dockerfile
     container_name: user-service
+    ports:
+      - "8085:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
-      - SPRING_APPLICATION_NAME=user-service
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - SPRING_DATA_REDIS_HOST=redis
-      - SPRING_DATA_REDIS_PORT=6379
-      - SPRING_DATASOURCE_URL=jdbc:mysql://user-db:3306/timebank
-      - SPRING_DATASOURCE_USERNAME=timebank
-      - SPRING_DATASOURCE_PASSWORD=1234
-      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+      # user-service에서 사용될 MySQL 호스트는 "user-mysql"입니다.
     depends_on:
-      - redis
-      - user-db
       - eureka-server
-    networks:
-      - msanet
+      - config-server
+      - user-mysql
+      - gateway-service
 
-  user-db:
-    image: mysql:latest
-    container_name: user-db
-    restart: always
-    ports:
-      - "3307:3306"
-    environment:
-      MYSQL_USER: timebank
-      MYSQL_PASSWORD: 1234
-      MYSQL_ROOT_PASSWORD: 1234
-      MYSQL_DATABASE: timebank
     networks:
       - msanet
 
@@ -92,7 +154,6 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-        - spring.cloud.config.uri=http://config-server:8888
     ports:
       - "2181:2181"
     networks:
@@ -112,7 +173,6 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-        - spring.cloud.config.uri=http://config-server:8888
     networks:
       - msanet
 
@@ -121,8 +181,6 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
-    environment:
-      - spring.cloud.config.uri=http://config-server:8888
     networks:
       - msanet
 
@@ -131,11 +189,82 @@ services:
     container_name: zipkin
     ports:
       - "9411:9411"
+    networks:
+      - msanet
+
+  # MySQL 데이터베이스를 각 서비스별로 생성 (외부 접근을 위해 서로 다른 호스트 포트 사용)
+  help-mysql:
+    image: mysql:8
+    container_name: help-mysql
     environment:
-      - spring.cloud.config.uri=http://config-server:8888
+      MYSQL_ROOT_PASSWORD: "1234"
+      MYSQL_DATABASE: help_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - help_mysql_data:/var/lib/mysql
+    networks:
+      - msanet
+
+  notification-mysql:
+    image: mysql:8
+    container_name: notification-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "1234"
+      MYSQL_DATABASE: notification_db
+    ports:
+      - "3308:3306"
+    volumes:
+      - notification_mysql_data:/var/lib/mysql
+    networks:
+      - msanet
+
+  review-mysql:
+    image: mysql:8
+    container_name: review-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "1234"
+      MYSQL_DATABASE: review_db
+    ports:
+      - "3309:3306"
+    volumes:
+      - review_mysql_data:/var/lib/mysql
+    networks:
+      - msanet
+
+  point-mysql:
+    image: mysql:8
+    container_name: point-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "1234"
+      MYSQL_DATABASE: point_db
+    ports:
+      - "3310:3306"
+    volumes:
+      - point_mysql_data:/var/lib/mysql
+    networks:
+      - msanet
+
+  user-mysql:
+    image: mysql:8
+    container_name: user-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "1234"
+      MYSQL_DATABASE: user_db
+    ports:
+      - "3311:3306"
+    volumes:
+      - user_mysql_data:/var/lib/mysql
     networks:
       - msanet
 
 networks:
   msanet:
     driver: bridge
+
+volumes:
+  help_mysql_data:
+  notification_mysql_data:
+  review_mysql_data:
+  point_mysql_data:
+  user_mysql_data:

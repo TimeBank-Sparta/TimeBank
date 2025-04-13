@@ -34,13 +34,14 @@ repositories {
 ext {
     set('springCloudVersion', "2024.0.0")
 }
-
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
 
 dependencies {
-    //querydsl
-    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-    annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
-    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
 
     // common 모듈을 사용하는 소비자에게도 spring-tx 등이 전이됨
     api 'org.springframework.boot:spring-boot-starter-web'
@@ -48,8 +49,6 @@ dependencies {
 
     // ✅ JPA
     api 'org.springframework.boot:spring-boot-starter-data-jpa'
-
-    implementation 'org.springframework:spring-tx'
 
 
     // ✅ OpenFeign (Spring Cloud)
@@ -65,21 +64,22 @@ dependencies {
 
     // ✅ Kafka
     implementation 'org.apache.kafka:kafka-streams'
-    implementation 'org.springframework.kafka:spring-kafka'
+    api 'org.springframework.kafka:spring-kafka'
 
     implementation 'mysql:mysql-connector-java:8.0.33'
+
+    implementation "com.querydsl:querydsl-jpa:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+    implementation "com.querydsl:querydsl-core"
+    implementation "com.querydsl:querydsl-collections"
+    annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
     runtimeOnly 'com.mysql:mysql-connector-j'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    }
 }
 
 publishing {
@@ -103,4 +103,14 @@ publishing {
 
 tasks.named('test') {
     enabled = false
+}
+def generated = 'src/main/generated'
+tasks.withType(JavaCompile) {
+    options.getGeneratedSourceOutputDirectory().set(file(generated))
+}
+sourceSets {
+    main.java.srcDirs += [generated]
+}
+clean {
+    delete file(generated)
 }

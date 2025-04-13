@@ -1,6 +1,6 @@
 package com.timebank.review.domain.entity;
 
-import com.timebank.common.application.dto.Timestamped;
+import com.timebank.common.domain.Timestamped;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
