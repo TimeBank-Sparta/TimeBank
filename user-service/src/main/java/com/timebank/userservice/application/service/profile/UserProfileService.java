@@ -43,15 +43,19 @@ public class UserProfileService {
 	}
 
 	// 본인 프로필 조회용
-	public UserProfile getMyProfile(Long userId) {
-		return userProfileRepository.findByUserId(userId)
+	public UserProfileResponseDto getMyProfile(Long userId) {
+		UserProfile userProfile = userProfileRepository.findByUserId(userId)
 			.orElseThrow(() -> new EntityNotFoundException("프로필이 없습니다."));
+
+		return UserProfileResponseDto.from(userProfile);
 	}
 
 	// 닉네임으로 다른 사람 프로필 조회
-	public UserProfile getProfileByNickname(String nickname) {
-		return userProfileRepository.findByNickname(nickname)
+	public UserProfileResponseDto getProfileByNickname(String nickname) {
+		UserProfile userProfile = userProfileRepository.findByNickname(nickname)
 			.orElseThrow(() -> new EntityNotFoundException("해당 닉네임의 프로필이 없습니다."));
+
+		return UserProfileResponseDto.from(userProfile);
 	}
 
 	@Transactional
@@ -74,7 +78,6 @@ public class UserProfileService {
 	public void deleteProfile(Long userId) {
 		UserProfile profile = userProfileRepository.findByUserId(userId)
 			.orElseThrow(() -> new EntityNotFoundException("유저 ID: " + userId + " 에 대한 유저를 찾을 수 없습니다."));
-
-		//todo:common적용 후 작업하기
+		profile.delete(userId.toString());
 	}
 }

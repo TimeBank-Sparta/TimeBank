@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.timebank.common.application.dto.ResponseDto;
 import com.timebank.userservice.application.dto.request.profile.UserProfileCreateRequestDto;
 import com.timebank.userservice.application.dto.request.profile.UserProfileUpdateRequestDto;
 import com.timebank.userservice.application.dto.response.profile.UserProfileResponseDto;
 import com.timebank.userservice.application.service.profile.UserProfileService;
-import com.timebank.userservice.domain.model.profile.UserProfile;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,45 +30,45 @@ public class UserProfileController {
 
 	// 프로필 생성
 	@PostMapping
-	public ResponseEntity<UserProfileResponseDto> createProfile(
+	public ResponseEntity<ResponseDto<UserProfileResponseDto>> createProfile(
 		@RequestHeader("X-User-Id") Long userId,
 		@RequestBody @Valid UserProfileCreateRequestDto request
 	) {
 		UserProfileResponseDto response = userProfileService.createProfile(userId, request);
-		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+		return ResponseEntity.status(HttpStatus.CREATED).body(ResponseDto.success(HttpStatus.CREATED, response));
 	}
 
 	// 내 프로필 조회
 	@GetMapping("/me")
-	public ResponseEntity<UserProfileResponseDto> getMyProfile(
+	public ResponseEntity<ResponseDto<UserProfileResponseDto>> getMyProfile(
 		@RequestHeader("X-User-Id") Long userId
 	) {
-		UserProfile profile = userProfileService.getMyProfile(userId);
-		return ResponseEntity.ok(UserProfileResponseDto.from(profile));
+		UserProfileResponseDto response = userProfileService.getMyProfile(userId);
+		return ResponseEntity.ok(ResponseDto.success(HttpStatus.OK, response));
 	}
 
 	// 다른 사람 프로필 조회 (닉네임 기반)
 	@GetMapping("/{nickname}")
-	public ResponseEntity<UserProfileResponseDto> getProfileByNickname(
+	public ResponseEntity<ResponseDto<UserProfileResponseDto>> getProfileByNickname(
 		@PathVariable String nickname
 	) {
-		UserProfile profile = userProfileService.getProfileByNickname(nickname);
-		return ResponseEntity.ok(UserProfileResponseDto.from(profile));
+		UserProfileResponseDto response = userProfileService.getProfileByNickname(nickname);
+		return ResponseEntity.ok(ResponseDto.success(HttpStatus.OK, response));
 	}
 
 	// 프로필 수정
 	@PutMapping
-	public ResponseEntity<UserProfileResponseDto> updateProfile(
+	public ResponseEntity<ResponseDto<UserProfileResponseDto>> updateProfile(
 		@RequestHeader("X-User-Id") Long userId,
 		@RequestBody @Valid UserProfileUpdateRequestDto request
 	) {
 		UserProfileResponseDto response = userProfileService.updateProfile(userId, request);
-		return ResponseEntity.ok(response);
+		return ResponseEntity.ok(ResponseDto.success(HttpStatus.OK, response));
 	}
 
 	// 프로필 삭제
 	@DeleteMapping
-	public ResponseEntity<Void> deleteProfile(
+	public ResponseEntity<ResponseDto<Void>> deleteProfile(
 		@RequestHeader("X-User-Id") Long userId
 	) {
 		userProfileService.deleteProfile(userId);

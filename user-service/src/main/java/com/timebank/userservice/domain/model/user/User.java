@@ -2,6 +2,7 @@ package com.timebank.userservice.domain.model.user;
 
 import static org.springframework.util.StringUtils.*;
 
+import com.timebank.common.domain.Timestamped;
 import com.timebank.userservice.domain.model.profile.UserProfile;
 
 import jakarta.persistence.CascadeType;
@@ -30,7 +31,7 @@ import lombok.ToString;
 @Builder(access = AccessLevel.PRIVATE, builderMethodName = "innerBuilder")
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class User extends Timestamped {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "user_id")
@@ -86,4 +87,5 @@ public class User {
 		if (hasText(phoneNumber))
 			this.phoneNumber = phoneNumber;
 	}
+
 }

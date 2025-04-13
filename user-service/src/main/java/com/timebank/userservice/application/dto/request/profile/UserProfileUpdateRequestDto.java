@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserProfileUpdateRequestDto {
-
 	private String nickname;
 	private Set<ServiceCategory> helpServices;
 	private Set<ServiceCategory> needServices;

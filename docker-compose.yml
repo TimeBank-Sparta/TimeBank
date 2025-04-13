@@ -48,6 +48,42 @@ services:
       - msanet
     command: sh -c "./wait-for-it.sh config-server:8888 --timeout=15 -- ./wait-for-it.sh eureka:8761 --timeout=15 -- java -jar gateway.jar"
 
+  user-service:
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
+    container_name: user-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SERVER_PORT=8080
+      - SPRING_APPLICATION_NAME=user-service
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATASOURCE_URL=jdbc:mysql://user-db:3306/timebank
+      - SPRING_DATASOURCE_USERNAME=timebank
+      - SPRING_DATASOURCE_PASSWORD=1234
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+    depends_on:
+      - redis
+      - user-db
+      - eureka-server
+    networks:
+      - msanet
+
+  user-db:
+    image: mysql:latest
+    container_name: user-db
+    restart: always
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_USER: timebank
+      MYSQL_PASSWORD: 1234
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: timebank
+    networks:
+      - msanet
 
   # Kafka 및 Zookeeper 추가
   zookeeper:

@@ -1,23 +1,25 @@
-server:
-  port: 8081
-
 spring:
   application:
     name: user-service
 
   datasource:
-    url: jdbc:mysql://localhost:3306/timebank
-    username: root
+    url: jdbc:mysql://user-db:3306/timebank
+    username: timebank
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+
+  data:
+    redis:
+      host: redis
+      port: 6379
 
 #todo : env파일이나 환경변수로 관리하기
 service:
@@ -27,4 +29,5 @@ service:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka-server:8761/eureka/
+#      defaultZone: http://localhost:8761/eureka/
