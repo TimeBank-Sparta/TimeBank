@@ -7,13 +7,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.timebank.common.application.exception.CustomNotFoundException;
 import com.timebank.helpservice.help_request.application.dto.request.CreateHelpRequestCommand;
+import com.timebank.helpservice.help_request.application.dto.request.HelpRequestToHelperKafkaDto;
+import com.timebank.helpservice.help_request.application.dto.request.SearchHelpRequestQuery;
 import com.timebank.helpservice.help_request.application.dto.request.UpdateHelpRequestCommand;
 import com.timebank.helpservice.help_request.application.dto.response.CreateHelpRequestResponse;
 import com.timebank.helpservice.help_request.application.dto.response.HelpRequestResponse;
 import com.timebank.helpservice.help_request.application.dto.response.UpdateHelpRequestResponse;
 import com.timebank.helpservice.help_request.domain.model.HelpRequest;
 import com.timebank.helpservice.help_request.domain.repository.HelpRequestRepository;
-import com.timebank.helpservice.help_request.presentation.dto.request.SearchHelpRequest;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,10 +23,10 @@ import lombok.RequiredArgsConstructor;
 public class HelpRequestService {
 
 	private final HelpRequestRepository helpRepository;
+	private final HelpRequestEventProducer eventProducer;
 
 	@Transactional
 	public CreateHelpRequestResponse createHelpRequest(CreateHelpRequestCommand command) {
-
 		return CreateHelpRequestResponse.from(helpRepository.save(
 			HelpRequest.createFrom(command.toHelpRequestInfo())));
 	}
@@ -33,15 +34,14 @@ public class HelpRequestService {
 	@Transactional(readOnly = true)
 	public HelpRequestResponse findById(Long helpRequestId) {
 		HelpRequest helpRequest = getHelpRequestOrThrow(helpRequestId);
-
 		return HelpRequestResponse.from(helpRequest);
 	}
 
 	@Transactional(readOnly = true)
 	public Page<HelpRequestResponse> searchHelpRequest(
-		SearchHelpRequest request, Pageable pageable
+		SearchHelpRequestQuery request, Pageable pageable
 	) {
-		return helpRepository.search(request.toQuery().toHelpRequestQuery(), pageable)
+		return helpRepository.search(request.toHelpRequestQuery(), pageable)
 			.map(HelpRequestResponse::from);
 	}
 
@@ -57,10 +57,9 @@ public class HelpRequestService {
 
 	@Transactional
 	public UpdateHelpRequestResponse completeHelpRequest(Long helpRequestId) {
+		//모집완료
 		HelpRequest helpRequest = getHelpRequestOrThrow(helpRequestId);
-
-		//TODO 승인된 지원자 제외 전체 삭제
-
+		eventProducer.sendToHelper(HelpRequestToHelperKafkaDto.of(helpRequestId));
 		helpRequest.completePostStatus();
 
 		return UpdateHelpRequestResponse.from(helpRequest);
@@ -71,6 +70,10 @@ public class HelpRequestService {
 		HelpRequest helpRequest = getHelpRequestOrThrow(helpRequestId);
 
 		//helpRequest.delete();
+	}
+
+	public boolean existHelpRequest(Long helpRequestId) {
+		return helpRepository.existsById(helpRequestId);
 	}
 
 	private HelpRequest getHelpRequestOrThrow(Long helpRequestId) {
