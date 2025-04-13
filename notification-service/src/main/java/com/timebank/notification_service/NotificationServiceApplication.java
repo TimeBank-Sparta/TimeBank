@@ -1,9 +1,12 @@
 package com.timebank.notification_service;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
-@SpringBootApplication
+import com.timebank.common.infrastructure.config.CommonApplication;
+
+@CommonApplication
+@ComponentScan(basePackages = {"com.timebank.common", "com.timebank"})
 public class NotificationServiceApplication {
 
 	public static void main(String[] args) {

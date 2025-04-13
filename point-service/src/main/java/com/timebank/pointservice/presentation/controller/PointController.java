@@ -15,7 +15,7 @@ import com.timebank.pointservice.presentation.dto.PointTransferRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/point")
+@RequestMapping("/api/v1/points")
 @RequiredArgsConstructor
 public class PointController {
 

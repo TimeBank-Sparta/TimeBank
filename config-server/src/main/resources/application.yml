@@ -8,14 +8,14 @@ spring:
         git:
           uri: https://github.com/TimeBank-Sparta/Config.git
           clone-on-start: true
-          username: "{cipher}f6f2c9f6f0ddd92e3e25a31f8f6b632e5ef9e3ec2ae291c226b4022b78e2e140"
-          password: "{cipher}99162c5eb7ae281d76c137dc11fe7026379b86494f2d5f990cee8dfeb8dfedea6b7dc33164bc48ec6a6a6d74bccb2683feb7cb22bec69cafa6aa8d31ccc04790"
+          username: "{cipher}412844803d5c600effc9094f96293ba2622a150aff8921cd71a5ae8f19d0ebfe"
+          password: "{cipher}cc50c95e1bf813fc2aead130d822a2e409c4da00b4129a9ad3bc8e6bc470fae83cfa06a452c019870b1e393bedf2b49b1052dd7521e66ec92c27c8e42b523e38"
   application:
     name: config-server
 encrypt:
-  #  key: ${SPRING_CLOUD_CONFIG_SERVER_ENCRYPT_KEY}
   key: timebank
-
+  #  key: ${SPRING_CLOUD_CONFIG_SERVER_ENCRYPT_KEY}
+  #  실무에선 서버 환경변수로 관리
 eureka:
   client:
     register-with-eureka: true

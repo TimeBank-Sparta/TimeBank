@@ -1,7 +1,7 @@
 package com.timebank.notification_service.presentation.controller;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.timebank.common.application.dto.PageResponseDto;
 import com.timebank.common.application.dto.ResponseDto;
 import com.timebank.notification_service.application.dto.NotificationDto;
 import com.timebank.notification_service.application.service.NotificationService;
@@ -31,10 +32,13 @@ public class NotificationController {
 	 * GET /api/v1/notifications
 	 */
 	@GetMapping
-	public ResponseEntity<ResponseDto<List<NotificationDto>>> getAllNotifications() {
-		List<NotificationDto> notifications = notificationService.getAllNotifications();
+	public ResponseEntity<PageResponseDto<NotificationDto>> getAllNotifications(Pageable pageable) {
+		Page<NotificationDto> notificationsPage = notificationService.getAllNotifications(pageable);
+		// PageResponseDto.success(HttpStatus status, Page<T> page, String message) 사용
+		PageResponseDto<NotificationDto> responseDto = PageResponseDto.success(
+			HttpStatus.OK, notificationsPage, "Notifications fetched successfully");
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(ResponseDto.success(HttpStatus.OK, notifications));
+			.body(responseDto);
 	}
 
 	/**
@@ -50,22 +54,10 @@ public class NotificationController {
 	}
 
 	/**
-	 * 특정 사용자의 알림 조회
-	 * GET /api/v1/users/{userId}/notifications
-	 */
-	@GetMapping
-	public ResponseEntity<ResponseDto<List<NotificationDto>>> getUserNotifications(
-		@PathVariable Long userId) {
-		List<NotificationDto> notifications = notificationService.getNotificationsByUser(userId);
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(ResponseDto.success(HttpStatus.OK, notifications));
-	}
-
-	/**
 	 * 알림 상태 업데이트 (읽음 처리)
 	 * PATCH /api/v1/notifications/{notificationId}/read
 	 */
-	@PatchMapping("/{notificationId}/read")
+	@PatchMapping("/{notificationId}")
 	public ResponseEntity<ResponseDto<NotificationDto>> markNotificationAsRead(
 		@PathVariable Long notificationId) {
 		NotificationDto updatedNotification = notificationService.markAsRead(notificationId);

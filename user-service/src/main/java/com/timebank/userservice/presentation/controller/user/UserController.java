@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.timebank.common.application.dto.ResponseDto;
 import com.timebank.userservice.application.dto.request.user.UserUpdateRequestDto;
 import com.timebank.userservice.application.dto.response.user.UserResponseDto;
 import com.timebank.userservice.application.service.user.UserService;
@@ -23,23 +24,27 @@ public class UserController {
 	private final UserService userService;
 
 	@GetMapping("/{id}")
-	public ResponseEntity<UserResponseDto> getUser(@PathVariable long id) {
+	public ResponseEntity<ResponseDto<UserResponseDto>> getUser(@PathVariable long id) {
 		UserResponseDto userResponseDto = userService.getUser(id);
-		return ResponseEntity.ok(userResponseDto);
+		return ResponseEntity.ok(ResponseDto.success(userResponseDto));
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<UserResponseDto> updateUser(
+	public ResponseEntity<ResponseDto<UserResponseDto>> updateUser(
 		@PathVariable Long id,
 		@RequestHeader("X-User-Id") String currentId,
 		@RequestBody UserUpdateRequestDto userUpdateRequestDto
 	) {
 		UserResponseDto userResponseDto = userService.updateUser(id, currentId, userUpdateRequestDto);
-		return ResponseEntity.ok(userResponseDto);
+		return ResponseEntity.ok(ResponseDto.success(userResponseDto));
 	}
 
 	@DeleteMapping("/{id}")
-	public void deleteUser(@PathVariable Long id, @RequestHeader("X-User-Id") String currentId) {
+	public ResponseEntity<ResponseDto<Void>> deleteUser(
+		@PathVariable Long id,
+		@RequestHeader("X-User-Id") String currentId
+	) {
 		userService.deleteUser(id, currentId);
+		return ResponseEntity.noContent().build();
 	}
 }
