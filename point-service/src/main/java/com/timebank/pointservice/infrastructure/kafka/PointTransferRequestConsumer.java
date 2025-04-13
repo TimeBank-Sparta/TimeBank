@@ -1,12 +1,13 @@
 package com.timebank.pointservice.infrastructure.kafka;
 
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.timebank.pointservice.application.dto.PointTransferCommand;
 import com.timebank.pointservice.application.service.PointService;
 import com.timebank.pointservice.infrastructure.kafka.dto.PointTransferRequestMessage;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Component;
 
 // 즉시 송금 컨슈머
 @Component

@@ -1,7 +1,6 @@
 package com.timebank.notification_service.application.dto;
 
 import com.timebank.notification_service.domain.entity.Notification;
-import com.timebank.notification_service.domain.entity.NotificationType;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,7 +15,7 @@ public class NotificationDto {
 	private Long notificationId;
 	private Long recipientId;
 	private Long senderId; // nullable
-	private NotificationType notificationType;
+	private String notificationType;
 	private String message;
 	private Boolean isRead;
 

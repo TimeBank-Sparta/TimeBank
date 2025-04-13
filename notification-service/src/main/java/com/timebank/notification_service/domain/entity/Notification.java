@@ -35,7 +35,7 @@ public class Notification extends Timestamped {
 
 	@Column(name = "notification_type", nullable = false)
 	@Enumerated(EnumType.STRING)
-	private NotificationType notificationType;
+	private String notificationType;
 
 	@Column(nullable = false, columnDefinition = "TEXT")
 	private String message;
@@ -43,7 +43,7 @@ public class Notification extends Timestamped {
 	@Column(name = "is_read", nullable = false)
 	private Boolean isRead = false;
 
-	public Notification(Long recipientId, Long senderId, NotificationType notificationType, String message) {
+	public Notification(Long recipientId, Long senderId, String notificationType, String message) {
 		this.recipientId = recipientId;
 		this.senderId = senderId;
 		this.notificationType = notificationType;

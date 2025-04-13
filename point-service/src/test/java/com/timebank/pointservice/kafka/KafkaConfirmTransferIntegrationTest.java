@@ -1,10 +1,11 @@
 package com.timebank.pointservice.kafka;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.timebank.pointservice.domain.entity.PointAccount;
-import com.timebank.pointservice.domain.repository.PointAccountRepository;
-import com.timebank.pointservice.domain.repository.PointTransactionRepository;
-import com.timebank.pointservice.infrastructure.kafka.dto.PointTransferRequestMessage;
+import static org.assertj.core.api.Assertions.*;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,11 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.KafkaTemplate;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.timebank.pointservice.domain.entity.PointAccount;
+import com.timebank.pointservice.domain.repository.PointAccountRepository;
+import com.timebank.pointservice.domain.repository.PointTransactionRepository;
+import com.timebank.pointservice.infrastructure.kafka.dto.PointTransferRequestMessage;
 
 @SpringBootTest
 public class KafkaConfirmTransferIntegrationTest {

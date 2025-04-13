@@ -25,7 +25,7 @@ public class NotificationService {
 
 	private final NotificationRepository notificationRepository;
 	private final KafkaTemplate<String, Object> kafkaTemplate;
-	private final String notificationTopic = "notification-events";
+	private final String notificationTopic = "notification.events";
 
 	/**
 	 * 전체 알림 조회 (페이지네이션 적용)
@@ -57,7 +57,7 @@ public class NotificationService {
 		notification = notificationRepository.save(notification);
 
 		// Kafka 이벤트 발행: 업데이트 이벤트
-		NotificationEvent event = new NotificationEvent(notification, NotificationEventType.UPDATED);
+		NotificationEvent event = new NotificationEvent(notification, NotificationEventType.UPDATED.getString());
 		kafkaTemplate.send(notificationTopic, event);
 
 		return NotificationDto.fromEntity(notification);
@@ -75,7 +75,7 @@ public class NotificationService {
 		notificationRepository.deleteById(notificationId);
 
 		// Kafka 이벤트 발행: 삭제 이벤트
-		NotificationEvent event = new NotificationEvent(notification, NotificationEventType.DELETED);
+		NotificationEvent event = new NotificationEvent(notification, NotificationEventType.DELETED.getString());
 		kafkaTemplate.send(notificationTopic, event);
 	}
 
