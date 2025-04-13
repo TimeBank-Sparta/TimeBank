@@ -2,8 +2,9 @@ spring:
   application:
     name: user-service
   config:
-    import: "configserver:http://config-server:8888/"
+    import: "configserver:"
   cloud:
     config:
+      uri: "http://config-server:8888/"
       failFast: false  # 외부 설정 로딩 실패 시 즉시 애플리케이션 종료
 
