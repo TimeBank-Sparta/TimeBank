@@ -14,5 +14,7 @@ public interface HelpRequestRepository {
 
 	Optional<HelpRequest> findById(Long helpRequestId);
 
+	boolean existsById(Long helpRequestId);
+
 	Page<HelpRequest> search(HelpRequestQuery request, Pageable pageable);
 }

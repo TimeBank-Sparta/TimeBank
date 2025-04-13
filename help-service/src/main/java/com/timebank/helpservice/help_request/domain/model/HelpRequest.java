@@ -53,6 +53,7 @@ public class HelpRequest extends Timestamped {
 
 	@Builder(builderMethodName = "helpRequestOnlyBuilder")
 	public HelpRequest(
+		Long requesterId,
 		String title,
 		String content,
 		String address,
@@ -62,6 +63,7 @@ public class HelpRequest extends Timestamped {
 		int recruitmentCount,
 		PostStatus postStatus
 	) {
+		this.requesterId = requesterId;
 		this.title = title;
 		this.content = content;
 		this.address = address;
@@ -74,6 +76,7 @@ public class HelpRequest extends Timestamped {
 
 	public static HelpRequest createFrom(HelpRequestInfo helpRequestInfo) {
 		return HelpRequest.helpRequestOnlyBuilder()
+			.requesterId(helpRequestInfo.requesterId())
 			.title(helpRequestInfo.title())
 			.content(helpRequestInfo.content())
 			.address(helpRequestInfo.address())
