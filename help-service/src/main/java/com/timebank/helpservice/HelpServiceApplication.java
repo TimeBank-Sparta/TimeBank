@@ -1,11 +1,10 @@
 package com.timebank.helpservice;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@EnableFeignClients
-@SpringBootApplication
+import com.timebank.common.infrastructure.config.CommonApplication;
+
+@CommonApplication
 public class HelpServiceApplication {
 
 	public static void main(String[] args) {
