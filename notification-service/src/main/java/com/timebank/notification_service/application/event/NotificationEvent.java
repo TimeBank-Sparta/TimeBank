@@ -1,6 +1,7 @@
 package com.timebank.notification_service.application.event;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import com.timebank.notification_service.domain.entity.Notification;
 
@@ -23,6 +24,8 @@ public class NotificationEvent {
 	private Boolean isRead;
 	private LocalDateTime sentAt;
 	private String eventType;
+	//  (사용자 디바이스 알림 전달용 필드)
+	private Map<String, String> payload;
 
 	public NotificationEvent(Notification notification, String eventType) {
 		this.notificationId = notification.getNotificationId();

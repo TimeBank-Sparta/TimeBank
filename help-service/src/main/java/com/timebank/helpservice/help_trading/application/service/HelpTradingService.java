@@ -2,6 +2,7 @@ package com.timebank.helpservice.help_trading.application.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class HelpTradingService {
 	private final HelpTradingRepository helpTradingRepository;
+	private final KafkaTemplate<String, NotificationEvent> kafkaTemplate;
 
 	@Transactional
 	public CreateTradingResponse createHelpTrading(CreateTradingCommand command) {
