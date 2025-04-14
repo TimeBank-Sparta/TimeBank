@@ -58,6 +58,9 @@ public class User extends Timestamped {
 	@Enumerated(EnumType.STRING)
 	private Role role;
 
+	@Column(name = "refresh_token", length = 512)
+	private String refreshToken;
+
 	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
 	private UserProfile userProfile;
 
@@ -88,4 +91,7 @@ public class User extends Timestamped {
 			this.phoneNumber = phoneNumber;
 	}
 
+	public void updateRefreshToken(String refreshToken) {
+		this.refreshToken = refreshToken;
+	}
 }
