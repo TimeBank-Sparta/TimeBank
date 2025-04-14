@@ -32,7 +32,7 @@ public class JwtAuthenticationFilter implements GlobalFilter {
 		String path = exchange.getRequest().getURI().getPath();
 		//회원가입과 로그인은 jwt없어도 가능해야하므로 해당 엔드포인트면 넘김
 		if (path.equals("/api/v1/auth/signup") || path.equals("/api/v1/auth/login") || path.equals(
-			"/api/v1/auth/refresh")) {
+			"/api/v1/auth/refresh/redis") || path.equals("/api/v1/auth/refresh/rdbs")) {
 			return chain.filter(exchange);
 		}
 		log.info("signup, login, refresh가 아닌 요청이라서 이 필터에 왔어요!!");
