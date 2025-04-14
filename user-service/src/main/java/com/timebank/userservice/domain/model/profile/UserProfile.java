@@ -52,7 +52,6 @@ public class UserProfile extends Timestamped {
 	@CollectionTable(name = "user_help_services", joinColumns = @JoinColumn(name = "user_profile_id"))
 	@Enumerated(EnumType.STRING)
 	@Column(name = "help_service")
-	@Builder.Default
 	private Set<ServiceCategory> helpServices = new HashSet<>();
 
 	// 도움 받을 서비스
@@ -60,7 +59,6 @@ public class UserProfile extends Timestamped {
 	@CollectionTable(name = "user_need_services", joinColumns = @JoinColumn(name = "user_profile_id"))
 	@Enumerated(EnumType.STRING)
 	@Column(name = "need_service")
-	@Builder.Default
 	private Set<ServiceCategory> needServices = new HashSet<>();
 
 	private String location;
