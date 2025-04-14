@@ -17,7 +17,7 @@ public class ReviewDto {
 	private Long transactionId;
 	private Long reviewerId;
 	private Long revieweeId;
-	private Byte rating;
+	private int rating;
 	private String comment;
 
 	public static ReviewDto fromEntity(Review review) {

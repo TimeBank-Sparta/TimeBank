@@ -34,7 +34,7 @@ public class Review extends Timestamped {
 	private Long revieweeId;
 
 	@Column(nullable = false)
-	private Byte rating; // 1~5 점
+	private int rating; // 1~5 점
 
 	@Column(columnDefinition = "TEXT")
 	private String comment;

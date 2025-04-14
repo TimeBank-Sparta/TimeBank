@@ -1,4 +1,4 @@
-package com.timebank.common.infrastructure.externel.notification.dto;
+package com.timebank.common.infrastructure.external.notification.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

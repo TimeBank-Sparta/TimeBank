@@ -1,4 +1,4 @@
-package com.timebank.common.infrastructure.externel.review.dto;
+package com.timebank.common.infrastructure.external.review.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,7 +15,7 @@ public class ReviewDto {
 	private Long transactionId;
 	private Long reviewerId;
 	private Long revieweeId;
-	private Byte rating;
+	private int rating;
 	private String comment;
 
 }
