@@ -32,6 +32,8 @@ dependencyManagement {
 dependencies {
     implementation 'com.timebank:common:0.0.1-SNAPSHOT'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+//     ✅ OpenFeign (Spring Cloud)
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
     implementation "com.querydsl:querydsl-jpa:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
     implementation "com.querydsl:querydsl-core"
