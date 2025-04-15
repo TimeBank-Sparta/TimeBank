@@ -39,7 +39,7 @@ public class Review extends Timestamped {
 	@Column(columnDefinition = "TEXT")
 	private String comment;
 
-	public Review(Long transactionId, Long reviewerId, Long revieweeId, Byte rating, String comment) {
+	public Review(Long transactionId, Long reviewerId, Long revieweeId, int rating, String comment) {
 		this.transactionId = transactionId;
 		this.reviewerId = reviewerId;
 		this.revieweeId = revieweeId;

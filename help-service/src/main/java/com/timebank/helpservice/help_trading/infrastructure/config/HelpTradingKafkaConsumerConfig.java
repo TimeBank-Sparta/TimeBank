@@ -18,7 +18,7 @@ public class HelpTradingKafkaConsumerConfig {
 	public ConsumerFactory<String, String> helpTradingConsumerFactory() {
 		Map<String, Object> configProps = new HashMap<>();
 
-		configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+		configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
 		configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
 		configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
 

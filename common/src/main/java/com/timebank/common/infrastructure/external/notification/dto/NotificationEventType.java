@@ -1,4 +1,4 @@
-package com.timebank.notification_service.domain.entity;
+package com.timebank.common.infrastructure.external.notification.dto;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

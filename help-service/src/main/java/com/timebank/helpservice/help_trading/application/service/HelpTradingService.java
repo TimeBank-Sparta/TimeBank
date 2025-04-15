@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.timebank.common.application.exception.CustomNotFoundException;
+import com.timebank.common.infrastructure.external.notification.dto.NotificationEvent;
 import com.timebank.helpservice.help_trading.application.dto.request.CreateTradingCommand;
 import com.timebank.helpservice.help_trading.application.dto.response.CreateTradingResponse;
 import com.timebank.helpservice.help_trading.application.dto.response.FindHelpTradingResponse;
