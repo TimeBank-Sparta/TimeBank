@@ -37,7 +37,6 @@ public class PointTransferRequestConsumer {
 				.senderUserId(dto.senderUserId())
 				.receiverUserId(dto.receiverUserId())
 				.amount(dto.amount())
-				.reason(dto.reason())
 				.build());
 
 			System.out.println("✅ 포인트 송금 처리 완료: " + dto);

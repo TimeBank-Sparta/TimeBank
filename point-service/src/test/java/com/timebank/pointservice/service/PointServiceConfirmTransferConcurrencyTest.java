@@ -69,7 +69,6 @@ public class PointServiceConfirmTransferConcurrencyTest {
 						.senderUserId(senderUserId)
 						.receiverUserId(receiverUserId)
 						.amount(transferAmount)
-						.reason("동시성 테스트")
 						.build());
 				} catch (Exception e) {
 					System.out.println("❌ 예외 발생: " + e.getMessage());

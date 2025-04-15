@@ -57,8 +57,7 @@ public class KafkaPointHoldCancelIntegrationTest {
 		for (int i = 0; i < threadCount; i++) {
 			executor.submit(() -> {
 				try {
-					PointTransferRequestMessage dto = new PointTransferRequestMessage(testUserId, null, cancelAmount,
-						"Kafka 보류 취소 테스트");
+					PointTransferRequestMessage dto = new PointTransferRequestMessage(testUserId, null, cancelAmount);
 					String message = objectMapper.writeValueAsString(dto);
 					kafkaTemplate.send(new ProducerRecord<>(topic, message));
 				} catch (Exception e) {

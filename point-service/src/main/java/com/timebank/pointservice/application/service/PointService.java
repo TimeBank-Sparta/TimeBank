@@ -11,6 +11,7 @@ import com.timebank.common.infrastructure.external.notification.dto.Notification
 import com.timebank.common.infrastructure.external.notification.dto.NotificationEventType;
 import com.timebank.common.infrastructure.external.notification.dto.NotificationType;
 import com.timebank.pointservice.application.dto.PointTransferCommand;
+import com.timebank.pointservice.application.dto.getAccountResponseDto;
 import com.timebank.pointservice.domain.entity.PointAccount;
 import com.timebank.pointservice.domain.entity.PointTransaction;
 import com.timebank.pointservice.domain.repository.PointAccountRepository;
@@ -42,14 +43,21 @@ public class PointService {
 	}
 
 	// 계정 조회
-	public PointAccount getAccount(Long userId) {
-		return pointAccountRepository.findByUserId(userId)
+	public getAccountResponseDto getAccount(Long userId) {
+		PointAccount account = pointAccountRepository.findByUserId(userId)
 			.orElseThrow(() -> new IllegalArgumentException("해당 계정을 찾을 수 없습니다."));
+
+		getAccountResponseDto dto = new getAccountResponseDto();
+		dto.setAvailablePoints(account.getAvailablePoints());
+		dto.setHoldingPoints(account.getHoldingPoints());
+		return dto;
 	}
 
-	// ✅ 글 작성 시 포인트 보류 알림
+
+
+	// ✅ 글 작성 시 포인트 보류
 	@Transactional
-	public void holdPointsForPost(Long userId, int amount, String reason) {
+	public void holdPointsForPost(Long userId, int amount) {
 		PointAccount account = pointAccountRepository.findByUserIdForUpdate(userId)
 			.orElseThrow(() -> new NoSuchElementException("계좌를 찾을 수 없습니다."));
 
@@ -59,7 +67,7 @@ public class PointService {
 		PointTransaction holdTx = PointTransaction.builder()
 			.account(account)
 			.amount(-amount)
-			.transactionReason("Hold: " + reason)
+			.transactionReason("Hold: 게시글 작성")
 			.build();
 
 		pointTransactionRepository.save(holdTx);
@@ -83,7 +91,6 @@ public class PointService {
 		Long senderUserId = command.getSenderUserId();
 		Long receiverUserId = command.getReceiverUserId();
 		int amount = command.getAmount();
-		String reason = command.getReason();
 
 		if (amount <= 0) {
 			throw new IllegalArgumentException("보낼 포인트는 1 이상이어야 합니다.");
@@ -108,12 +115,12 @@ public class PointService {
 		PointTransaction sendTx = PointTransaction.builder()
 			.account(sender)
 			.amount(-amount)
-			.transactionReason("Confirm (송금): " + reason)
+			.transactionReason("Confirm: to" + receiverUserId)
 			.build();
 		PointTransaction receiveTx = PointTransaction.builder()
 			.account(receiver)
 			.amount(amount)
-			.transactionReason("Confirm (수신): " + reason)
+			.transactionReason("Receive: from" + senderUserId)
 			.relatedTransaction(sendTx)
 			.build();
 
@@ -148,7 +155,7 @@ public class PointService {
 
 	// ✅ 거래 취소 시 보류 포인트 복구 알림
 	@Transactional
-	public void cancelHolding(Long userId, int amount, String reason) {
+	public void cancelHolding(Long userId, int amount) {
 		PointAccount account = pointAccountRepository.findByUserIdForUpdate(userId)
 			.orElseThrow(() -> new NoSuchElementException("계좌를 찾을 수 없습니다."));
 
@@ -156,7 +163,7 @@ public class PointService {
 		PointTransaction cancelTx = PointTransaction.builder()
 			.account(account)
 			.amount(amount)
-			.transactionReason("Cancel: " + reason)
+			.transactionReason("Cancel: 거래 취소")
 			.build();
 
 		pointTransactionRepository.save(cancelTx);
@@ -180,7 +187,6 @@ public class PointService {
 		Long senderUserId = command.getSenderUserId();
 		Long receiverUserId = command.getReceiverUserId();
 		int amount = command.getAmount();
-		String reason = command.getReason();
 
 		if (amount <= 0) {
 			throw new IllegalArgumentException("보낼 포인트는 1 이상이어야 합니다.");
@@ -210,13 +216,13 @@ public class PointService {
 		PointTransaction sendTx = PointTransaction.builder()
 			.account(sender)
 			.amount(-amount)
-			.transactionReason("Send: " + reason)
+			.transactionReason("Send: to" + receiverUserId)
 			.build();
 
 		PointTransaction receiveTx = PointTransaction.builder()
 			.account(receiver)
 			.amount(amount)
-			.transactionReason("Receive: " + reason)
+			.transactionReason("Receive: from" + senderUserId)
 			.relatedTransaction(sendTx)
 			.build();
 
