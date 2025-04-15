@@ -66,7 +66,6 @@ public class PointTransferConcurrencyTest {
 						.senderUserId(senderId)
 						.receiverUserId(receiverId)
 						.amount(transferAmount)
-						.reason("즉시 송금 테스트")
 						.build());
 				} catch (Exception e) {
 					System.out.println("❌ 예외 발생: " + e.getMessage());

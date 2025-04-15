@@ -37,7 +37,6 @@ public class PointHoldConfirmConsumer {
 				.senderUserId(dto.senderUserId())
 				.receiverUserId(dto.receiverUserId())
 				.amount(dto.amount())
-				.reason(dto.reason())
 				.build());
 
 			System.out.println("✅ 거래 확정 포인트 이체 완료: " + dto);
