@@ -30,56 +30,66 @@ public class HelpTradingService {
 	private final KafkaTemplate<String, NotificationEvent> kafkaTemplate;
 
 	// 거래 생성 시 알림 발행 예시
+
+	/**
+	 * 도움 거래 생성 (도움 요청 글 종료 후 거래 시작)
+	 */
 	@Transactional
 	public CreateTradingResponse createHelpTrading(CreateTradingCommand command) {
 		// TODO: 게시글 존재 여부 확인
 		HelpTrading trading = HelpTrading.createFrom(command.toHelpTradingInfo());
 		trading = helpTradingRepository.save(trading);
 
-		// 예시: 도움 요청글 작성자에게 거래 시작 요청 알림 전송
-		// ※ 아래 recipientId, notificationType, 메시지 등은 요구사항에 따라 수정 가능
+		// 거래 생성 시, 도움 요청 글 작성자(요청자)에게 거래 시작 요청 알림 발행
 		NotificationEvent event = NotificationEvent.builder()
-			.recipientId(trading.getRequesterId()) // 거래와 연관된 도움 요청글 작성자 ID (예시)
-			.type(NotificationType.TRANSACTION_START_REQUEST)          // 거래 관련 알림
+			.recipientId(trading.getRequesterId())  // 거래와 연결된 도움 요청 글 작성자 ID
+			.type(NotificationType.TRANSACTION_START_REQUEST)
 			.message("도움 거래가 생성되었습니다. 거래 시작 요청을 확인하세요.")
 			.isRead(false)
 			.sentAt(LocalDateTime.now())
-			.eventType(NotificationEventType.CREATED)          // CREATED 이벤트
+			.eventType(NotificationEventType.CREATED)
 			.build();
-
-		// NotificationEventType.CREATED.getTopic()를 이용해 해당 이벤트 유형 전용 토픽에 발행
 		kafkaTemplate.send(NotificationEventType.CREATED.getTopic(), event);
+
 		return CreateTradingResponse.from(trading);
 	}
 
+	/**
+	 * Kafka에서 받은 데이터 기반 도움 거래 생성 (지원자 관련)
+	 */
 	@Transactional
 	public void createHelpTradingFromKafka(FromHelperKafkaDto command) {
-		// Kafka에서 받은 데이터를 기반으로 거래 생성 (이 경우 추가적인 이벤트 발행은 생략)
 		helpTradingRepository.save(HelpTrading.createFrom(command.toHelpTradingInfo()));
 	}
 
+	/**
+	 * 도움 요청 글에 따른 거래 내역 조회
+	 */
 	@Transactional(readOnly = true)
 	public Page<FindHelpTradingResponse> findByHelpRequestId(Long helpRequestId, Pageable pageable) {
 		return helpTradingRepository.findByHelpRequestId(helpRequestId, pageable)
 			.map(FindHelpTradingResponse::from);
 	}
 
+	/**
+	 * 도움 거래 삭제 (취소 시)
+	 */
 	@Transactional
 	public void delete(Long helpTradingId) {
 		HelpTrading helpTrading = helpTradingRepository.findById(helpTradingId)
 			.orElseThrow(() -> new CustomNotFoundException("거래내역이 없습니다."));
 		helpTradingRepository.delete(helpTrading);
 
-		// 거래 삭제 시 알림 발행 예시
+		// 거래 취소 시 알림 이벤트 발행: 거래 종료 요청 (취소)
 		NotificationEvent event = NotificationEvent.builder()
-			.recipientId(helpTrading.getRequesterId()) // 거래와 연관된 도움 요청글 작성자 ID (예시)
-			.type(NotificationType.TRANSACTION_END_REQUEST)            // 거래 관련 알림
+			.recipientId(helpTrading.getRequesterId()) // 거래와 연결된 도움 요청 글 작성자 ID
+			.type(NotificationType.TRANSACTION_END_REQUEST)
 			.message("도움 거래가 취소되었습니다.")
 			.isRead(false)
 			.sentAt(LocalDateTime.now())
-			.eventType(NotificationEventType.DELETED)             // DELETED 이벤트
+			.eventType(NotificationEventType.DELETED)
 			.build();
-
 		kafkaTemplate.send(NotificationEventType.DELETED.getTopic(), event);
 	}
+
 }
