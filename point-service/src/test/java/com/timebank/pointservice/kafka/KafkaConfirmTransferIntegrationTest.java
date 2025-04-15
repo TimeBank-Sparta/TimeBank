@@ -71,8 +71,7 @@ public class KafkaConfirmTransferIntegrationTest {
 			executor.submit(() -> {
 				try {
 					PointTransferRequestMessage dto = new PointTransferRequestMessage(
-						senderUserId, receiverUserId, transferAmount, "Kafka 거래 확정 테스트"
-					);
+						senderUserId, receiverUserId, transferAmount);
 					String message = objectMapper.writeValueAsString(dto);
 					kafkaTemplate.send(new ProducerRecord<>(topic, message));
 				} catch (Exception e) {

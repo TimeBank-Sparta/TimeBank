@@ -123,6 +123,8 @@ services:
       - config-server
       - point-mysql
       - gateway-service
+      - zookeeper
+      - kafka
     networks:
       - msanet
 

@@ -56,7 +56,7 @@ public class PointHoldConcurrencyTest {
 		for (int i = 0; i < threadCount; i++) {
 			executor.submit(() -> {
 				try {
-					pointService.holdPointsForPost(testUserId, holdAmount, "concurrent-hold-test");
+					pointService.holdPointsForPost(testUserId, holdAmount);
 					successCount.incrementAndGet();
 				} catch (Exception e) {
 					System.out.println("❌ 실패한 요청: " + e.getMessage());

@@ -32,7 +32,7 @@ public class PointHoldCancelConsumer {
 		try {
 			PointTransferRequestMessage dto = objectMapper.readValue(message, PointTransferRequestMessage.class);
 
-			pointService.cancelHolding(dto.senderUserId(), dto.amount(), dto.reason());
+			pointService.cancelHolding(dto.senderUserId(), dto.amount());
 
 			System.out.println("✅ 포인트 보류 취소 처리 완료: " + dto);
 
