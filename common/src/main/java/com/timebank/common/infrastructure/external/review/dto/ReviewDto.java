@@ -1,6 +1,4 @@
-package com.timebank.review.application.dto;
-
-import com.timebank.review.domain.entity.Review;
+package com.timebank.common.infrastructure.external.review.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,14 +18,4 @@ public class ReviewDto {
 	private int rating;
 	private String comment;
 
-	public static ReviewDto fromEntity(Review review) {
-		return new ReviewDto(
-			review.getReviewId(),
-			review.getTransactionId(),
-			review.getReviewerId(),
-			review.getRevieweeId(),
-			review.getRating(),
-			review.getComment()
-		);
-	}
 }

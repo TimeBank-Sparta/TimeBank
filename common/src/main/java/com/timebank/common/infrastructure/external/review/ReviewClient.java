@@ -1,4 +1,4 @@
-package com.timebank.common.infrastructure.externel.review;
+package com.timebank.common.infrastructure.external.review;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.timebank.common.application.dto.PageResponseDto;
 import com.timebank.common.application.dto.ResponseDto;
-import com.timebank.common.infrastructure.externel.review.dto.ReviewDto;
+import com.timebank.common.infrastructure.external.review.dto.ReviewDto;
 
 @FeignClient(name = "review-service")
 public interface ReviewClient {

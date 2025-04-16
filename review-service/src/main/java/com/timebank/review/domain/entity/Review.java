@@ -34,12 +34,12 @@ public class Review extends Timestamped {
 	private Long revieweeId;
 
 	@Column(nullable = false)
-	private Byte rating; // 1~5 점
+	private int rating; // 1~5 점
 
 	@Column(columnDefinition = "TEXT")
 	private String comment;
 
-	public Review(Long transactionId, Long reviewerId, Long revieweeId, Byte rating, String comment) {
+	public Review(Long transactionId, Long reviewerId, Long revieweeId, int rating, String comment) {
 		this.transactionId = transactionId;
 		this.reviewerId = reviewerId;
 		this.revieweeId = revieweeId;

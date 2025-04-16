@@ -15,7 +15,7 @@ public class ReviewEvent {
 	private Long transactionId;
 	private Long reviewerId;
 	private Long revieweeId;
-	private Byte rating;
+	private int rating;
 	private String comment;
 	private ReviewEventType eventType;  // 예: CREATED, UPDATED, DELETED
 

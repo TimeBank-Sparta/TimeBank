@@ -1,4 +1,4 @@
-package com.timebank.notification_service.domain.entity;
+package com.timebank.common.infrastructure.external.notification.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -6,7 +6,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum NotificationType {
-
 	// 유저 관련 알림
 	USER_LOGIN("USER_LOGIN"),
 	USER_INFO_UPDATE("USER_INFO_UPDATE"),
