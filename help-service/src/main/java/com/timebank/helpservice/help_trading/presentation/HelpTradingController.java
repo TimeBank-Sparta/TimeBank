@@ -90,9 +90,10 @@ public class HelpTradingController {
 
 	@DeleteMapping("/{helpRequestId}")
 	public ResponseEntity<ResponseDto<Void>> deleteHelpTrading(
-		@PathVariable Long helpRequestId
+		@PathVariable Long helpRequestId,
+		@RequestHeader("X-User-Id") String userId
 	) {
-		helpTradingService.delete(helpRequestId);
+		helpTradingService.delete(helpRequestId, userId);
 		return ResponseEntity.ok(ResponseDto.responseWithNoData(HttpStatus.NO_CONTENT, "삭제완료"));
 	}
 }

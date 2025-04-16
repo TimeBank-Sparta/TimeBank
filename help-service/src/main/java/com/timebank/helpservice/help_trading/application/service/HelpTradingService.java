@@ -30,12 +30,9 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class HelpTradingService {
-
-	private final KafkaTemplate<String, NotificationEvent> kafkaTemplate;
 	private final HelpTradingRepository helpTradingRepository;
 	private final HelpTradingEventProducer eventProducer;
-
-	// 거래 생성 시 알림 발행 예시
+	private final KafkaTemplate<String, NotificationEvent> kafkaTemplate;
 
 	/**
 	 * 도움 거래 생성 (도움 요청 글 종료 후 거래 시작)
@@ -81,10 +78,10 @@ public class HelpTradingService {
 	 * 도움 거래 삭제 (취소 시)
 	 */
 	@Transactional
-	public void delete(Long helpTradingId) {
+	public void delete(Long helpTradingId, String userId) {
 		HelpTrading helpTrading = helpTradingRepository.findById(helpTradingId)
 			.orElseThrow(() -> new CustomNotFoundException("거래내역이 없습니다."));
-		helpTradingRepository.delete(helpTrading);
+		helpTrading.delete(userId);
 
 		// 거래 취소 시 알림 이벤트 발행: 거래 종료 요청 (취소)
 		NotificationEvent event = NotificationEvent.builder()

@@ -21,8 +21,7 @@ import com.timebank.helpservice.help_request.application.dto.response.CreateHelp
 import com.timebank.helpservice.help_request.application.dto.response.HelpRequestResponse;
 import com.timebank.helpservice.help_request.application.dto.response.UpdateHelpRequestResponse;
 import com.timebank.helpservice.help_request.domain.model.HelpRequest;
-import com.timebank.helpservice.help_request.infrastructure.db.JpaHelpRequestRepository;
-import com.timebank.helpservice.help_request.infrastructure.db.JpaHelpRequestRepositoryCustomImpl;
+import com.timebank.helpservice.help_request.domain.repository.HelpRequestRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,12 +30,10 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class HelpRequestService {
 
-	private final JpaHelpRequestRepositoryCustomImpl jpaHelpRequestRepositoryCustom;
-	private final JpaHelpRequestRepository helpRepository;
-	// KafkaTemplate을 통해 NotificationEvent를 발행합니다.
-	private final KafkaTemplate<String, NotificationEvent> kafkaTemplate;
+	private final HelpRequestRepository helpRequestRepository;
 	private final HelpRequestEventProducer eventProducer;
 	private final PointClient pointClient;
+	private final KafkaTemplate<String, NotificationEvent> kafkaTemplate;
 
 	/**
 	 * 도움 요청 글 생성 (작성 시 알림 이벤트 발행 – 필요에 따라 추가)
@@ -44,7 +41,7 @@ public class HelpRequestService {
 	@Transactional
 	public CreateHelpRequestResponse createHelpRequest(CreateHelpRequestCommand command) {
 		HelpRequest helpRequest = HelpRequest.createFrom(command.toHelpRequestInfo());
-		helpRequest = helpRepository.save(helpRequest);
+		helpRequest = helpRequestRepository.save(helpRequest);
 
 		// (선택 사항) 도움 요청 글 생성 시 알림 이벤트 (예: POST_CREATED)
 		NotificationEvent event = NotificationEvent.builder()
@@ -56,9 +53,9 @@ public class HelpRequestService {
 			.eventType(NotificationEventType.CREATED)
 			.build();
 		kafkaTemplate.send(NotificationEventType.CREATED.getTopic(), event);
+
 		pointClient.holdPoint(HoldPointRequestDto.of(command.requesterId(), command.requestedPoint()));
 		return CreateHelpRequestResponse.from(helpRequest);
-
 	}
 
 	/**
@@ -75,7 +72,7 @@ public class HelpRequestService {
 	 */
 	@Transactional(readOnly = true)
 	public Page<HelpRequestResponse> searchHelpRequest(SearchHelpRequestQuery request, Pageable pageable) {
-		return jpaHelpRequestRepositoryCustom.search(request.toHelpRequestQuery(), pageable)
+		return helpRequestRepository.search(request.toHelpRequestQuery(), pageable)
 			.map(HelpRequestResponse::from);
 	}
 
@@ -107,7 +104,7 @@ public class HelpRequestService {
 	@Transactional
 	public UpdateHelpRequestResponse completeHelpRequest(Long helpRequestId) {
 		HelpRequest helpRequest = getHelpRequestOrThrow(helpRequestId);
-
+		eventProducer.sendToHelper(HelpRequestToHelperKafkaDto.of(helpRequestId));
 		// 모집완료 처리
 		helpRequest.completePostStatus();
 
@@ -129,9 +126,9 @@ public class HelpRequestService {
 	/**
 	 * 도움 요청 글 삭제 (알림 이벤트 발행 – 선택 사항)
 	 */
-	public void deleteHelpRequest(Long helpRequestId) {
+	public void deleteHelpRequest(Long helpRequestId, String username) {
 		HelpRequest helpRequest = getHelpRequestOrThrow(helpRequestId);
-		helpRepository.delete(helpRequest);
+		helpRequest.delete(username);
 
 		NotificationEvent event = NotificationEvent.builder()
 			.recipientId(helpRequest.getRequesterId())
@@ -145,11 +142,11 @@ public class HelpRequestService {
 	}
 
 	public boolean existHelpRequest(Long helpRequestId) {
-		return helpRepository.existsById(helpRequestId);
+		return helpRequestRepository.existsById(helpRequestId);
 	}
 
 	private HelpRequest getHelpRequestOrThrow(Long helpRequestId) {
-		return helpRepository.findById(helpRequestId)
+		return helpRequestRepository.findById(helpRequestId)
 			.orElseThrow(() -> new CustomNotFoundException("게시글이 없습니다."));
 	}
 

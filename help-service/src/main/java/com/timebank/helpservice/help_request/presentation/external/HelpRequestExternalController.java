@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -79,9 +80,11 @@ public class HelpRequestExternalController {
 
 	@DeleteMapping("/{helpRequestId}")
 	public ResponseEntity<ResponseDto<Void>> deleteHelpRequest(
-		@PathVariable Long helpRequestId
+		@PathVariable Long helpRequestId,
+		@RequestHeader("X-User-Id") String username
 	) {
-		helpRequestService.deleteHelpRequest(helpRequestId);
+
+		helpRequestService.deleteHelpRequest(helpRequestId, username);
 
 		return ResponseEntity.ok(ResponseDto.responseWithNoData(
 			HttpStatus.NO_CONTENT, "삭제완료"));
