@@ -13,4 +13,7 @@ public class PointTransferCommand {
 	Long senderUserId;
 	Long receiverUserId;
 	int amount;
+
+	public PointTransferCommand(Long senderAccountId, Long receiverAccountId, Integer amount, String reason) {
+	}
 }
