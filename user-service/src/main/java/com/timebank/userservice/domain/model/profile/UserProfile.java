@@ -9,6 +9,7 @@ import com.timebank.userservice.domain.model.user.User;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -52,6 +53,7 @@ public class UserProfile extends Timestamped {
 	@CollectionTable(name = "user_help_services", joinColumns = @JoinColumn(name = "user_profile_id"))
 	@Enumerated(EnumType.STRING)
 	@Column(name = "help_service")
+	@Builder.Default
 	private Set<ServiceCategory> helpServices = new HashSet<>();
 
 	// 도움 받을 서비스
@@ -59,18 +61,22 @@ public class UserProfile extends Timestamped {
 	@CollectionTable(name = "user_need_services", joinColumns = @JoinColumn(name = "user_profile_id"))
 	@Enumerated(EnumType.STRING)
 	@Column(name = "need_service")
+	@Builder.Default
 	private Set<ServiceCategory> needServices = new HashSet<>();
 
-	private String location;
+	@Embedded
+	private UserLocation location;
 
 	private String introduction;
+
+	private Double averageRating;
 
 	public static UserProfile of(
 		User user,
 		String nickname,
 		Set<ServiceCategory> helpServices,
 		Set<ServiceCategory> needServices,
-		String location,
+		UserLocation location,
 		String introduction
 	) {
 		return innerBuilder()
@@ -87,7 +93,7 @@ public class UserProfile extends Timestamped {
 		String nickname,
 		Set<ServiceCategory> helpServices,
 		Set<ServiceCategory> needServices,
-		String location,
+		UserLocation location,
 		String introduction) {
 		if (nickname != null) {
 			this.nickname = nickname;
@@ -104,5 +110,9 @@ public class UserProfile extends Timestamped {
 		if (introduction != null) {
 			this.introduction = introduction;
 		}
+	}
+
+	public void updateRating(Double averageRating) {
+		this.averageRating = averageRating;
 	}
 }

@@ -3,6 +3,7 @@ package com.timebank.userservice.application.service.auth;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.timebank.userservice.application.dto.request.auth.LoginRequestDto;
 import com.timebank.userservice.application.dto.request.auth.SignUpRequestDto;
@@ -30,6 +31,7 @@ public class AuthService {
 	private final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
 
 	//회원가입
+	@Transactional
 	public User signUp(SignUpRequestDto requestDto) {
 		Role role = Role.USER;
 		if (requestDto.getAdminToken().equals(ADMIN_TOKEN)) {
@@ -49,6 +51,7 @@ public class AuthService {
 	}
 
 	//로그인
+	@Transactional
 	public LoginResponseDto login(LoginRequestDto requestDto) {
 		User user = userRepository.findByUsername(requestDto.getUsername()).orElseThrow(
 			() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다.")

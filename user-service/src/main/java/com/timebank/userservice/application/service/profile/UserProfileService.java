@@ -1,21 +1,33 @@
 package com.timebank.userservice.application.service.profile;
 
-import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.timebank.common.infrastructure.external.notification.dto.NotificationEvent;
 import com.timebank.common.infrastructure.external.notification.dto.NotificationEventType;
 import com.timebank.common.infrastructure.external.notification.dto.NotificationType;
 import com.timebank.userservice.application.dto.request.profile.UserProfileCreateRequestDto;
 import com.timebank.userservice.application.dto.request.profile.UserProfileUpdateRequestDto;
+import com.timebank.userservice.application.dto.response.profile.KakaoGeocodeResponse;
 import com.timebank.userservice.application.dto.response.profile.UserProfileResponseDto;
+import com.timebank.userservice.domain.model.profile.UserLocation;
 import com.timebank.userservice.domain.model.profile.UserProfile;
 import com.timebank.userservice.domain.model.user.User;
 import com.timebank.userservice.infrastructure.persistence.JpaUserProfileRepository;
 import com.timebank.userservice.infrastructure.persistence.JpaUserRepository;
+import com.timebank.userservice.presentation.dto.response.GetUserInfoFeignResponse;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class UserProfileService {
-
+	private String kakaoApiKey = "88ac9871f2cdd3bc858026fa777a9663";
+	private final RestTemplate restTemplate = new RestTemplate();
 	private final JpaUserRepository userRepository;
 	private final JpaUserProfileRepository userProfileRepository;
 	private final KafkaTemplate<String, Object> kafkaTemplate;
@@ -46,12 +59,20 @@ public class UserProfileService {
 			throw new IllegalStateException("이미 프로필이 존재합니다.");
 		}
 
+		// 좌표로부터 주소 얻기
+		double latitude = request.getLatitude();
+		double longitude = request.getLongitude();
+		String address = getAddressFromCoordinates(longitude, latitude);
+
+		// 위치 정보 + 주소 함께 저장
+		UserLocation location = new UserLocation(latitude, longitude, address);
+
 		UserProfile profile = UserProfile.of(
 			user,
 			request.getNickname(),
 			request.getHelpServices(),
 			request.getNeedServices(),
-			request.getLocation(),
+			location,
 			request.getIntroduction()
 		);
 		UserProfile savedProfile = userProfileRepository.save(profile);
@@ -89,6 +110,14 @@ public class UserProfileService {
 		return UserProfileResponseDto.from(profile);
 	}
 
+	// userId로 다른 사람 프로필 조회
+	public UserProfileResponseDto getProfileByUserId(Long userId) {
+		UserProfile userProfile = userProfileRepository.findByUserId(userId)
+			.orElseThrow(() -> new EntityNotFoundException("해당 닉네임의 프로필이 없습니다."));
+
+		return UserProfileResponseDto.from(userProfile);
+	}
+
 	/**
 	 * 프로필 수정 시
 	 */
@@ -97,11 +126,19 @@ public class UserProfileService {
 		UserProfile profile = userProfileRepository.findByUserId(userId)
 			.orElseThrow(() -> new EntityNotFoundException("유저 ID: " + userId + " 에 대한 프로필을 찾을 수 없습니다."));
 
+		// 좌표로부터 주소 얻기
+		double latitude = request.getLatitude();
+		double longitude = request.getLongitude();
+		String address = getAddressFromCoordinates(longitude, latitude);
+
+		// 위치 정보 + 주소 함께 저장
+		UserLocation location = new UserLocation(latitude, longitude, address);
+
 		profile.update(
 			request.getNickname(),
 			request.getHelpServices(),
 			request.getNeedServices(),
-			request.getLocation(),
+			location,
 			request.getIntroduction()
 		);
 		UserProfile updatedProfile = userProfileRepository.save(profile);
@@ -143,5 +180,58 @@ public class UserProfileService {
 			.build();
 		kafkaTemplate.send(NotificationEventType.DELETED.getTopic(), event);
 		log.info("프로필 삭제 이벤트 발행: {}", event);
+	}
+
+	public List<GetUserInfoFeignResponse> getUserInfoList(List<Long> userIdList) {
+		List<UserProfile> profiles = userProfileRepository.findAllByUserIdIn(userIdList);
+
+		Map<Long, UserProfile> profileMap = profiles.stream()
+			.collect(Collectors.toMap(p -> p.getUser().getId(), Function.identity()));
+
+		return userIdList.stream()
+			.map(id -> {
+				UserProfile profile = profileMap.get(id);
+				if (profile == null) {
+					throw new IllegalArgumentException("유저 프로필을 찾을 수 없습니다. ID = " + id);
+				}
+				return new GetUserInfoFeignResponse(id, profile.getNickname());
+			})
+			.toList();
+	}
+
+	//좌표로 주소 찾는 메서드
+	public String getAddressFromCoordinates(double longitude, double latitude) {
+		String url = "https://dapi.kakao.com/v2/local/geo/coord2address.json";
+		UriComponentsBuilder builder = UriComponentsBuilder.fromPath(url)
+			.queryParam("x", longitude)
+			.queryParam("y", latitude)
+			.queryParam("input_coord", "WGS84");
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Authorization", "KakaoAK " + kakaoApiKey);
+		HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+		ResponseEntity<KakaoGeocodeResponse> response = restTemplate.exchange(
+			builder.toUriString(),
+			HttpMethod.GET,
+			entity,
+			KakaoGeocodeResponse.class
+		);
+
+		KakaoGeocodeResponse body = response.getBody();
+		if (body != null && !body.getDocuments().isEmpty()) {
+			return body.getDocuments().get(0).getAddress().getAddressName();
+		}
+
+		throw new RuntimeException("주소를 찾을 수 없습니다.");
+	}
+
+	@Transactional
+	public void updateRating(Long userId, Double averageRating) {
+		UserProfile profile = userProfileRepository.findByUserId(userId)
+			.orElseThrow(() -> new IllegalStateException("User profile not found"));
+
+		profile.updateRating(averageRating);
+		userProfileRepository.save(profile);
 	}
 }
