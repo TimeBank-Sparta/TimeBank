@@ -10,7 +10,7 @@ import com.timebank.userservice.application.dto.response.auth.LoginResponseDto;
 import com.timebank.userservice.domain.jwt.JwtProvider;
 import com.timebank.userservice.domain.model.user.Role;
 import com.timebank.userservice.domain.model.user.User;
-import com.timebank.userservice.domain.repository.user.UserRepository;
+import com.timebank.userservice.infrastructure.persistence.JpaUserRepository;
 import com.timebank.userservice.presentation.dto.request.RefreshTokenRequestDto;
 import com.timebank.userservice.presentation.dto.response.TokenResponseDto;
 
@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-	private final UserRepository userRepository;
+	private final JpaUserRepository userRepository;
 	private final RefreshTokenService refreshTokenService;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtProvider jwtProvider;

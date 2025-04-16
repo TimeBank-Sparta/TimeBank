@@ -1,13 +1,15 @@
 package com.timebank.notification_service.domain.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public enum NotificationEventType {
-	CREATED("CREATED"),
-	UPDATED("UPDATED"),
-	DELETED("DELETED");
-	private final String string;
+	CREATED("notification.events.CREATED"),
+	UPDATED("notification.events.UPDATED"),
+	DELETED("notification.events.DELETED");
+
+	private final String topic;
+
 }

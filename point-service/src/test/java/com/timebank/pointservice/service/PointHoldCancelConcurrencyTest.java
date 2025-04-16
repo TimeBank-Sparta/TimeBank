@@ -54,7 +54,7 @@ public class PointHoldCancelConcurrencyTest {
 		for (int i = 0; i < threadCount; i++) {
 			executor.submit(() -> {
 				try {
-					pointService.cancelHolding(testUserId, cancelAmount, "동시성 취소 테스트");
+					pointService.cancelHolding(testUserId, cancelAmount);
 				} catch (Exception e) {
 					System.out.println("❌ 예외 발생: " + e.getMessage());
 				} finally {
