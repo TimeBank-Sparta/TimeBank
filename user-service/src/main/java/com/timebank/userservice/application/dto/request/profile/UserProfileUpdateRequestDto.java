@@ -15,6 +15,7 @@ public class UserProfileUpdateRequestDto {
 	private String nickname;
 	private Set<ServiceCategory> helpServices;
 	private Set<ServiceCategory> needServices;
-	private String location;
+	private Double latitude;
+	private Double longitude;
 	private String introduction;
 }

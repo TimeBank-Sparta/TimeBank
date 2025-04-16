@@ -3,6 +3,7 @@ package com.timebank.userservice.application.dto.response.profile;
 import java.util.Set;
 
 import com.timebank.userservice.domain.model.profile.ServiceCategory;
+import com.timebank.userservice.domain.model.profile.UserLocation;
 import com.timebank.userservice.domain.model.profile.UserProfile;
 
 import lombok.Builder;
@@ -15,7 +16,7 @@ public class UserProfileResponseDto {
 	private String nickname;
 	private Set<ServiceCategory> helpServices;
 	private Set<ServiceCategory> needServices;
-	private String location;
+	private UserLocation location;
 	private String introduction;
 	//todo: 포인트도 추가해야함
 
