@@ -1,19 +1,27 @@
 package com.timebank.helpservice.helper.application.service;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.timebank.common.application.exception.CustomNotFoundException;
 import com.timebank.helpservice.helper.application.client.HelpRequestClient;
+import com.timebank.helpservice.helper.application.client.UserClient;
 import com.timebank.helpservice.helper.application.dto.request.CreateHelperCommand;
+import com.timebank.helpservice.helper.application.dto.request.GetUserInfoFeignRequest;
 import com.timebank.helpservice.helper.application.dto.request.HelpRequestFeignDto;
 import com.timebank.helpservice.helper.application.dto.request.HelperToTradingKafkaDto;
 import com.timebank.helpservice.helper.application.dto.response.CreateHelperResponse;
 import com.timebank.helpservice.helper.application.dto.response.FindHelperResponse;
 import com.timebank.helpservice.helper.application.dto.response.FromHelpRequestKafkaDto;
-import com.timebank.helpservice.helper.application.dto.response.UpdateHelperResponse;
+import com.timebank.helpservice.helper.application.dto.response.GetUserInfoFeignResponse;
 import com.timebank.helpservice.helper.domain.ApplicantStatus;
 import com.timebank.helpservice.helper.domain.model.Helper;
 import com.timebank.helpservice.helper.domain.repository.HelperRepository;
@@ -26,6 +34,7 @@ public class HelperService {
 	private final HelperRepository helperRepository;
 	private final HelpRequestClient helpRequestClient;
 	private final HelperEventProducer helperEventProducer;
+	private final UserClient userClient;
 
 	@Transactional
 	public CreateHelperResponse createHelper(CreateHelperCommand command) {
@@ -36,7 +45,7 @@ public class HelperService {
 	}
 
 	@Transactional
-	public UpdateHelperResponse acceptHelper(Long helperId) {
+	public void acceptHelper(Long helperId) {
 		Helper helper = helperRepository.findById(helperId).orElseThrow(() ->
 			new CustomNotFoundException("지원자가 없습니다."));
 
@@ -57,18 +66,27 @@ public class HelperService {
 			helpRequest.requestedPoint()));
 
 		helper.acceptHelperStatus();
-
-		return UpdateHelperResponse.from(helper);
 	}
 
 	@Transactional(readOnly = true)
 	public Page<FindHelperResponse> findByHelpRequestId(Long helpRequestId, Pageable pageable) {
-		Page<Helper> helpers = helperRepository.findByHelpRequestId(helpRequestId, pageable).orElseThrow(() ->
-			new CustomNotFoundException("지원자가 없습니다."));
+		List<Helper> helpers = helperRepository.findByHelpRequestId(helpRequestId);
 
-		//TODO 유저 정보 (리뷰평점, 한줄평 등등)가져온후 리턴 (feign)
+		List<GetUserInfoFeignResponse> userInfoList = userClient.getUserInfoByHelper(helpers.stream()
+			.map(GetUserInfoFeignRequest::from)
+			.toList());
 
-		return null;
+		Map<Long, GetUserInfoFeignResponse> userInfoMap = userInfoList.stream()
+			.collect(Collectors.toMap(GetUserInfoFeignResponse::userId, Function.identity()));
+
+		List<FindHelperResponse> content = helpers.stream()
+			.map(helper -> {
+				GetUserInfoFeignResponse userInfo = userInfoMap.get(helper.getUserId());
+				return FindHelperResponse.of(userInfo, helper);
+			})
+			.toList();
+
+		return new PageImpl<>(content, pageable, helpers.size());
 	}
 
 	@Transactional

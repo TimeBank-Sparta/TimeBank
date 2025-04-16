@@ -52,7 +52,7 @@ public class HelperController {
 		@PathVariable Long helperId
 	) {
 		helperService.acceptHelper(helperId);
-		return ResponseEntity.ok(ResponseDto.responseWithNoData(HttpStatus.NO_CONTENT, "삭제완료"));
+		return ResponseEntity.ok(ResponseDto.responseWithNoData(HttpStatus.OK, "선별완료"));
 	}
 
 }
