@@ -24,7 +24,7 @@ public class PointController {
 	private final PointService pointService;
 
 	// 계정 생성
-	@PostMapping
+	@PostMapping("/{userId}")
 	public ResponseEntity<PointAccount> createAccount(@PathVariable Long userId) {
 		PointAccount createdAccount = pointService.createAccount(userId);
 		return ResponseEntity.ok(createdAccount);
