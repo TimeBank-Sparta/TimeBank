@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.timebank.common.application.exception.CustomNotFoundException;
 import com.timebank.helpservice.help_request.application.dto.request.CreateHelpRequestCommand;
 import com.timebank.helpservice.help_request.application.dto.request.HelpRequestToHelperKafkaDto;
+import com.timebank.helpservice.help_request.application.dto.request.HoldPointRequestDto;
 import com.timebank.helpservice.help_request.application.dto.request.SearchHelpRequestQuery;
 import com.timebank.helpservice.help_request.application.dto.request.UpdateHelpRequestCommand;
 import com.timebank.helpservice.help_request.application.dto.response.CreateHelpRequestResponse;
@@ -24,9 +25,12 @@ public class HelpRequestService {
 
 	private final HelpRequestRepository helpRepository;
 	private final HelpRequestEventProducer eventProducer;
+	private final PointClient pointClient;
 
 	@Transactional
 	public CreateHelpRequestResponse createHelpRequest(CreateHelpRequestCommand command) {
+		pointClient.holdPoint(HoldPointRequestDto.of(command.requesterId(), command.requestedPoint()));
+
 		return CreateHelpRequestResponse.from(helpRepository.save(
 			HelpRequest.createFrom(command.toHelpRequestInfo())));
 	}

@@ -1,12 +1,12 @@
 ### 지원자 생성
-POST http://localhost:8080/api/v1/helpers
+POST http://localhost:8081/api/v1/helpers
 Content-Type: application/json
 
 {
   "helpRequestId": 1,
-  "userId": 5
+  "userId": 1
 }
 
 ### 지원자 승인
-PATCH http://localhost:8080/api/v1/helpers/helpers/7/accept
+PATCH http://localhost:8081/api/v1/helpers/helpers/1/accept
 

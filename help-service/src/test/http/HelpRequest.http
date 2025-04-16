@@ -1,5 +1,5 @@
 ### 게시글 생성
-POST http://localhost:8080/api/v1/help-requests
+POST http://localhost:8081/api/v1/help-requests
 Content-Type: application/json
 
 {
@@ -15,11 +15,11 @@ Content-Type: application/json
 }
 
 ### 게시글 단건 조회
-GET http://localhost:8080/api/v1/help-requests/1
+GET http://localhost:8081/api/v1/help-requests/1
 
 
 ### 게시글 검색
-GET http://localhost:8080/api/v1/help-requests/search?title=청소&page=0&size=10&sort=createdAt,desc
+GET http://localhost:8081/api/v1/help-requests/search?title=청소&page=0&size=10&sort=createdAt,desc
 
 ### 게시글 수정
 PATCH http://localhost:8080/api/v1/help-requests/1
