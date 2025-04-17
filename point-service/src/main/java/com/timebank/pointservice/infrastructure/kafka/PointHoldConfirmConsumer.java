@@ -22,24 +22,21 @@ public class PointHoldConfirmConsumer {
 	}
 
 	@KafkaListener(
-		topics = "points.hold.confirm",
+		topics = "help-trading.complete",
 		groupId = "point-service-group",
 		concurrency = "4"
 	)
-	public void listen(ConsumerRecord<String, String> record) {
-		String message = record.value();
+	public void listen(PointTransferRequestMessage message) {
 		System.out.println("📩 [거래 확정] 수신 메시지: " + message);
 
 		try {
-			PointTransferRequestMessage dto = objectMapper.readValue(message, PointTransferRequestMessage.class);
-
 			pointService.confirmTransfer(PointTransferCommand.builder()
-				.senderUserId(dto.senderUserId())
-				.receiverUserId(dto.receiverUserId())
-				.amount(dto.amount())
+				.senderUserId(message.senderUserId())
+				.receiverUserId(message.receiverUserId())
+				.amount(message.amount())
 				.build());
 
-			System.out.println("✅ 거래 확정 포인트 이체 완료: " + dto);
+			System.out.println("✅ 거래 확정 포인트 이체 완료: " + message);
 
 		} catch (Exception e) {
 			System.err.println("❌ [거래 확정] 처리 중 예외: " + e.getMessage());
