@@ -1,5 +1,7 @@
 package com.timebank.userservice.application.dto.response.profile;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import com.timebank.userservice.domain.model.profile.ServiceCategory;
@@ -24,8 +26,16 @@ public class UserProfileResponseDto {
 		return UserProfileResponseDto.builder()
 			.id(profile.getId())
 			.nickname(profile.getNickname())
-			.helpServices(profile.getHelpServices())
-			.needServices(profile.getNeedServices())
+			.helpServices(
+				profile.getHelpServices() != null
+					? new HashSet<>(profile.getHelpServices())
+					: Collections.emptySet()
+			)
+			.needServices(
+				profile.getNeedServices() != null
+					? new HashSet<>(profile.getNeedServices())
+					: Collections.emptySet()
+			)
 			.location(profile.getLocation())
 			.introduction(profile.getIntroduction())
 			.build();
