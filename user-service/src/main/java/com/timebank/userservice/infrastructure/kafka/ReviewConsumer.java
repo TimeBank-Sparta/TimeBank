@@ -5,19 +5,29 @@ import org.springframework.stereotype.Service;
 
 import com.timebank.userservice.application.event.ReviewEvent;
 import com.timebank.userservice.application.event.ReviewEventType;
-import com.timebank.userservice.domain.service.UserRatingService;
+import com.timebank.userservice.application.service.profile.UserProfileService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class ReviewConsumer {
-	private final UserRatingService userRatingService;
+	private final UserProfileService userProfileService;
 
-	@KafkaListener(topics = "review-topic", groupId = "user-service")
+	@KafkaListener(topics = "reviews.events", groupId = "user-service")
 	public void consume(ReviewEvent event) {
-		if (event.getEventType() == ReviewEventType.CREATED || event.getEventType() == ReviewEventType.UPDATED) {
-			userRatingService.updateAverageRating(event.getRevieweeId());
+		try {
+			if (event.getEventType() == ReviewEventType.CREATED) {
+				userProfileService.updateRating(event.getRevieweeId(), event.getRating(), 1);
+			} else if (event.getEventType() == ReviewEventType.UPDATED) {
+				userProfileService.updateRating(event.getRevieweeId(), event.getRating(), 0);
+			} else if (event.getEventType() == ReviewEventType.DELETED) {
+				userProfileService.updateRating(event.getRevieweeId(), -event.getRating(), -1);
+			}
+		} catch (Exception e) {
+			log.error("Failed to update rating for user {}: {}", event.getRevieweeId(), e.getMessage());
 		}
 	}
 }

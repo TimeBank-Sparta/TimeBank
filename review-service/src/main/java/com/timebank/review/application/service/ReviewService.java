@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.timebank.review.application.dto.ReviewDto;
-import com.timebank.review.application.event.ReviewAverageUpdatedEvent;
 import com.timebank.review.application.event.ReviewEvent;
 import com.timebank.review.domain.entity.Review;
 import com.timebank.review.domain.entity.ReviewEventType;
@@ -45,8 +44,6 @@ public class ReviewService {
 		// Kafka 이벤트 발행: 리뷰 생성 이벤트
 		ReviewEvent event = new ReviewEvent(savedReview, ReviewEventType.CREATED);
 		kafkaTemplate.send(reviewTopic, event);
-
-		sendAverageRatingEvent(savedReview.getRevieweeId());
 
 		return ReviewDto.fromEntity(savedReview);
 	}
@@ -101,8 +98,6 @@ public class ReviewService {
 		ReviewEvent event = new ReviewEvent(updated, ReviewEventType.UPDATED);
 		kafkaTemplate.send(reviewTopic, event);
 
-		sendAverageRatingEvent(updated.getRevieweeId());
-
 		return ReviewDto.fromEntity(updated);
 	}
 
@@ -119,14 +114,4 @@ public class ReviewService {
 		kafkaTemplate.send(reviewTopic, event);
 	}
 
-	private void sendAverageRatingEvent(Long revieweeId) {
-		List<Review> reviews = reviewRepository.findByRevieweeId(revieweeId);
-		double average = reviews.stream()
-			.mapToInt(Review::getRating)
-			.average()
-			.orElse(0.0);
-
-		ReviewAverageUpdatedEvent event = new ReviewAverageUpdatedEvent(revieweeId, average);
-		kafkaTemplate.send("user-rating-update", event);
-	}
 }
