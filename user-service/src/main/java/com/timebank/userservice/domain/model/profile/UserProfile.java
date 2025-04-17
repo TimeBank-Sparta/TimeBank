@@ -69,7 +69,9 @@ public class UserProfile extends Timestamped {
 
 	private String introduction;
 
-	private Double averageRating;
+	private Double trustScore;
+
+	private int reviewCount;
 
 	public static UserProfile of(
 		User user,
@@ -77,7 +79,9 @@ public class UserProfile extends Timestamped {
 		Set<ServiceCategory> helpServices,
 		Set<ServiceCategory> needServices,
 		UserLocation location,
-		String introduction
+		String introduction,
+		Double trustScore,
+		int reviewCount
 	) {
 		return innerBuilder()
 			.user(user)
@@ -86,6 +90,8 @@ public class UserProfile extends Timestamped {
 			.needServices(needServices)
 			.location(location)
 			.introduction(introduction)
+			.trustScore(trustScore)
+			.reviewCount(reviewCount)
 			.build();
 	}
 
@@ -113,6 +119,10 @@ public class UserProfile extends Timestamped {
 	}
 
 	public void updateRating(Double averageRating) {
-		this.averageRating = averageRating;
+		this.trustScore = averageRating;
+	}
+
+	public void updateReviewCount(int count) {
+		this.reviewCount = count;
 	}
 }
