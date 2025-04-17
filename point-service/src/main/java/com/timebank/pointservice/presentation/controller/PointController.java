@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.timebank.pointservice.application.dto.getAccountResponseDto;
+import com.timebank.pointservice.application.dto.GetAccountResponseDto;
 import com.timebank.pointservice.application.service.PointService;
 import com.timebank.pointservice.domain.entity.PointAccount;
 import com.timebank.pointservice.presentation.dto.HoldPointsRequestDto;
@@ -32,11 +32,10 @@ public class PointController {
 
 	// 계정 조회
 	@GetMapping("/{userId}")
-	public ResponseEntity<getAccountResponseDto> getAccount(@PathVariable Long userId) {
-		getAccountResponseDto dto = pointService.getAccount(userId);
+	public ResponseEntity<GetAccountResponseDto> getAccount(@PathVariable Long userId) {
+		GetAccountResponseDto dto = pointService.getAccount(userId);
 		return ResponseEntity.ok(dto);
 	}
-
 
 	// 포인트 송금
 	@PostMapping("/transfer")
