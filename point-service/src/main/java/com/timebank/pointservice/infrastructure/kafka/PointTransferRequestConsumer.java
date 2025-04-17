@@ -26,24 +26,17 @@ public class PointTransferRequestConsumer {
 		groupId = "point-service-group",
 		concurrency = "4" // 🔧 단일 → 4개 Consumer Thread로 확장
 	)
-	public void listen(ConsumerRecord<String, String> record) {
-		String message = record.value();
+	public void listen(PointTransferRequestMessage message) {
 		System.out.println("📩 수신 메시지: " + message);
 
 		try {
-			PointTransferRequestMessage dto = objectMapper.readValue(message, PointTransferRequestMessage.class);
-
 			pointService.transferPoints(PointTransferCommand.builder()
-				.senderUserId(dto.senderUserId())
-				.receiverUserId(dto.receiverUserId())
-				.amount(dto.amount())
+				.senderUserId(message.senderUserId())
+				.receiverUserId(message.receiverUserId())
+				.amount(message.amount())
 				.build());
 
-			System.out.println("✅ 포인트 송금 처리 완료: " + dto);
-
-		} catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-			System.err.println("❌ JSON 파싱 실패: " + e.getMessage());
-			// TODO: 추후 InvalidMessage DLQ 토픽으로 이동
+			System.out.println("✅ 포인트 송금 처리 완료: " + message);
 		} catch (Exception e) {
 			System.err.println("❌ Kafka 메시지 처리 중 예외 발생: " + e.getMessage());
 			// TODO: 재시도 or DLQ 처리

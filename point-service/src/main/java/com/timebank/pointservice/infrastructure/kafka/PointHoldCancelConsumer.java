@@ -21,20 +21,17 @@ public class PointHoldCancelConsumer {
 	}
 
 	@KafkaListener(
-		topics = "points.hold.cancel",
+		topics = "help-trading.cancel",
 		groupId = "point-service-group",
 		concurrency = "4"
 	)
-	public void listen(ConsumerRecord<String, String> record) {
-		String message = record.value();
+	public void listen(PointTransferRequestMessage message) {
 		System.out.println("📩 [보류 취소] 수신 메시지: " + message);
 
 		try {
-			PointTransferRequestMessage dto = objectMapper.readValue(message, PointTransferRequestMessage.class);
+			pointService.cancelHolding(message.senderUserId(), message.amount());
 
-			pointService.cancelHolding(dto.senderUserId(), dto.amount());
-
-			System.out.println("✅ 포인트 보류 취소 처리 완료: " + dto);
+			System.out.println("✅ 포인트 보류 취소 처리 완료: " + message);
 
 		} catch (Exception e) {
 			System.err.println("❌ [보류 취소] 처리 중 예외: " + e.getMessage());
