@@ -51,7 +51,7 @@ public class UserProfileController {
 	}
 
 	// 다른 사람 프로필 조회 (닉네임 기반)
-	@GetMapping("/{nickname}")
+	@GetMapping("/nickname/{nickname}")
 	public ResponseEntity<ResponseDto<UserProfileResponseDto>> getProfileByNickname(
 		@PathVariable String nickname
 	) {
