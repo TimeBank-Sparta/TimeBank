@@ -8,8 +8,11 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class ReviewEvent {
+	private Long reviewId;
+	private Long transactionId;
+	private Long reviewerId;
 	private Long revieweeId;
-	private Byte rating;
-	private ReviewEventType eventType;
+	private int rating;
+	private String comment;
+	private ReviewEventType eventType;  // 예: CREATED, UPDATED, DELETED
 }
-
