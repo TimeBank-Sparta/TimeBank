@@ -7,9 +7,9 @@ import lombok.Builder;
 @Builder
 public record CreateHelperCommand(
 	Long helpRequestId,
-	Long userId
+	Long requesterId
 ) {
-	public HelperInfo toHelperInfo() {
+	public HelperInfo toHelperInfoWithUserId(Long userId) {
 		return HelperInfo.builder()
 			.helpRequestId(helpRequestId)
 			.userId(userId)

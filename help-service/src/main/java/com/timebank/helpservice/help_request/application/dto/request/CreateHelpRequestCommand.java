@@ -9,7 +9,6 @@ import lombok.Builder;
 
 @Builder
 public record CreateHelpRequestCommand(
-	Long requesterId,
 	String title,
 	String content,
 	String address,
@@ -19,9 +18,9 @@ public record CreateHelpRequestCommand(
 	int recruitmentCount,
 	PostStatus postStatus
 ) {
-	public HelpRequestInfo toHelpRequestInfo() {
+	public HelpRequestInfo toHelpRequestInfoWithUserID(Long userId) {
 		return HelpRequestInfo.builder()
-			.requesterId(requesterId)
+			.requesterId(userId)
 			.title(title)
 			.content(content)
 			.address(address)

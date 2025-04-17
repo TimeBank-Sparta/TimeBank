@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,14 +31,15 @@ public class HelperController {
 
 	@PostMapping
 	public ResponseEntity<ResponseDto<CreateHelperResponse>> createHelper(
-		@RequestBody CreateHelperRequest requestDto
+		@RequestBody CreateHelperRequest requestDto,
+		@RequestHeader("X-User-Id") Long userId
 	) {
 		return ResponseEntity.ok(new ResponseDto<>(HttpStatus.CREATED,
-			helperService.createHelper(requestDto.toCommand())));
+			helperService.createHelper(requestDto.toCommand(), userId)));
 	}
 
 	//TODO 유저권한체크(자신의글만 조회가능)
-	@GetMapping("/helpers/{helpRequestId}")
+	@GetMapping("/{helpRequestId}")
 	public ResponseEntity<PageResponseDto<FindHelperResponse>> findByHelpRequestId(
 		@PathVariable Long helpRequestId,
 		Pageable pageable
@@ -47,7 +49,7 @@ public class HelperController {
 		return ResponseEntity.ok(new PageResponseDto<>(HttpStatus.OK, helperPage, "조회완료"));
 	}
 
-	@PatchMapping("/helpers/{helperId}/accept")
+	@PatchMapping("/{helperId}/accept")
 	public ResponseEntity<ResponseDto<Void>> acceptHelper(
 		@PathVariable Long helperId
 	) {

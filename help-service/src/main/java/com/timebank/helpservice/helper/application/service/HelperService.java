@@ -2,6 +2,7 @@ package com.timebank.helpservice.helper.application.service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,11 +38,15 @@ public class HelperService {
 	private final UserClient userClient;
 
 	@Transactional
-	public CreateHelperResponse createHelper(CreateHelperCommand command) {
-		if (helperRepository.existsByUserId(command.userId())) {
+	public CreateHelperResponse createHelper(CreateHelperCommand command, Long userId) {
+		if (helperRepository.existsByUserId(userId)) {
 			throw new CustomNotFoundException("중복된 지원자 입니다.");
 		}
-		return CreateHelperResponse.from(helperRepository.save(Helper.createFrom(command.toHelperInfo())));
+		if (Objects.equals(command.requesterId(), userId)) {
+			throw new CustomNotFoundException("작성자는 지원 불가능합니다.");
+		}
+		return CreateHelperResponse.from(helperRepository.save(Helper.createFrom(
+			command.toHelperInfoWithUserId(userId))));
 	}
 
 	@Transactional
@@ -61,7 +66,7 @@ public class HelperService {
 
 		helperEventProducer.sendToHelpTrading(HelperToTradingKafkaDto.of(
 			helper.getHelpRequestId(),
-			helperId,
+			helper.getUserId(),
 			helpRequest.requesterId(),
 			helpRequest.requestedPoint()));
 
@@ -90,6 +95,7 @@ public class HelperService {
 	}
 
 	@Transactional
+
 	public void deleteHelpersByStatusSupported(FromHelpRequestKafkaDto dto) {
 		helperRepository.deleteHelperStatusSupported(dto.helpRequestId());
 	}

@@ -35,10 +35,11 @@ public class HelpRequestExternalController {
 
 	@PostMapping
 	public ResponseEntity<ResponseDto<CreateHelpRequestResponse>> createHelpRequest(
-		@RequestBody CreateHelpRequest requestDto
+		@RequestBody CreateHelpRequest requestDto,
+		@RequestHeader("X-User-Id") Long userId
 	) {
 		return ResponseEntity.ok(new ResponseDto<>(HttpStatus.CREATED,
-			helpRequestService.createHelpRequest(requestDto.toCommand())));
+			helpRequestService.createHelpRequest(requestDto.toCommand(), userId)));
 	}
 
 	@GetMapping("/{helpRequestId}")
@@ -72,19 +73,20 @@ public class HelpRequestExternalController {
 
 	@PatchMapping("/{helpRequestId}/complete")
 	public ResponseEntity<ResponseDto<UpdateHelpRequestResponse>> completeHelpRequest(
-		@PathVariable Long helpRequestId
+		@PathVariable Long helpRequestId,
+		@RequestHeader("X-User-Id") Long userId
 	) {
 		return ResponseEntity.ok(ResponseDto.success(
-			helpRequestService.completeHelpRequest(helpRequestId)));
+			helpRequestService.completeHelpRequest(helpRequestId, userId)));
 	}
 
 	@DeleteMapping("/{helpRequestId}")
 	public ResponseEntity<ResponseDto<Void>> deleteHelpRequest(
 		@PathVariable Long helpRequestId,
-		@RequestHeader("X-User-Id") String username
+		@RequestHeader("X-User-Id") String userId
 	) {
 
-		helpRequestService.deleteHelpRequest(helpRequestId, username);
+		helpRequestService.deleteHelpRequest(helpRequestId, userId);
 
 		return ResponseEntity.ok(ResponseDto.responseWithNoData(
 			HttpStatus.NO_CONTENT, "삭제완료"));

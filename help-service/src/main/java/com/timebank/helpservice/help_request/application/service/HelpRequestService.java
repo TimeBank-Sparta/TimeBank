@@ -1,6 +1,7 @@
 package com.timebank.helpservice.help_request.application.service;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,14 +34,14 @@ public class HelpRequestService {
 	private final HelpRequestRepository helpRequestRepository;
 	private final HelpRequestEventProducer eventProducer;
 	private final PointClient pointClient;
-	private final KafkaTemplate<String, NotificationEvent> kafkaTemplate;
+	private final KafkaTemplate<String, Object> kafkaTemplate;
 
 	/**
 	 * 도움 요청 글 생성 (작성 시 알림 이벤트 발행 – 필요에 따라 추가)
 	 */
 	@Transactional
-	public CreateHelpRequestResponse createHelpRequest(CreateHelpRequestCommand command) {
-		HelpRequest helpRequest = HelpRequest.createFrom(command.toHelpRequestInfo());
+	public CreateHelpRequestResponse createHelpRequest(CreateHelpRequestCommand command, Long userId) {
+		HelpRequest helpRequest = HelpRequest.createFrom(command.toHelpRequestInfoWithUserID(userId));
 		helpRequest = helpRequestRepository.save(helpRequest);
 
 		// (선택 사항) 도움 요청 글 생성 시 알림 이벤트 (예: POST_CREATED)
@@ -54,7 +55,7 @@ public class HelpRequestService {
 			.build();
 		kafkaTemplate.send(NotificationEventType.CREATED.getTopic(), event);
 
-		pointClient.holdPoint(HoldPointRequestDto.of(command.requesterId(), command.requestedPoint()));
+		pointClient.holdPoint(HoldPointRequestDto.of(userId, command.requestedPoint()));
 		return CreateHelpRequestResponse.from(helpRequest);
 	}
 
@@ -102,8 +103,13 @@ public class HelpRequestService {
 	 * 도움 요청 글 종료(모집 완료) 시 도움 거래 시작 전 알림 발행
 	 */
 	@Transactional
-	public UpdateHelpRequestResponse completeHelpRequest(Long helpRequestId) {
+	public UpdateHelpRequestResponse completeHelpRequest(Long helpRequestId, Long userId) {
 		HelpRequest helpRequest = getHelpRequestOrThrow(helpRequestId);
+
+		if (!Objects.equals(helpRequest.getRequesterId(), userId)) {
+			throw new IllegalArgumentException("작성자만 모집완료 가능합니다");
+		}
+
 		eventProducer.sendToHelper(HelpRequestToHelperKafkaDto.of(helpRequestId));
 		// 모집완료 처리
 		helpRequest.completePostStatus();
