@@ -1,9 +1,7 @@
 package com.timebank.helpservice.helper.domain.repository;
 
+import java.util.List;
 import java.util.Optional;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import com.timebank.helpservice.helper.domain.ApplicantStatus;
 import com.timebank.helpservice.helper.domain.model.Helper;
@@ -14,7 +12,7 @@ public interface HelperRepository {
 
 	Optional<Helper> findById(Long id);
 
-	Optional<Page<Helper>> findByHelpRequestId(Long helpRequestId, Pageable pageable);
+	List<Helper> findByHelpRequestId(Long helpRequestId);
 
 	void deleteHelperStatusSupported(Long helpRequestId);
 

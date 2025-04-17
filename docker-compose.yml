@@ -62,6 +62,8 @@ services:
       - eureka-server
       - config-server
       - help-mysql
+      - zookeeper
+      - kafka
       - gateway-service
     networks:
       - msanet
@@ -176,7 +178,6 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
-
     networks:
       - msanet
 

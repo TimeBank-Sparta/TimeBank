@@ -77,7 +77,22 @@ public class HelpTrading extends Timestamped {
 			.actualPoints(helpTradingInfo.actualPoints())
 			.requesterApproved(false)
 			.helperApproved(false)
-			.tradeStatus(TradeStatus.IN_PROGRESS)
+			.tradeStatus(TradeStatus.CREATED)
 			.build();
+	}
+
+	public HelpTrading updateStatus(TradeStatus tradeStatus) {
+		this.tradeStatus = tradeStatus;
+		return this;
+	}
+
+	public HelpTrading updateStartedAt(LocalDateTime startedAt) {
+		this.startedAt = startedAt;
+		return this;
+	}
+
+	public HelpTrading updateFinishedAt(LocalDateTime finishedAt) {
+		this.finishedAt = finishedAt;
+		return this;
 	}
 }

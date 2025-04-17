@@ -12,12 +12,12 @@
 // 	String title,
 // 	List<HelperResponse> helperResponseDtoList
 // ) {
-// 	public static CreateHelperResponseDto_ from(HelpRequest helpRequest) {
+// 	public static CreateHelperResponseDto_ of(HelpRequest helpRequest) {
 // 		return CreateHelperResponseDto_.builder()
 // 			.helpRequestId(helpRequest.getId())
 // 			.title(helpRequest.getTitle())
 // 			.helperResponseDtoList(helpRequest.getHelperSet().stream()
-// 				.map(HelperResponse::from)
+// 				.map(HelperResponse::of)
 // 				.collect(Collectors.toList()))
 // 			.build();
 // 	}

@@ -6,27 +6,46 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
 
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.timebank.helpservice.help_request.domain.HelpRequestSortType;
 import com.timebank.helpservice.help_request.domain.model.HelpRequest;
+import com.timebank.helpservice.help_request.domain.repository.HelpRequestRepository;
 import com.timebank.helpservice.help_request.domain.repository.search.HelpRequestQuery;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+@Repository
 @RequiredArgsConstructor
 @Slf4j
-public class JpaHelpRequestRepositoryCustomImpl implements JpaHelpRequestRepositoryCustom {
-
+public class HelpRequestRepositoryImpl implements HelpRequestRepository {
+	private final JpaHelpRequestRepository jpaHelpRequestRepository;
 	private final JPAQueryFactory queryFactory;
+
+	@Override
+	public HelpRequest save(HelpRequest helpRequest) {
+		return jpaHelpRequestRepository.save(helpRequest);
+	}
+
+	@Override
+	public Optional<HelpRequest> findById(Long helpRequestId) {
+		return jpaHelpRequestRepository.findById(helpRequestId);
+	}
+
+	@Override
+	public boolean existsById(Long helpRequestId) {
+		return jpaHelpRequestRepository.existsById(helpRequestId);
+	}
 
 	@Override
 	public Page<HelpRequest> search(HelpRequestQuery requestQuery,
