@@ -1,5 +1,6 @@
 package com.timebank.userservice.application.service.profile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -9,9 +10,9 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -73,7 +74,8 @@ public class UserProfileService {
 			request.getHelpServices(),
 			request.getNeedServices(),
 			location,
-			request.getIntroduction()
+			request.getIntroduction(),
+			0.0, 0
 		);
 		UserProfile savedProfile = userProfileRepository.save(profile);
 
@@ -194,7 +196,7 @@ public class UserProfileService {
 				if (profile == null) {
 					throw new IllegalArgumentException("유저 프로필을 찾을 수 없습니다. ID = " + id);
 				}
-				return new GetUserInfoFeignResponse(id, profile.getNickname());
+				return new GetUserInfoFeignResponse(id, profile.getNickname(), profile.getTrustScore());
 			})
 			.toList();
 	}
@@ -202,7 +204,7 @@ public class UserProfileService {
 	//좌표로 주소 찾는 메서드
 	public String getAddressFromCoordinates(double longitude, double latitude) {
 		String url = "https://dapi.kakao.com/v2/local/geo/coord2address.json";
-		UriComponentsBuilder builder = UriComponentsBuilder.fromPath(url)
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
 			.queryParam("x", longitude)
 			.queryParam("y", latitude)
 			.queryParam("input_coord", "WGS84");
@@ -227,11 +229,21 @@ public class UserProfileService {
 	}
 
 	@Transactional
-	public void updateRating(Long userId, Double averageRating) {
+	public void updateRating(Long userId, int rating, int count) {
 		UserProfile profile = userProfileRepository.findByUserId(userId)
 			.orElseThrow(() -> new IllegalStateException("User profile not found"));
+		Double newAverage;
+		int newCount = profile.getReviewCount() + count;
 
-		profile.updateRating(averageRating);
+		if (newCount <= 0) {
+			newAverage = 0.0;
+			newCount = 0;
+		} else {
+			newAverage = ((profile.getTrustScore() * profile.getReviewCount()) + rating) / newCount;
+		}
+
+		profile.updateRating(newAverage);
+		profile.updateReviewCount(newCount);
 		userProfileRepository.save(profile);
 	}
 }
