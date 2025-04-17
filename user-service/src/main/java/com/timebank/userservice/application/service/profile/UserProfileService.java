@@ -22,10 +22,13 @@ import com.timebank.common.infrastructure.external.notification.dto.Notification
 import com.timebank.userservice.application.dto.request.profile.UserProfileCreateRequestDto;
 import com.timebank.userservice.application.dto.request.profile.UserProfileUpdateRequestDto;
 import com.timebank.userservice.application.dto.response.profile.KakaoGeocodeResponse;
+import com.timebank.userservice.application.dto.response.profile.UserMyProfileResponseDto;
 import com.timebank.userservice.application.dto.response.profile.UserProfileResponseDto;
 import com.timebank.userservice.domain.model.profile.UserLocation;
 import com.timebank.userservice.domain.model.profile.UserProfile;
 import com.timebank.userservice.domain.model.user.User;
+import com.timebank.userservice.infrastructure.client.PointServiceClient;
+import com.timebank.userservice.infrastructure.client.dto.PointAccountResponseDto;
 import com.timebank.userservice.infrastructure.persistence.JpaUserProfileRepository;
 import com.timebank.userservice.infrastructure.persistence.JpaUserRepository;
 import com.timebank.userservice.presentation.dto.response.GetUserInfoFeignResponse;
@@ -44,6 +47,7 @@ public class UserProfileService {
 	private final JpaUserRepository userRepository;
 	private final JpaUserProfileRepository userProfileRepository;
 	private final KafkaTemplate<String, Object> kafkaTemplate;
+	private final PointServiceClient pointServiceClient;
 
 	// 공통적으로 사용할 기본 Kafka 토픽명은 실제 이벤트 발행 시 각 이벤트 타입의 토픽명을 사용할 예정입니다.
 	// 즉, NotificationEventType.CREATED.getTopic(), UPDATED, DELETED 등으로 전송
@@ -97,10 +101,11 @@ public class UserProfileService {
 	/**
 	 * 본인 프로필 조회
 	 */
-	public UserProfileResponseDto getMyProfile(Long userId) {
+	public UserMyProfileResponseDto getMyProfile(Long userId) {
 		UserProfile profile = userProfileRepository.findByUserId(userId)
 			.orElseThrow(() -> new EntityNotFoundException("프로필이 없습니다."));
-		return UserProfileResponseDto.from(profile);
+		PointAccountResponseDto account = pointServiceClient.getAccount(userId);
+		return UserMyProfileResponseDto.from(profile, account);
 	}
 
 	/**
