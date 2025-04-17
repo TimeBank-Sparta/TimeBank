@@ -27,7 +27,6 @@ public class ReviewService {
 	private final KafkaTemplate<String, Object> kafkaTemplate;
 	private final String reviewTopic = "reviews.events";
 
-
 	/**
 	 * 리뷰 생성 시, 리뷰 저장 후 "CREATED" 이벤트를 Kafka로 발행합니다.
 	 */
@@ -69,7 +68,9 @@ public class ReviewService {
 	 * 거래 관련 리뷰 조회
 	 */
 	public List<ReviewDto> getReviewsByTransaction(Long transactionId) {
-		return reviewRepository.findByTransactionId(transactionId).stream()
+		List<Review> review = reviewRepository.findByTransactionId(transactionId)
+			.orElseThrow(() -> new EntityNotFoundException("Review not found with id: " + transactionId));
+		return review.stream()
 			.map(ReviewDto::fromEntity)
 			.collect(Collectors.toList());
 	}
@@ -78,7 +79,9 @@ public class ReviewService {
 	 * 특정 사용자가 작성한 리뷰 조회
 	 */
 	public List<ReviewDto> getReviewsByReviewer(Long reviewerId) {
-		return reviewRepository.findByReviewerId(reviewerId).stream()
+		List<Review> review = reviewRepository.findByReviewerId(reviewerId)
+			.orElseThrow(() -> new EntityNotFoundException("Review not found with id: " + reviewerId));
+		return review.stream()
 			.map(ReviewDto::fromEntity)
 			.collect(Collectors.toList());
 	}
