@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.timebank.helpservice.helper.application.dto.request.GetUserInfoFeignRequest;
 import com.timebank.helpservice.helper.application.dto.response.GetUserInfoFeignResponse;
 
-@FeignClient("user-service")
+@FeignClient(name = "user-service")
 public interface UserFeignClient {
 
-	@PostMapping("/api/v1/user")
+	@PostMapping("/api/v1/user-profiles/apply-list")
 	List<GetUserInfoFeignResponse> getUserInfoByHelper(@RequestBody List<GetUserInfoFeignRequest> request);
 
 }
