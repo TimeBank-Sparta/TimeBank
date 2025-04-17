@@ -27,6 +27,7 @@ public class ReviewService {
 	private final KafkaTemplate<String, Object> kafkaTemplate;
 	private final String reviewTopic = "reviews.events";
 
+
 	/**
 	 * 리뷰 생성 시, 리뷰 저장 후 "CREATED" 이벤트를 Kafka로 발행합니다.
 	 */
