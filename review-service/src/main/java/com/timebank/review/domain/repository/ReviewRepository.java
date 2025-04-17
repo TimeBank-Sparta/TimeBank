@@ -12,4 +12,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
 	// 특정 사용자가 작성한 리뷰 조회
 	List<Review> findByReviewerId(Long reviewerId);
+
+	// 특정 사용자에 대한 리뷰 조회
+	List<Review> findByRevieweeId(Long revieweeId);
 }

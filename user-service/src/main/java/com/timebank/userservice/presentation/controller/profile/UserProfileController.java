@@ -1,5 +1,7 @@
 package com.timebank.userservice.presentation.controller.profile;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,6 +19,7 @@ import com.timebank.userservice.application.dto.request.profile.UserProfileCreat
 import com.timebank.userservice.application.dto.request.profile.UserProfileUpdateRequestDto;
 import com.timebank.userservice.application.dto.response.profile.UserProfileResponseDto;
 import com.timebank.userservice.application.service.profile.UserProfileService;
+import com.timebank.userservice.presentation.dto.response.GetUserInfoFeignResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,11 +51,20 @@ public class UserProfileController {
 	}
 
 	// 다른 사람 프로필 조회 (닉네임 기반)
-	@GetMapping("/{nickname}")
+	@GetMapping("/nickname/{nickname}")
 	public ResponseEntity<ResponseDto<UserProfileResponseDto>> getProfileByNickname(
 		@PathVariable String nickname
 	) {
 		UserProfileResponseDto response = userProfileService.getProfileByNickname(nickname);
+		return ResponseEntity.ok(ResponseDto.success(HttpStatus.OK, response));
+	}
+
+	// 다른 사람 프로필 조회 (닉네임 기반)
+	@GetMapping("/{userId}")
+	public ResponseEntity<ResponseDto<UserProfileResponseDto>> getProfileByUserId(
+		@PathVariable Long userId
+	) {
+		UserProfileResponseDto response = userProfileService.getProfileByUserId(userId);
 		return ResponseEntity.ok(ResponseDto.success(HttpStatus.OK, response));
 	}
 
@@ -73,5 +85,13 @@ public class UserProfileController {
 	) {
 		userProfileService.deleteProfile(userId);
 		return ResponseEntity.noContent().build();
+	}
+
+	// 지원자 리스트 조회하기
+	@PostMapping("/apply-list")
+	public List<GetUserInfoFeignResponse> getUserInfoByHelper(
+		@RequestBody List<Long> requestList
+	) {
+		return userProfileService.getUserInfoList(requestList);
 	}
 }

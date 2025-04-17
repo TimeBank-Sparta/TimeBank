@@ -9,6 +9,7 @@ import com.timebank.userservice.domain.model.user.User;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -63,17 +64,24 @@ public class UserProfile extends Timestamped {
 	@Builder.Default
 	private Set<ServiceCategory> needServices = new HashSet<>();
 
-	private String location;
+	@Embedded
+	private UserLocation location;
 
 	private String introduction;
+
+	private Double trustScore;
+
+	private int reviewCount;
 
 	public static UserProfile of(
 		User user,
 		String nickname,
 		Set<ServiceCategory> helpServices,
 		Set<ServiceCategory> needServices,
-		String location,
-		String introduction
+		UserLocation location,
+		String introduction,
+		Double trustScore,
+		int reviewCount
 	) {
 		return innerBuilder()
 			.user(user)
@@ -82,6 +90,8 @@ public class UserProfile extends Timestamped {
 			.needServices(needServices)
 			.location(location)
 			.introduction(introduction)
+			.trustScore(trustScore)
+			.reviewCount(reviewCount)
 			.build();
 	}
 
@@ -89,7 +99,7 @@ public class UserProfile extends Timestamped {
 		String nickname,
 		Set<ServiceCategory> helpServices,
 		Set<ServiceCategory> needServices,
-		String location,
+		UserLocation location,
 		String introduction) {
 		if (nickname != null) {
 			this.nickname = nickname;
@@ -106,5 +116,13 @@ public class UserProfile extends Timestamped {
 		if (introduction != null) {
 			this.introduction = introduction;
 		}
+	}
+
+	public void updateRating(Double averageRating) {
+		this.trustScore = averageRating;
+	}
+
+	public void updateReviewCount(int count) {
+		this.reviewCount = count;
 	}
 }

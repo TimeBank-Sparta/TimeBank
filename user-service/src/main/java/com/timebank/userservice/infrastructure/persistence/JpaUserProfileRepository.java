@@ -1,5 +1,6 @@
 package com.timebank.userservice.infrastructure.persistence;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +15,6 @@ public interface JpaUserProfileRepository extends JpaRepository<UserProfile, Lon
 	Optional<UserProfile> findByNickname(String nickname);
 
 	Optional<UserProfile> findByUserId(Long userId);
+
+	List<UserProfile> findAllByUserIdIn(List<Long> userIdList);
 }

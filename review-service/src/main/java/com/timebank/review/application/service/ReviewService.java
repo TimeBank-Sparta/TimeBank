@@ -44,6 +44,7 @@ public class ReviewService {
 		// Kafka 이벤트 발행: 리뷰 생성 이벤트
 		ReviewEvent event = new ReviewEvent(savedReview, ReviewEventType.CREATED);
 		kafkaTemplate.send(reviewTopic, event);
+
 		return ReviewDto.fromEntity(savedReview);
 	}
 
@@ -112,4 +113,5 @@ public class ReviewService {
 		ReviewEvent event = new ReviewEvent(review, ReviewEventType.DELETED);
 		kafkaTemplate.send(reviewTopic, event);
 	}
+
 }

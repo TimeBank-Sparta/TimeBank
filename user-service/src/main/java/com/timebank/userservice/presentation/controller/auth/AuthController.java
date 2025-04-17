@@ -18,6 +18,8 @@ import com.timebank.userservice.application.service.auth.AuthService;
 import com.timebank.userservice.presentation.dto.request.RefreshTokenRequestDto;
 import com.timebank.userservice.presentation.dto.response.TokenResponseDto;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,15 +43,37 @@ public class AuthController {
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<ResponseDto<LoginResponseDto>> login(@Valid @RequestBody LoginRequestDto requestDto) {
+	public ResponseEntity<ResponseDto<LoginResponseDto>> login(
+		@Valid @RequestBody LoginRequestDto requestDto,
+		HttpServletResponse response) {
 		LoginResponseDto responseDto = authService.login(requestDto);
+
+		// refresh token 쿠키 설정
+		Cookie refreshTokenCookie = new Cookie("refreshToken", responseDto.getRefreshToken());
+		refreshTokenCookie.setHttpOnly(true);
+		refreshTokenCookie.setSecure(true); // HTTPS 환경일 때만 true
+		refreshTokenCookie.setPath("/");
+		refreshTokenCookie.setMaxAge(14 * 24 * 60 * 60); // 7일 등
+
+		response.addCookie(refreshTokenCookie);
+
 		return ResponseEntity.ok(ResponseDto.success(responseDto));
 	}
 
-	@PostMapping("/refresh")
-	public ResponseEntity<ResponseDto<TokenResponseDto>> refreshToken(@RequestBody RefreshTokenRequestDto requestDto) {
+	@PostMapping("/refresh/redis")
+	public ResponseEntity<ResponseDto<TokenResponseDto>> refreshTokenRedis(
+		@RequestBody RefreshTokenRequestDto requestDto) {
 		log.info("authController에서 refreshToken API를 실행!!!!!");
-		TokenResponseDto tokenResponseDto = authService.refreshToken(requestDto);
+		TokenResponseDto tokenResponseDto = authService.refreshTokenRedis(requestDto);
+		log.info("authController에서 authService.refreshToken을 무사히 마침!!!!!");
+		return ResponseEntity.ok(ResponseDto.success(tokenResponseDto));
+	}
+
+	@PostMapping("/refresh/rdbs")
+	public ResponseEntity<ResponseDto<TokenResponseDto>> refreshTokenRDBS(
+		@RequestBody RefreshTokenRequestDto requestDto) {
+		log.info("authController에서 refreshToken API를 실행!!!!!");
+		TokenResponseDto tokenResponseDto = authService.refreshTokenRDBS(requestDto);
 		log.info("authController에서 authService.refreshToken을 무사히 마침!!!!!");
 		return ResponseEntity.ok(ResponseDto.success(tokenResponseDto));
 	}
