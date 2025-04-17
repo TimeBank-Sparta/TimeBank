@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.timebank.common.application.dto.ResponseDto;
 import com.timebank.userservice.application.dto.request.profile.UserProfileCreateRequestDto;
 import com.timebank.userservice.application.dto.request.profile.UserProfileUpdateRequestDto;
+import com.timebank.userservice.application.dto.response.profile.UserMyProfileResponseDto;
 import com.timebank.userservice.application.dto.response.profile.UserProfileResponseDto;
 import com.timebank.userservice.application.service.profile.UserProfileService;
 import com.timebank.userservice.presentation.dto.response.GetUserInfoFeignResponse;
@@ -43,10 +44,10 @@ public class UserProfileController {
 
 	// 내 프로필 조회
 	@GetMapping("/me")
-	public ResponseEntity<ResponseDto<UserProfileResponseDto>> getMyProfile(
+	public ResponseEntity<ResponseDto<UserMyProfileResponseDto>> getMyProfile(
 		@RequestHeader("X-User-Id") Long userId
 	) {
-		UserProfileResponseDto response = userProfileService.getMyProfile(userId);
+		UserMyProfileResponseDto response = userProfileService.getMyProfile(userId);
 		return ResponseEntity.ok(ResponseDto.success(HttpStatus.OK, response));
 	}
 

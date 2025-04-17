@@ -10,12 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class PointAccountResponseDto {
-
-	private Long accountId;
-
-	private Long userId;
-
 	private Integer availablePoints;
-
 	private Integer holdingPoints;
 }

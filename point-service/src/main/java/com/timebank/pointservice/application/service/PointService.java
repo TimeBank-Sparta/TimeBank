@@ -10,8 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.timebank.common.infrastructure.external.notification.dto.NotificationEvent;
 import com.timebank.common.infrastructure.external.notification.dto.NotificationEventType;
 import com.timebank.common.infrastructure.external.notification.dto.NotificationType;
+import com.timebank.pointservice.application.dto.GetAccountResponseDto;
 import com.timebank.pointservice.application.dto.PointTransferCommand;
-import com.timebank.pointservice.application.dto.getAccountResponseDto;
 import com.timebank.pointservice.domain.entity.PointAccount;
 import com.timebank.pointservice.domain.entity.PointTransaction;
 import com.timebank.pointservice.domain.repository.PointAccountRepository;
@@ -43,17 +43,15 @@ public class PointService {
 	}
 
 	// 계정 조회
-	public getAccountResponseDto getAccount(Long userId) {
+	public GetAccountResponseDto getAccount(Long userId) {
 		PointAccount account = pointAccountRepository.findByUserId(userId)
 			.orElseThrow(() -> new IllegalArgumentException("해당 계정을 찾을 수 없습니다."));
 
-		getAccountResponseDto dto = new getAccountResponseDto();
+		GetAccountResponseDto dto = new GetAccountResponseDto();
 		dto.setAvailablePoints(account.getAvailablePoints());
 		dto.setHoldingPoints(account.getHoldingPoints());
 		return dto;
 	}
-
-
 
 	// ✅ 글 작성 시 포인트 보류
 	@Transactional

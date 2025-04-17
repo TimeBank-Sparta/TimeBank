@@ -11,6 +11,7 @@ import com.timebank.userservice.application.dto.response.auth.LoginResponseDto;
 import com.timebank.userservice.domain.jwt.JwtProvider;
 import com.timebank.userservice.domain.model.user.Role;
 import com.timebank.userservice.domain.model.user.User;
+import com.timebank.userservice.infrastructure.client.PointServiceClient;
 import com.timebank.userservice.infrastructure.persistence.JpaUserRepository;
 import com.timebank.userservice.presentation.dto.request.RefreshTokenRequestDto;
 import com.timebank.userservice.presentation.dto.response.TokenResponseDto;
@@ -26,6 +27,7 @@ public class AuthService {
 	private final RefreshTokenService refreshTokenService;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtProvider jwtProvider;
+	private final PointServiceClient pointServiceClient;
 
 	//todo:환경변수로 관리하기
 	private final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
@@ -46,7 +48,7 @@ public class AuthService {
 			role);
 
 		userRepository.save(user);
-
+		pointServiceClient.creatAccount(user.getId());
 		return user;
 	}
 
