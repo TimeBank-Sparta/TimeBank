@@ -6,7 +6,6 @@ import com.timebank.helpservice.help_request.application.dto.request.CreateHelpR
 import com.timebank.helpservice.help_request.domain.PostStatus;
 
 public record CreateHelpRequest(
-	Long requesterId,
 	String title,
 	String content,
 	String address,
@@ -18,7 +17,6 @@ public record CreateHelpRequest(
 ) {
 	public CreateHelpRequestCommand toCommand() {
 		return CreateHelpRequestCommand.builder()
-			.requesterId(requesterId)
 			.title(title)
 			.content(content)
 			.address(address)

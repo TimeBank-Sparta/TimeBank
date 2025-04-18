@@ -32,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 public class HelpTradingService {
 	private final HelpTradingRepository helpTradingRepository;
 	private final HelpTradingEventProducer eventProducer;
-	private final KafkaTemplate<String, NotificationEvent> kafkaTemplate;
+	private final KafkaTemplate<String, Object> kafkaTemplate;
 
 	/**
 	 * 도움 거래 생성 (도움 요청 글 종료 후 거래 시작)
@@ -132,10 +132,10 @@ public class HelpTradingService {
 		UserRole role = UserRole.NONE;
 
 		if (helpTrading.getRequesterId().equals(userId)) {
-			role = UserRole.HELPER;
+			role = UserRole.REQUESTER;
 		}
 		if (helpTrading.getHelperId().equals(userId)) {
-			role = UserRole.REQUESTER;
+			role = UserRole.HELPER;
 		}
 
 		return helpTrading.updateStatus(helpTrading.getTradeStatus().next(role));

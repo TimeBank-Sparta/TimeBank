@@ -45,7 +45,7 @@ public class JpaHelperRepositoryCustomImpl implements HelperRepository {
 
 	@Override
 	public List<Helper> findByHelpRequestId(Long helpRequestId) {
-		return List.of();
+		return jpaHelperRepository.findByHelpRequestId(helpRequestId);
 	}
 
 	@Override

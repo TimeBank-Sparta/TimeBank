@@ -7,12 +7,14 @@ import lombok.Builder;
 
 @Builder
 public record FindHelperResponse(
-	String username,
+	String nickname,
+	Double trustScore,
 	ApplicantStatus status
 ) {
 	public static FindHelperResponse of(GetUserInfoFeignResponse response, Helper helper) {
 		return FindHelperResponse.builder()
-			.username(response.username())
+			.nickname(response.nickname())
+			.trustScore(response.trustScore())
 			.status(helper.getApplicantStatus())
 			.build();
 

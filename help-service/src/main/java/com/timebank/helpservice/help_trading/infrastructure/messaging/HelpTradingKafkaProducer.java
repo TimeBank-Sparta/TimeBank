@@ -15,6 +15,6 @@ public class HelpTradingKafkaProducer implements HelpTradingEventProducer {
 
 	@Override
 	public void sendToPoints(PointTransferRequestMessage pointTransferRequestMessage) {
-		kafkaTemplate.send("help-trading.complete", "point-service-group", pointTransferRequestMessage);
+		kafkaTemplate.send("help-trading.complete", pointTransferRequestMessage);
 	}
 }

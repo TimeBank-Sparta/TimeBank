@@ -15,6 +15,6 @@ public class HelperKafkaProducer implements HelperEventProducer {
 
 	@Override
 	public void sendToHelpTrading(HelperToTradingKafkaDto helperToTradingKafkaDto) {
-		kafkaTemplate.send("helpers.create-trading", "help-tradings", helperToTradingKafkaDto);
+		kafkaTemplate.send("helpers.create-trading", helperToTradingKafkaDto);
 	}
 }
