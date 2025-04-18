@@ -190,11 +190,9 @@ public class UserProfileService {
 	}
 
 	public List<GetUserInfoFeignResponse> getUserInfoList(List<Long> userIdList) {
-		List<UserProfile> profiles = userProfileRepository.findAllByUserIdIn(userIdList);
-
+		List<UserProfile> profiles = userProfileRepository.findAllByUser_IdIn(userIdList);
 		Map<Long, UserProfile> profileMap = profiles.stream()
 			.collect(Collectors.toMap(p -> p.getUser().getId(), Function.identity()));
-
 		return userIdList.stream()
 			.map(id -> {
 				UserProfile profile = profileMap.get(id);

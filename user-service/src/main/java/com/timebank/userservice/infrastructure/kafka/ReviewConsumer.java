@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ReviewConsumer {
 	private final UserProfileService userProfileService;
 
-	@KafkaListener(topics = "reviews.events", groupId = "user-service")
+	@KafkaListener(topics = "reviews.events", groupId = "user-service", containerFactory = "")
 	public void consume(ReviewEvent event) {
 		try {
 			if (event.getEventType() == ReviewEventType.CREATED) {

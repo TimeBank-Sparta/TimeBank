@@ -20,11 +20,14 @@ import com.timebank.userservice.application.dto.request.profile.UserProfileUpdat
 import com.timebank.userservice.application.dto.response.profile.UserMyProfileResponseDto;
 import com.timebank.userservice.application.dto.response.profile.UserProfileResponseDto;
 import com.timebank.userservice.application.service.profile.UserProfileService;
+import com.timebank.userservice.presentation.dto.request.GetUserInfoFeignRequest;
 import com.timebank.userservice.presentation.dto.response.GetUserInfoFeignResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/user-profiles")
@@ -91,8 +94,11 @@ public class UserProfileController {
 	// 지원자 리스트 조회하기
 	@PostMapping("/apply-list")
 	public List<GetUserInfoFeignResponse> getUserInfoByHelper(
-		@RequestBody List<Long> requestList
+		@RequestBody List<GetUserInfoFeignRequest> requestList
 	) {
-		return userProfileService.getUserInfoList(requestList);
+		List<Long> userIdList = requestList.stream()
+			.map(GetUserInfoFeignRequest::userId)
+			.toList();
+		return userProfileService.getUserInfoList(userIdList);
 	}
 }
