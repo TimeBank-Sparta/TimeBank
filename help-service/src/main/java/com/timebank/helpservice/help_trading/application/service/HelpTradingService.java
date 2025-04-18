@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.timebank.common.application.exception.CustomNotFoundException;
+import com.timebank.common.infrastructure.dto.PointTransferRequestMessage;
 import com.timebank.common.infrastructure.external.notification.dto.NotificationEvent;
 import com.timebank.common.infrastructure.external.notification.dto.NotificationEventType;
 import com.timebank.common.infrastructure.external.notification.dto.NotificationType;
 import com.timebank.helpservice.help_trading.application.dto.request.CreateTradingCommand;
-import com.timebank.helpservice.help_trading.application.dto.request.PointTransferRequestMessage;
 import com.timebank.helpservice.help_trading.application.dto.response.ApproveFinishTradingResponse;
 import com.timebank.helpservice.help_trading.application.dto.response.ApproveStartTradingResponse;
 import com.timebank.helpservice.help_trading.application.dto.response.CreateTradingResponse;
@@ -122,7 +122,13 @@ public class HelpTradingService {
 		HelpTrading helpTrading = updateTradeStatus(helpTradingId, userId)
 			.updateFinishedAt(LocalDateTime.now());
 
-		eventProducer.sendToPoints(PointTransferRequestMessage.from(helpTrading));
+
+		eventProducer.sendToPoints(PointTransferRequestMessage.builder()
+			.senderUserId(helpTrading.getRequesterId())
+			.receiverUserId(helpTrading.getHelperId())
+			.amount(helpTrading.getActualPoints())
+			.reason("거래완료")
+			.build());
 
 		return ApproveFinishTradingResponse.from(helpTrading);
 	}

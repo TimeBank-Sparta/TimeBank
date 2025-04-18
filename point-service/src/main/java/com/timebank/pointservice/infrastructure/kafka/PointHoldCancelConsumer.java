@@ -1,12 +1,11 @@
 package com.timebank.pointservice.infrastructure.kafka;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.timebank.common.infrastructure.dto.PointTransferRequestMessage;
 import com.timebank.pointservice.application.service.PointService;
-import com.timebank.pointservice.infrastructure.kafka.dto.PointTransferRequestMessage;
 
 // 거래 취소 컨슈머
 @Component
@@ -29,7 +28,7 @@ public class PointHoldCancelConsumer {
 		System.out.println("📩 [보류 취소] 수신 메시지: " + message);
 
 		try {
-			pointService.cancelHolding(message.senderUserId(), message.amount());
+			pointService.cancelHolding(message.getSenderUserId(), message.getAmount());
 
 			System.out.println("✅ 포인트 보류 취소 처리 완료: " + message);
 
