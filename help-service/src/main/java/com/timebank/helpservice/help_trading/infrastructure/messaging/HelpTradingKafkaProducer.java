@@ -3,7 +3,7 @@ package com.timebank.helpservice.help_trading.infrastructure.messaging;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
-import com.timebank.helpservice.help_trading.application.dto.request.PointTransferRequestMessage;
+import com.timebank.common.infrastructure.dto.PointTransferRequestMessage;
 import com.timebank.helpservice.help_trading.application.service.HelpTradingEventProducer;
 
 import lombok.RequiredArgsConstructor;

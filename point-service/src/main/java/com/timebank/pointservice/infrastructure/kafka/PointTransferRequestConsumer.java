@@ -1,13 +1,12 @@
 package com.timebank.pointservice.infrastructure.kafka;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.timebank.common.infrastructure.dto.PointTransferRequestMessage;
 import com.timebank.pointservice.application.dto.PointTransferCommand;
 import com.timebank.pointservice.application.service.PointService;
-import com.timebank.pointservice.infrastructure.kafka.dto.PointTransferRequestMessage;
 
 // 즉시 송금 컨슈머
 @Component
@@ -31,9 +30,9 @@ public class PointTransferRequestConsumer {
 
 		try {
 			pointService.transferPoints(PointTransferCommand.builder()
-				.senderUserId(message.senderUserId())
-				.receiverUserId(message.receiverUserId())
-				.amount(message.amount())
+				.senderUserId(message.getSenderUserId())
+				.receiverUserId(message.getReceiverUserId())
+				.amount(message.getAmount())
 				.build());
 
 			System.out.println("✅ 포인트 송금 처리 완료: " + message);
