@@ -3,8 +3,8 @@ package com.timebank.userservice.infrastructure.kafka;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
-import com.timebank.userservice.application.event.ReviewEvent;
-import com.timebank.userservice.application.event.ReviewEventType;
+import com.timebank.common.infrastructure.external.review.dto.ReviewEvent;
+import com.timebank.common.infrastructure.external.review.dto.ReviewEventType;
 import com.timebank.userservice.application.service.profile.UserProfileService;
 
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ReviewConsumer {
 	private final UserProfileService userProfileService;
 
-	@KafkaListener(topics = "reviews.events", groupId = "user-service")
+	@KafkaListener(topics = "reviews.events", groupId = "user-service", containerFactory = "")
 	public void consume(ReviewEvent event) {
 		try {
 			if (event.getEventType() == ReviewEventType.CREATED) {

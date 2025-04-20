@@ -16,5 +16,5 @@ public interface JpaUserProfileRepository extends JpaRepository<UserProfile, Lon
 
 	Optional<UserProfile> findByUserId(Long userId);
 
-	List<UserProfile> findAllByUserIdIn(List<Long> userIdList);
+	List<UserProfile> findAllByUser_IdIn(List<Long> userIdList);
 }
