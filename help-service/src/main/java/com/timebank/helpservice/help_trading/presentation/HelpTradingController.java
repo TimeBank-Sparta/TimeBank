@@ -17,6 +17,7 @@ import com.timebank.common.application.dto.PageResponseDto;
 import com.timebank.common.application.dto.ResponseDto;
 import com.timebank.helpservice.help_trading.application.dto.response.ApproveFinishTradingResponse;
 import com.timebank.helpservice.help_trading.application.dto.response.ApproveStartTradingResponse;
+import com.timebank.helpservice.help_trading.application.dto.response.CancelTradingResponse;
 import com.timebank.helpservice.help_trading.application.dto.response.CreateTradingResponse;
 import com.timebank.helpservice.help_trading.application.dto.response.FindHelpTradingResponse;
 import com.timebank.helpservice.help_trading.application.dto.response.RequestFinishTradingResponse;
@@ -75,6 +76,15 @@ public class HelpTradingController {
 	) {
 		return ResponseEntity.ok(new ResponseDto<>(HttpStatus.CREATED,
 			helpTradingService.approveFinishTrading(helpTradingsId, userId)));
+	}
+
+	@PostMapping("/{helpTradingsId}/cancel-trading")
+	public ResponseEntity<ResponseDto<CancelTradingResponse>> cancelTrading(
+		@PathVariable Long helpTradingsId,
+		@RequestHeader("X-User-Id") Long userId
+	) {
+		return ResponseEntity.ok(new ResponseDto<>(HttpStatus.CREATED,
+			helpTradingService.cancelTrading(helpTradingsId, userId)));
 	}
 
 	//TODO유저 권한 체크(자기가 작성한 글에 대한 거래내역 조회가능)
