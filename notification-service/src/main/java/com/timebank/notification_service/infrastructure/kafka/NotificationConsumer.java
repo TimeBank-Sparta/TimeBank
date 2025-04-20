@@ -2,7 +2,6 @@ package com.timebank.notification_service.infrastructure.kafka;
 
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.timebank.notification_service.application.event.NotificationEvent;
 import com.timebank.notification_service.domain.entity.Notification;
@@ -14,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-@Transactional
 public class NotificationConsumer {
 
 	private final NotificationRepository notificationRepository;
