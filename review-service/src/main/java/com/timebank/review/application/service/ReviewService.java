@@ -110,6 +110,9 @@ public class ReviewService {
 	public ReviewDto updateReview(Long reviewId, ReviewDto reviewDto) {
 		Review review = reviewRepository.findById(reviewId)
 			.orElseThrow(() -> new EntityNotFoundException("Review not found with id: " + reviewId));
+
+		int eventRating = reviewDto.getRating() - review.getRating();
+
 		// 업데이트할 필드(평점, 코멘트 등) 수정
 		review.setRating(reviewDto.getRating());
 		review.setComment(reviewDto.getComment());
@@ -120,7 +123,7 @@ public class ReviewService {
 			updated.getTransactionId(),
 			updated.getReviewerId(),
 			updated.getRevieweeId(),
-			updated.getRating(),
+			eventRating,
 			updated.getComment(),
 			ReviewEventType.UPDATED);
 		kafkaTemplate.send(reviewTopic, event);
