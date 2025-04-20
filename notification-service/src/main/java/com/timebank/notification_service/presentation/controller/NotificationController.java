@@ -33,7 +33,7 @@ public class NotificationController {
 	private final NotificationService notificationService;
 
 	/**
-	 * 테스트 알림 생성
+	 * 테스트 용도 알림 생성
 	 * POST /api/v1/notifications
 	 */
 	@PostMapping
