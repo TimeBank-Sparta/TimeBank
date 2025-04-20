@@ -3,6 +3,7 @@ package com.timebank.review.application.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -30,21 +31,19 @@ public class ReviewService {
 	/**
 	 * 리뷰 생성 시, 리뷰 저장 후 "CREATED" 이벤트를 Kafka로 발행합니다.
 	 */
-	public ReviewDto createReview(ReviewDto reviewDto) {
-		Review review = new Review(
-			reviewDto.getTransactionId(),
-			reviewDto.getReviewerId(),
-			reviewDto.getRevieweeId(),
-			reviewDto.getRating(),
-			reviewDto.getComment()
+	public ReviewDto createReview(ReviewDto dto) {
+		// @Valid 통해 넘어온 dto는 이미 유효!
+		Review r = new Review(
+			dto.getTransactionId(),
+			dto.getReviewerId(),
+			dto.getRevieweeId(),
+			dto.getRating(),
+			dto.getComment()
 		);
-		Review savedReview = reviewRepository.save(review);
+		Review saved = reviewRepository.save(r);
 
-		// Kafka 이벤트 발행: 리뷰 생성 이벤트
-		ReviewEvent event = new ReviewEvent(savedReview, ReviewEventType.CREATED);
-		kafkaTemplate.send(reviewTopic, event);
-
-		return ReviewDto.fromEntity(savedReview);
+		kafkaTemplate.send(reviewTopic, new ReviewEvent(saved, ReviewEventType.CREATED));
+		return ReviewDto.fromEntity(saved);
 	}
 
 	/**
@@ -60,8 +59,18 @@ public class ReviewService {
 	 * 전체 리뷰 조회 (페이지네이션 적용)
 	 */
 	public Page<ReviewDto> getAllReviews(Pageable pageable) {
-		Page<Review> reviews = reviewRepository.findAll(pageable);
-		return reviews.map(ReviewDto::fromEntity);
+		try {
+			Page<Review> reviews = reviewRepository.findAll(pageable);
+
+			if (reviews.isEmpty()) {
+				throw new EntityNotFoundException("등록된 리뷰가 없습니다.");
+			}
+
+			return reviews.map(ReviewDto::fromEntity);
+		} catch (DataAccessException dae) {
+			// 필요에 따라 로깅 후, 더 상위 레벨의 예외로 전환
+			throw new RuntimeException("리뷰 조회 중 데이터베이스 오류가 발생했습니다.", dae);
+		}
 	}
 
 	/**
@@ -78,9 +87,9 @@ public class ReviewService {
 	/**
 	 * 특정 사용자가 작성한 리뷰 조회
 	 */
-	public List<ReviewDto> getReviewsByReviewer(Long reviewerId) {
-		List<Review> review = reviewRepository.findByReviewerId(reviewerId)
-			.orElseThrow(() -> new EntityNotFoundException("Review not found with id: " + reviewerId));
+	public List<ReviewDto> getReviewsByUserId(Long userId) {
+		List<Review> review = reviewRepository.findByReviewerId(userId)
+			.orElseThrow(() -> new EntityNotFoundException("Review not found with id: " + userId));
 		return review.stream()
 			.map(ReviewDto::fromEntity)
 			.collect(Collectors.toList());
