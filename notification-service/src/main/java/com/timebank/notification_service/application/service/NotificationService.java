@@ -29,6 +29,9 @@ public class NotificationService {
 	// 이벤트 타입에 따라 실제 발행 시에는 각 이벤트의 토픽을 참고할 수 있음.
 	private final String notificationTopic = "notification.events";
 
+	public NotificationDto createNotification(NotificationDto notificationDto) {
+	}
+
 	/**
 	 * 전체 알림 조회 (페이지네이션 적용)
 	 */
@@ -86,4 +89,5 @@ public class NotificationService {
 			.map(NotificationDto::fromEntity)
 			.collect(Collectors.toList());
 	}
+
 }

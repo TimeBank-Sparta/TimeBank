@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -27,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/reviews")
+@Validated
 @RequiredArgsConstructor
 public class ReviewController {
 
@@ -84,9 +86,9 @@ public class ReviewController {
 	 * GET /api/v1/users/{user_id}/reviews
 	 */
 	@GetMapping("/users/{user_id}")
-	public ResponseEntity<ResponseDto<List<ReviewDto>>> getReviewsByReviewer(
-		@PathVariable("user_id") Long reviewerId) {
-		List<ReviewDto> reviews = reviewService.getReviewsByReviewer(reviewerId);
+	public ResponseEntity<ResponseDto<List<ReviewDto>>> getReviewsByUserId(
+		@PathVariable("user_id") Long userId) {
+		List<ReviewDto> reviews = reviewService.getReviewsByUserId(userId);
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ResponseDto.success(HttpStatus.OK, reviews));
 	}
