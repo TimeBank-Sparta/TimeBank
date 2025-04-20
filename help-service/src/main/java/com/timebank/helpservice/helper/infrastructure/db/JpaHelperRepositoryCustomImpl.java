@@ -34,8 +34,8 @@ public class JpaHelperRepositoryCustomImpl implements HelperRepository {
 	}
 
 	@Override
-	public boolean existsByUserId(Long id) {
-		return jpaHelperRepository.existsById(id);
+	public boolean existsByHelpRequestIdAndUserId(Long helpRequestId, Long id) {
+		return jpaHelperRepository.existsByHelpRequestIdAndUserId(helpRequestId, id);
 	}
 
 	@Override

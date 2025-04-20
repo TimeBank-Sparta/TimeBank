@@ -39,7 +39,10 @@ public class HelperService {
 
 	@Transactional
 	public CreateHelperResponse createHelper(CreateHelperCommand command, Long userId) {
-		if (helperRepository.existsByUserId(userId)) {
+		if (!helpRequestClient.existHelpRequestById(command.helpRequestId())) {
+			throw new CustomNotFoundException("게시글이 존재하지 않습니다.");
+		}
+		if (helperRepository.existsByHelpRequestIdAndUserId(command.helpRequestId(), userId)) {
 			throw new CustomNotFoundException("중복된 지원자 입니다.");
 		}
 		if (Objects.equals(command.requesterId(), userId)) {
@@ -68,7 +71,7 @@ public class HelperService {
 			helper.getHelpRequestId(),
 			helper.getUserId(),
 			helpRequest.requesterId(),
-			helpRequest.requestedPoint()));
+			helpRequest.requestedPoint() / helpRequest.recruitmentCount()));
 
 		helper.acceptHelperStatus();
 	}
@@ -76,6 +79,10 @@ public class HelperService {
 	@Transactional(readOnly = true)
 	public Page<FindHelperResponse> findByHelpRequestId(Long helpRequestId, Pageable pageable) {
 		List<Helper> helpers = helperRepository.findByHelpRequestId(helpRequestId);
+
+		if (helpers.isEmpty()) {
+			throw new IllegalArgumentException("게시글 정보 없음");
+		}
 
 		List<GetUserInfoFeignResponse> userInfoList = userClient.getUserInfoByHelper(helpers.stream()
 			.map(GetUserInfoFeignRequest::from)
@@ -95,7 +102,6 @@ public class HelperService {
 	}
 
 	@Transactional
-
 	public void deleteHelpersByStatusSupported(FromHelpRequestKafkaDto dto) {
 		helperRepository.deleteHelperStatusSupported(dto.helpRequestId());
 	}
