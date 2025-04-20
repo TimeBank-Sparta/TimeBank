@@ -33,14 +33,14 @@ public class ReviewService {
 	 */
 	public ReviewDto createReview(ReviewDto dto) {
 		// @Valid 통해 넘어온 dto는 이미 유효!
-		Review r = new Review(
+		Review review = new Review(
 			dto.getTransactionId(),
 			dto.getReviewerId(),
 			dto.getRevieweeId(),
 			dto.getRating(),
 			dto.getComment()
 		);
-		Review saved = reviewRepository.save(r);
+		Review saved = reviewRepository.save(review);
 
 		kafkaTemplate.send(reviewTopic, new ReviewEvent(saved, ReviewEventType.CREATED));
 		return ReviewDto.fromEntity(saved);
