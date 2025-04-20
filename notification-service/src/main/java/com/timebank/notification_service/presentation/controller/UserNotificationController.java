@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/users/{userId}/notifications")
+@RequestMapping("/api/v1/notifications/users/{userId}")
 @RequiredArgsConstructor
 public class UserNotificationController {
 
