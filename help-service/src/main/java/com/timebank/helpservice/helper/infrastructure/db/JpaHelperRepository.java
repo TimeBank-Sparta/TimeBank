@@ -11,4 +11,6 @@ public interface JpaHelperRepository extends JpaRepository<Helper, Long> {
 	long countByHelpRequestIdAndApplicantStatus(Long id, ApplicantStatus applicantStatus);
 
 	List<Helper> findByHelpRequestId(Long helpRequestId);
+
+	boolean existsByHelpRequestIdAndUserId(Long helpRequestId, Long id);
 }

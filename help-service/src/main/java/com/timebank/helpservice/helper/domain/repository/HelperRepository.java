@@ -16,7 +16,7 @@ public interface HelperRepository {
 
 	void deleteHelperStatusSupported(Long helpRequestId);
 
-	boolean existsByUserId(Long id);
+	boolean existsByHelpRequestIdAndUserId(Long helpRequestId, Long id);
 
 	long countByHelpRequestIdAndApplicantStatus(Long id, ApplicantStatus applicantStatus);
 }
