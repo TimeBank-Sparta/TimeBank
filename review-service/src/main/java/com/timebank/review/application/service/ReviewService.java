@@ -10,10 +10,10 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.timebank.common.infrastructure.external.review.dto.ReviewEvent;
+import com.timebank.common.infrastructure.external.review.dto.ReviewEventType;
 import com.timebank.review.application.dto.ReviewDto;
-import com.timebank.review.application.event.ReviewEvent;
 import com.timebank.review.domain.entity.Review;
-import com.timebank.review.domain.entity.ReviewEventType;
 import com.timebank.review.domain.repository.ReviewRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -42,7 +42,16 @@ public class ReviewService {
 		);
 		Review saved = reviewRepository.save(review);
 
-		kafkaTemplate.send(reviewTopic, new ReviewEvent(saved, ReviewEventType.CREATED));
+		// Kafka 이벤트 발행: 리뷰 생성 이벤트
+		ReviewEvent event = new ReviewEvent(saved.getReviewId(),
+			saved.getTransactionId(),
+			saved.getReviewerId(),
+			saved.getRevieweeId(),
+			saved.getRating(),
+			saved.getComment(),
+			ReviewEventType.CREATED);
+		kafkaTemplate.send(reviewTopic, event);
+
 		return ReviewDto.fromEntity(saved);
 	}
 
@@ -107,7 +116,13 @@ public class ReviewService {
 		Review updated = reviewRepository.save(review);
 
 		// Kafka 이벤트 발행: 리뷰 업데이트 이벤트
-		ReviewEvent event = new ReviewEvent(updated, ReviewEventType.UPDATED);
+		ReviewEvent event = new ReviewEvent(updated.getReviewId(),
+			updated.getTransactionId(),
+			updated.getReviewerId(),
+			updated.getRevieweeId(),
+			updated.getRating(),
+			updated.getComment(),
+			ReviewEventType.UPDATED);
 		kafkaTemplate.send(reviewTopic, event);
 
 		return ReviewDto.fromEntity(updated);
@@ -122,7 +137,13 @@ public class ReviewService {
 		reviewRepository.deleteById(reviewId);
 
 		// Kafka 이벤트 발행: 리뷰 삭제 이벤트
-		ReviewEvent event = new ReviewEvent(review, ReviewEventType.DELETED);
+		ReviewEvent event = new ReviewEvent(review.getReviewId(),
+			review.getTransactionId(),
+			review.getReviewerId(),
+			review.getRevieweeId(),
+			review.getRating(),
+			review.getComment(),
+			ReviewEventType.DELETED);
 		kafkaTemplate.send(reviewTopic, event);
 	}
 

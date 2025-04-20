@@ -1,5 +1,6 @@
-package com.timebank.userservice.application.event;
+package com.timebank.common.infrastructure.external.review.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -7,6 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class ReviewEvent {
 	private Long reviewId;
 	private Long transactionId;
