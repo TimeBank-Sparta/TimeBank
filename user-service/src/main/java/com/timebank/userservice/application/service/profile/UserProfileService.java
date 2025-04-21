@@ -233,7 +233,7 @@ public class UserProfileService {
 	@Transactional
 	public void updateRating(Long userId, int rating, int count) {
 		UserProfile profile = userProfileRepository.findByUserId(userId)
-			.orElseThrow(() -> new IllegalStateException("User profile not found"));
+			.orElseThrow(() -> new EntityNotFoundException("User profile not found"));
 		Double newAverage;
 		int newCount = profile.getReviewCount() + count;
 
