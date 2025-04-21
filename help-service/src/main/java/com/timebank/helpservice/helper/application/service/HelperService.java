@@ -6,13 +6,13 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.timebank.common.application.exception.CustomNotFoundException;
 import com.timebank.helpservice.helper.application.client.HelpRequestClient;
 import com.timebank.helpservice.helper.application.client.UserClient;
 import com.timebank.helpservice.helper.application.dto.request.CreateHelperCommand;
@@ -27,6 +27,7 @@ import com.timebank.helpservice.helper.domain.ApplicantStatus;
 import com.timebank.helpservice.helper.domain.model.Helper;
 import com.timebank.helpservice.helper.domain.repository.HelperRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -40,13 +41,13 @@ public class HelperService {
 	@Transactional
 	public CreateHelperResponse createHelper(CreateHelperCommand command, Long userId) {
 		if (!helpRequestClient.existHelpRequestById(command.helpRequestId())) {
-			throw new CustomNotFoundException("게시글이 존재하지 않습니다.");
+			throw new EntityNotFoundException("게시글이 존재하지 않습니다.");
 		}
 		if (helperRepository.existsByHelpRequestIdAndUserId(command.helpRequestId(), userId)) {
-			throw new CustomNotFoundException("중복된 지원자 입니다.");
+			throw new DataIntegrityViolationException("중복된 지원자 입니다.");
 		}
 		if (Objects.equals(command.requesterId(), userId)) {
-			throw new CustomNotFoundException("작성자는 지원 불가능합니다.");
+			throw new IllegalArgumentException("작성자는 지원 불가능합니다.");
 		}
 		return CreateHelperResponse.from(helperRepository.save(Helper.createFrom(
 			command.toHelperInfoWithUserId(userId))));
@@ -55,7 +56,7 @@ public class HelperService {
 	@Transactional
 	public void acceptHelper(Long helperId) {
 		Helper helper = helperRepository.findById(helperId).orElseThrow(() ->
-			new CustomNotFoundException("지원자가 없습니다."));
+			new EntityNotFoundException("지원자가 없습니다."));
 
 		HelpRequestFeignDto helpRequest =
 			helpRequestClient.getHelpRequestById(helper.getHelpRequestId());

@@ -39,7 +39,8 @@ public class GlobalExceptionHandler {
 	 * 9) EntityNotFoundException
 	 * 10) AccessDeniedException
 	 * 11) MultipartException
-	 * 12) Exception (그 외)
+	 * 12) IllegalArgumentException
+	 * 13) Exception (그 외)
 	 */
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
@@ -127,6 +128,14 @@ public class GlobalExceptionHandler {
 		String msg = "Multipart request error: " + ex.getMessage();
 		log.warn(msg);
 		ExceptionResponse<?> body = ExceptionResponse.of(msg, HttpStatus.PAYLOAD_TOO_LARGE);
+		return ResponseEntity.status(body.getStatus()).body(body);
+	}
+
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<ExceptionResponse<?>> handleIllegalArgumentException(IllegalArgumentException ex) {
+		String msg = "IllegalArgumentException : " + ex.getMessage();
+		log.warn(msg);
+		ExceptionResponse<?> body = ExceptionResponse.of(msg, HttpStatus.BAD_REQUEST);
 		return ResponseEntity.status(body.getStatus()).body(body);
 	}
 

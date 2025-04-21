@@ -34,8 +34,9 @@ public class HelperController {
 		@RequestBody CreateHelperRequest requestDto,
 		@RequestHeader("X-User-Id") Long userId
 	) {
-		return ResponseEntity.ok(new ResponseDto<>(HttpStatus.CREATED,
-			helperService.createHelper(requestDto.toCommand(), userId)));
+		CreateHelperResponse response = helperService.createHelper(requestDto.toCommand(), userId);
+		return ResponseEntity.status(HttpStatus.CREATED)
+			.body(ResponseDto.success(response));
 	}
 
 	//TODO 유저권한체크(자신의글만 조회가능)
@@ -46,7 +47,9 @@ public class HelperController {
 	) {
 		Page<FindHelperResponse> helperPage =
 			helperService.findByHelpRequestId(helpRequestId, pageable);
-		return ResponseEntity.ok(new PageResponseDto<>(HttpStatus.OK, helperPage, "조회완료"));
+		PageResponseDto<FindHelperResponse> responseDto = new PageResponseDto<>(
+			HttpStatus.OK, helperPage, "조회 완료");
+		return ResponseEntity.ok(ResponseDto.success(responseDto).getData());
 	}
 
 	@PatchMapping("/{helperId}/accept")
