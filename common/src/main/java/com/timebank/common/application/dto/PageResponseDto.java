@@ -10,21 +10,25 @@ import lombok.Getter;
 @Getter
 public class PageResponseDto<T> {
 
-	private int code;
-	private String status;
-	private String message;
-	private List data;
-	private PaginationDto paginationDto;
+	private final int code;
+	private final String status;
+	private final String message;
+	private final List<T> data;
+	private final PaginationDto pagination;
 
-	public PageResponseDto(HttpStatus httpStatus, Page page, String message) {
+	public PageResponseDto(HttpStatus httpStatus, Page<T> page, String message) {
 		this.code = httpStatus.value();
 		this.status = httpStatus.getReasonPhrase();
 		this.message = message;
 		this.data = page.getContent();
-		this.paginationDto = new PaginationDto(page);
+		this.pagination = new PaginationDto(page);
 	}
 
-	public static PageResponseDto success(HttpStatus status, Page page, String message) {
+	public static <T> PageResponseDto<T> success(
+		HttpStatus status,
+		Page<T> page,
+		String message
+	) {
 		return new PageResponseDto<>(status, page, message);
 	}
 }
