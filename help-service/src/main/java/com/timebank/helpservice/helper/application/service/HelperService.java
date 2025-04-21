@@ -19,6 +19,7 @@ import com.timebank.helpservice.helper.application.dto.request.CreateHelperComma
 import com.timebank.helpservice.helper.application.dto.request.GetUserInfoFeignRequest;
 import com.timebank.helpservice.helper.application.dto.request.HelpRequestFeignDto;
 import com.timebank.helpservice.helper.application.dto.request.HelperToTradingKafkaDto;
+import com.timebank.helpservice.helper.application.dto.response.AcceptHelperResponse;
 import com.timebank.helpservice.helper.application.dto.response.CreateHelperResponse;
 import com.timebank.helpservice.helper.application.dto.response.FindHelperResponse;
 import com.timebank.helpservice.helper.application.dto.response.FromHelpRequestKafkaDto;
@@ -53,7 +54,7 @@ public class HelperService {
 	}
 
 	@Transactional
-	public void acceptHelper(Long helperId) {
+	public AcceptHelperResponse acceptHelper(Long helperId) {
 		Helper helper = helperRepository.findById(helperId).orElseThrow(() ->
 			new CustomNotFoundException("지원자가 없습니다."));
 
@@ -74,6 +75,7 @@ public class HelperService {
 			helpRequest.requestedPoint() / helpRequest.recruitmentCount()));
 
 		helper.acceptHelperStatus();
+		return AcceptHelperResponse.from(helper);
 	}
 
 	@Transactional(readOnly = true)
