@@ -1,7 +1,6 @@
 package com.timebank.pointservice.application.service;
 
 import java.time.LocalDateTime;
-import java.util.NoSuchElementException;
 
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -17,6 +16,7 @@ import com.timebank.pointservice.domain.entity.PointTransaction;
 import com.timebank.pointservice.domain.repository.PointAccountRepository;
 import com.timebank.pointservice.domain.repository.PointTransactionRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -45,7 +45,7 @@ public class PointService {
 	// 계정 조회
 	public GetAccountResponseDto getAccount(Long userId) {
 		PointAccount account = pointAccountRepository.findByUserId(userId)
-			.orElseThrow(() -> new IllegalArgumentException("해당 계정을 찾을 수 없습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("해당 계정을 찾을 수 없습니다."));
 
 		GetAccountResponseDto dto = new GetAccountResponseDto();
 		dto.setAvailablePoints(account.getAvailablePoints());
@@ -57,7 +57,7 @@ public class PointService {
 	@Transactional
 	public void holdPointsForPost(Long userId, int amount) {
 		PointAccount account = pointAccountRepository.findByUserIdForUpdate(userId)
-			.orElseThrow(() -> new NoSuchElementException("계좌를 찾을 수 없습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("계좌를 찾을 수 없습니다."));
 
 		// 보류 처리
 		account.holdPoints(amount);
@@ -99,9 +99,9 @@ public class PointService {
 		Long secondUserId = Math.max(senderUserId, receiverUserId);
 
 		PointAccount firstAccount = pointAccountRepository.findByUserIdForUpdate(firstUserId)
-			.orElseThrow(() -> new NoSuchElementException("계좌를 찾을 수 없습니다. userId=" + firstUserId));
+			.orElseThrow(() -> new EntityNotFoundException("계좌를 찾을 수 없습니다. userId=" + firstUserId));
 		PointAccount secondAccount = pointAccountRepository.findByUserIdForUpdate(secondUserId)
-			.orElseThrow(() -> new NoSuchElementException("계좌를 찾을 수 없습니다. userId=" + secondUserId));
+			.orElseThrow(() -> new EntityNotFoundException("계좌를 찾을 수 없습니다. userId=" + secondUserId));
 
 		PointAccount sender = senderUserId.equals(firstUserId) ? firstAccount : secondAccount;
 		PointAccount receiver = receiverUserId.equals(firstUserId) ? firstAccount : secondAccount;
@@ -155,7 +155,7 @@ public class PointService {
 	@Transactional
 	public void cancelHolding(Long userId, int amount) {
 		PointAccount account = pointAccountRepository.findByUserIdForUpdate(userId)
-			.orElseThrow(() -> new NoSuchElementException("계좌를 찾을 수 없습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("계좌를 찾을 수 없습니다."));
 
 		account.releaseHolding(amount);
 		PointTransaction cancelTx = PointTransaction.builder()
@@ -195,10 +195,10 @@ public class PointService {
 		Long secondUserId = Math.max(senderUserId, receiverUserId);
 
 		PointAccount firstAccount = pointAccountRepository.findByUserIdForUpdate(firstUserId)
-			.orElseThrow(() -> new NoSuchElementException("계좌를 찾을 수 없습니다. userId=" + firstUserId));
+			.orElseThrow(() -> new EntityNotFoundException("계좌를 찾을 수 없습니다. userId=" + firstUserId));
 
 		PointAccount secondAccount = pointAccountRepository.findByUserIdForUpdate(secondUserId)
-			.orElseThrow(() -> new NoSuchElementException("계좌를 찾을 수 없습니다. userId=" + secondUserId));
+			.orElseThrow(() -> new EntityNotFoundException("계좌를 찾을 수 없습니다. userId=" + secondUserId));
 
 		PointAccount sender = senderUserId.equals(firstUserId) ? firstAccount : secondAccount;
 		PointAccount receiver = receiverUserId.equals(firstUserId) ? firstAccount : secondAccount;

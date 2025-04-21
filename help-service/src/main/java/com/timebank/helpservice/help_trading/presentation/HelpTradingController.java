@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.timebank.common.application.dto.PageResponseDto;
 import com.timebank.common.application.dto.ResponseDto;
-import com.timebank.helpservice.help_request.application.dto.response.HelpRequestResponse;
 import com.timebank.helpservice.help_trading.application.dto.response.ApproveFinishTradingResponse;
 import com.timebank.helpservice.help_trading.application.dto.response.ApproveStartTradingResponse;
 import com.timebank.helpservice.help_trading.application.dto.response.CancelTradingResponse;
@@ -29,7 +28,6 @@ import com.timebank.helpservice.help_trading.presentation.dto.request.CreateTrad
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 
 @Validated
 @RestController
@@ -53,7 +51,7 @@ public class HelpTradingController {
 		@PathVariable Long helpTradingsId,
 		@RequestHeader("X-User-Id") Long userId
 	) {
-		RequestStartTradingResponse response = helpTradingService.requestStartTrading(helpTradingsId, userId));
+		RequestStartTradingResponse response = helpTradingService.requestStartTrading(helpTradingsId, userId);
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(ResponseDto.success(response));
 	}
@@ -119,5 +117,6 @@ public class HelpTradingController {
 	) {
 		helpTradingService.delete(helpRequestId, userId);
 		return ResponseEntity.ok(ResponseDto.responseWithNoData(
-			HttpStatus.NO_CONTENT, "삭제완료"));	}
+			HttpStatus.NO_CONTENT, "삭제완료"));
+	}
 }
