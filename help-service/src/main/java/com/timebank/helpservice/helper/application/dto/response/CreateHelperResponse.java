@@ -8,11 +8,13 @@ import lombok.Builder;
 @Builder
 public record CreateHelperResponse(
 	Long userId,
+	Long helperId,
 	ApplicantStatus applicantStatus
 ) {
 	public static CreateHelperResponse from(Helper helper) {
 		return CreateHelperResponse.builder()
 			.userId(helper.getUserId())
+			.helperId(helper.getId())
 			.applicantStatus(helper.getApplicantStatus())
 			.build();
 	}

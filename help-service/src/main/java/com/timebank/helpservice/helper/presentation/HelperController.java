@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.timebank.common.application.dto.PageResponseDto;
 import com.timebank.common.application.dto.ResponseDto;
+import com.timebank.helpservice.helper.application.dto.response.AcceptHelperResponse;
 import com.timebank.helpservice.helper.application.dto.response.CreateHelperResponse;
 import com.timebank.helpservice.helper.application.dto.response.FindHelperResponse;
 import com.timebank.helpservice.helper.application.service.HelperService;
@@ -50,11 +51,11 @@ public class HelperController {
 	}
 
 	@PatchMapping("/{helperId}/accept")
-	public ResponseEntity<ResponseDto<Void>> acceptHelper(
+	public ResponseEntity<ResponseDto<AcceptHelperResponse>> acceptHelper(
 		@PathVariable Long helperId
 	) {
 		helperService.acceptHelper(helperId);
-		return ResponseEntity.ok(ResponseDto.responseWithNoData(HttpStatus.OK, "선별완료"));
+		return ResponseEntity.ok(new ResponseDto<>(HttpStatus.OK, helperService.acceptHelper(helperId)));
 	}
 
 }
