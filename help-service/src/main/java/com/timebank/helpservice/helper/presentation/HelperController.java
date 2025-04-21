@@ -54,7 +54,6 @@ public class HelperController {
 	public ResponseEntity<ResponseDto<AcceptHelperResponse>> acceptHelper(
 		@PathVariable Long helperId
 	) {
-		helperService.acceptHelper(helperId);
 		return ResponseEntity.ok(new ResponseDto<>(HttpStatus.OK, helperService.acceptHelper(helperId)));
 	}
 
