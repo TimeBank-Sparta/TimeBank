@@ -84,9 +84,10 @@ public class NotificationController {
 	 * DELETE /api/v1/notifications/{notificationId}
 	 */
 	@DeleteMapping("/{notificationId}")
-	public ResponseEntity<ResponseDto<String>> deleteNotification(
+	public ResponseEntity<ResponseDto<Void>> deleteNotification(
 		@PathVariable Long notificationId) {
 		notificationService.deleteNotification(notificationId);
-		return ResponseEntity.ok(ResponseDto.success("Notification deleted successfully"));
+		return ResponseEntity.ok(ResponseDto.responseWithNoData(
+			HttpStatus.NO_CONTENT, "삭제완료"));
 	}
 }
