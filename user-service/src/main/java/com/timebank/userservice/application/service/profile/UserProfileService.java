@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -41,7 +42,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class UserProfileService {
-	private String kakaoApiKey = "88ac9871f2cdd3bc858026fa777a9663";
+	@Value("${kakao.api.key}")
+	private String kakaoApiKey;
+
 	private final RestTemplate restTemplate = new RestTemplate();
 	private final JpaUserRepository userRepository;
 	private final JpaUserProfileRepository userProfileRepository;
@@ -80,6 +83,7 @@ public class UserProfileService {
 			request.getIntroduction(),
 			0.0, 0
 		);
+		profile.setCreatedBy(userId.toString());
 		UserProfile savedProfile = userProfileRepository.save(profile);
 
 		// 프로필 생성 이벤트 발행: CREATED 이벤트
