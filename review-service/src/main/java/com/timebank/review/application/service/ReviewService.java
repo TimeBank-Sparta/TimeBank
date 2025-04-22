@@ -32,7 +32,6 @@ public class ReviewService {
 	 * 리뷰 생성 시, 리뷰 저장 후 "CREATED" 이벤트를 Kafka로 발행합니다.
 	 */
 	public ReviewDto createReview(ReviewDto dto) {
-		// @Valid 통해 넘어온 dto는 이미 유효!
 		Review review = new Review(
 			dto.getTransactionId(),
 			dto.getReviewerId(),

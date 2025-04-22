@@ -16,6 +16,7 @@ import com.timebank.userservice.infrastructure.persistence.JpaUserRepository;
 import com.timebank.userservice.presentation.dto.request.RefreshTokenRequestDto;
 import com.timebank.userservice.presentation.dto.response.TokenResponseDto;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,7 +57,7 @@ public class AuthService {
 	@Transactional
 	public LoginResponseDto login(LoginRequestDto requestDto) {
 		User user = userRepository.findByUsername(requestDto.getUsername()).orElseThrow(
-			() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다.")
+			() -> new EntityNotFoundException("해당 유저를 찾을 수 없습니다.")
 		);
 		if (!passwordEncoder.matches(requestDto.getPassword(), user.getPassword())) {
 			throw new IllegalArgumentException("회원정보가 일치하지 않습니다.");
@@ -132,7 +133,7 @@ public class AuthService {
 
 		// 3. DB에서 사용자 조회 및 저장된 refreshToken과 비교
 		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("해당 유저를 찾을 수 없습니다."));
 
 		String savedToken = user.getRefreshToken();
 		if (savedToken == null || !savedToken.equals(requestToken)) {

@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -54,9 +55,17 @@ public class NotificationService {
 	 * 전체 알림 조회 (페이지네이션 적용)
 	 */
 	public Page<NotificationDto> getAllNotifications(Pageable pageable) {
-		Page<Notification> notifications = notificationRepository.findAll(pageable);
-		// 빈 페이지도 정상 반환 (404가 아닌 200 + 빈 리스트)
-		return notifications.map(NotificationDto::fromEntity);
+		try {
+			Page<Notification> notifications = notificationRepository.findAll(pageable);
+			if (notifications.isEmpty()) {
+				throw new EntityNotFoundException("등록된 리뷰가 없습니다.");
+			}
+			return notifications.map(NotificationDto::fromEntity);
+
+		} catch (DataAccessException dae) {
+			// 필요에 따라 로깅 후, 더 상위 레벨의 예외로 전환
+			throw new RuntimeException("알림 조회 중 데이터베이스 오류가 발생했습니다.", dae);
+		}
 	}
 
 	/**

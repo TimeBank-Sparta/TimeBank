@@ -8,7 +8,6 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.timebank.common.application.exception.CustomAccessDeniedException;
 import com.timebank.userservice.domain.jwt.JwtProvider;
 import com.timebank.userservice.domain.model.user.Role;
 
@@ -91,7 +90,7 @@ public class JwtUtil implements JwtProvider {
 			return claimsJws.getPayload();
 		} catch (Exception e) {
 			log.error("JWT parsing error: {}", e.getMessage());
-			throw new CustomAccessDeniedException("Invalid token");
+			throw new IllegalArgumentException("Invalid token");
 		}
 	}
 

@@ -11,9 +11,6 @@ public class PaginationDto {
 	private int totalPages;
 	private long totalElements;
 
-	/**
-	 * todo: 이 부분도 builder 써야 하려나?
-	 */
 	public PaginationDto(Page page) {
 		this.page = page.getNumber();
 		this.size = page.getSize();

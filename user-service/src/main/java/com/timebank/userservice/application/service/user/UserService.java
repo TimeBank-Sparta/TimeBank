@@ -17,6 +17,7 @@ import com.timebank.userservice.application.dto.response.user.UserResponseDto;
 import com.timebank.userservice.domain.model.user.User;
 import com.timebank.userservice.infrastructure.persistence.JpaUserRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,7 +34,7 @@ public class UserService {
 	// 로그인 처리: 사용자 로그인 성공 후 알림 이벤트 발행
 	public UserResponseDto processLogin(Long id) {
 		User user = userRepository.findById(id)
-			.orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("회원을 찾을 수 없습니다."));
 
 		// 로그인 성공 이벤트 생성 (생성 이벤트)
 		NotificationEvent event = NotificationEvent.builder()
@@ -53,7 +54,7 @@ public class UserService {
 
 	public UserResponseDto getUser(Long id) {
 		User user = userRepository.findById(id)
-			.orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("회원을 찾을 수 없습니다."));
 		return UserResponseDto.from(user);
 	}
 
@@ -61,7 +62,7 @@ public class UserService {
 	@Transactional
 	public UserResponseDto updateUser(Long id, String currentId, UserUpdateRequestDto requestDto) {
 		User user = userRepository.findById(id)
-			.orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("회원을 찾을 수 없습니다."));
 
 		if (!user.getId().equals(Long.parseLong(currentId))) {
 			log.info("현재 사용자: {}", currentId);
@@ -104,7 +105,7 @@ public class UserService {
 	@Transactional
 	public void deleteUser(Long id, String currentId) {
 		User user = userRepository.findById(id)
-			.orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("회원을 찾을 수 없습니다."));
 
 		if (!user.getId().equals(Long.parseLong(currentId))) {
 			throw new IllegalArgumentException("동일 회원이 아닙니다.");

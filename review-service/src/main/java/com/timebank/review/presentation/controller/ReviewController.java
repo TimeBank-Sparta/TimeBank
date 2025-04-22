@@ -40,9 +40,9 @@ public class ReviewController {
 	 */
 	@PostMapping
 	public ResponseEntity<ResponseDto<ReviewDto>> createReview(@RequestBody @Valid ReviewDto reviewDto) {
-		ReviewDto created = reviewService.createReview(reviewDto);
+		ReviewDto createdReview = reviewService.createReview(reviewDto);
 		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(ResponseDto.success(HttpStatus.CREATED, created));
+			.body(ResponseDto.success(createdReview));
 	}
 
 	/**
@@ -52,8 +52,7 @@ public class ReviewController {
 	@GetMapping("/{review_id}")
 	public ResponseEntity<ResponseDto<ReviewDto>> getReview(@PathVariable("review_id") Long reviewId) {
 		ReviewDto review = reviewService.getReview(reviewId);
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(ResponseDto.success(HttpStatus.OK, review));
+		return ResponseEntity.ok(ResponseDto.success(review));
 	}
 
 	/**
@@ -65,8 +64,7 @@ public class ReviewController {
 		Page<ReviewDto> reviews = reviewService.getAllReviews(pageable);
 		PageResponseDto<ReviewDto> responseDto = PageResponseDto.success(
 			HttpStatus.OK, reviews, "Reviews fetched successfully");
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(responseDto);
+		return ResponseEntity.ok(ResponseDto.success(responseDto).getData());
 	}
 
 	/**
@@ -77,8 +75,7 @@ public class ReviewController {
 	public ResponseEntity<ResponseDto<List<ReviewDto>>> getReviewsByTransaction(
 		@PathVariable("transaction_id") Long transactionId) {
 		List<ReviewDto> reviews = reviewService.getReviewsByTransaction(transactionId);
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(ResponseDto.success(HttpStatus.OK, reviews));
+		return ResponseEntity.ok(ResponseDto.success(reviews));
 	}
 
 	/**
@@ -89,8 +86,7 @@ public class ReviewController {
 	public ResponseEntity<ResponseDto<List<ReviewDto>>> getReviewsByUserId(
 		@PathVariable("user_id") Long userId) {
 		List<ReviewDto> reviews = reviewService.getReviewsByUserId(userId);
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(ResponseDto.success(HttpStatus.OK, reviews));
+		return ResponseEntity.ok(ResponseDto.success(reviews));
 	}
 
 	/**
@@ -102,8 +98,7 @@ public class ReviewController {
 		@PathVariable("review_id") Long reviewId,
 		@RequestBody @Valid ReviewDto reviewDto) {
 		ReviewDto updated = reviewService.updateReview(reviewId, reviewDto);
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(ResponseDto.success(HttpStatus.OK, updated));
+		return ResponseEntity.ok(ResponseDto.success(updated));
 	}
 
 	/**
@@ -114,7 +109,6 @@ public class ReviewController {
 	public ResponseEntity<ResponseDto<String>> deleteReview(
 		@PathVariable("review_id") Long reviewId) {
 		reviewService.deleteReview(reviewId);
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(ResponseDto.success(HttpStatus.OK, "Review deleted successfully"));
+		return ResponseEntity.ok(ResponseDto.success("Review deleted successfully"));
 	}
 }

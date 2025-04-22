@@ -1,149 +1,149 @@
 package com.timebank.common.application.exception;
 
-import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
 
-import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.http.HttpHeaders;
+import org.springframework.core.annotation.Order;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.MissingPathVariableException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-
-import com.timebank.common.application.dto.ResponseDto;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MultipartException;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 
-@ControllerAdvice
+@RestControllerAdvice
+@Order(0)
 @Slf4j
 public class GlobalExceptionHandler {
 
-	private HttpHeaders headers;
+	/**
+	 * 처리되는 예외 목록:
+	 *
+	 * 1) MethodArgumentNotValidException
+	 * 2) ConstraintViolationException
+	 * 3) HttpRequestMethodNotSupportedException
+	 * 4) HttpMessageNotReadableException
+	 * 5) MissingServletRequestParameterException
+	 * 6) MissingPathVariableException
+	 * 7) HttpMediaTypeNotSupportedException
+	 * 8) DataIntegrityViolationException
+	 * 9) EntityNotFoundException
+	 * 10) AccessDeniedException
+	 * 11) MultipartException
+	 * 12) IllegalArgumentException
+	 * 13) Exception (그 외)
+	 */
 
-	@ExceptionHandler({IllegalArgumentException.class})
-	@ResponseBody
-	public ResponseEntity<ResponseDto> illegalArgumentExceptionHandler(IllegalArgumentException ex,
-		HttpServletRequest request) {
-		log.error("IllegalArgumentException: {}", ex.getMessage());
-		return handleRedirectException("IllegalArgumentException: " + ex.getMessage(), request);
-	}
-
-	@ExceptionHandler({MethodArgumentNotValidException.class})
-	@ResponseBody
-	public ResponseEntity<ResponseDto> methodArgumentNotValidExceptionHandler(
-		MethodArgumentNotValidException ex, HttpServletRequest request) {
-		String errorMessage = ex.getBindingResult().getAllErrors().stream()
-			.reduce((first, second) -> second)
-			.map(DefaultMessageSourceResolvable::getDefaultMessage)
-			.orElse("Validation failed");
-		log.error("MethodArgumentNotValidException: {}", errorMessage);
-		return handleRedirectException("MethodArgumentNotValidException: " + errorMessage, request);
-	}
-
-	@ExceptionHandler({MethodArgumentTypeMismatchException.class})
-	@ResponseBody
-	public ResponseEntity<ResponseDto> methodArgumentTypeMismatchExceptionHandler(
-		MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
-		String errorMessage = ex.getPropertyName() + " has an invalid value.";
-		log.error("MethodArgumentTypeMismatchException: {}", errorMessage);
-		return handleRedirectException("MethodArgumentTypeMismatchException: " + errorMessage, request);
-	}
-
-	@ExceptionHandler({NullPointerException.class})
-	@ResponseBody
-	public ResponseEntity<ResponseDto> nullPointerExceptionHandler(
-		NullPointerException ex, HttpServletRequest request) {
-		log.error("NullPointerException: {}", ex.getMessage());
-		return handleRedirectException("NullPointerException: " + ex.getMessage(), request);
-	}
-
-	// EntityNotFoundException 전용 핸들러 (추가)
-	@ExceptionHandler({EntityNotFoundException.class})
-	@ResponseBody
-	public ResponseEntity<ResponseDto> handleEntityNotFoundException(EntityNotFoundException ex) {
-		log.error("EntityNotFoundException: {}", ex.getMessage());
-		return ResponseEntity.status(HttpStatus.NOT_FOUND)
-			.body(ResponseDto.failure(HttpStatus.NOT_FOUND, ex.getMessage()));
-	}
-
-	// 공통 리다이렉트 처리 로직
-	private ResponseEntity<ResponseDto> handleRedirectException(String errorMessage, HttpServletRequest request) {
-		String encodedErrorMessage = URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
-		log.info("Handling exception with message: {}", errorMessage);
-		ResponseDto responseDto = new ResponseDto(
-			HttpStatus.BAD_REQUEST.value(),
-			HttpStatus.BAD_REQUEST.getReasonPhrase(),
-			errorMessage
-		);
-		headers = new HttpHeaders();
-		String referer = request.getHeader("Referer");
-		String redirectUrl = (referer != null)
-			? referer + "?error=" + encodedErrorMessage
-			: "/?error=" + encodedErrorMessage;
-
-		if (request.getRequestURI().startsWith("/api/users")) {
-			redirectUrl = "/api/users/sign-up?error=" + encodedErrorMessage;
-			headers.setLocation(URI.create(redirectUrl));
-			return new ResponseEntity<>(responseDto, headers, HttpStatus.FOUND);
-		}
-		headers.setLocation(URI.create(redirectUrl));
-		return new ResponseEntity<>(responseDto, headers, HttpStatus.BAD_REQUEST);
-	}
-
-	@ExceptionHandler(CustomNotFoundException.class)
-	@ResponseBody
-	public ResponseEntity<ResponseDto> handleCustomNotFoundException(CustomNotFoundException e) {
-		log.error("CustomNotFoundException: {}", e.getMessage());
-		return ResponseEntity.status(HttpStatus.NOT_FOUND)
-			.body(ResponseDto.failure(HttpStatus.NOT_FOUND, e.getMessage()));
-	}
-
-	@ExceptionHandler(CustomForbiddenException.class)
-	@ResponseBody
-	public ResponseEntity<ResponseDto> handleCustomForbiddenException(CustomForbiddenException e) {
-		log.error("CustomForbiddenException: {}", e.getMessage());
-		return ResponseEntity.status(HttpStatus.FORBIDDEN)
-			.body(ResponseDto.failure(HttpStatus.FORBIDDEN, e.getMessage()));
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ExceptionResponse<?>> handleValidationError(MethodArgumentNotValidException ex) {
+		String msg = "Validation failed: " + ex.getBindingResult().getFieldErrors();
+		log.warn(msg);
+		ExceptionResponse<?> body = ExceptionResponse.of(msg, HttpStatus.BAD_REQUEST);
+		return ResponseEntity.status(body.getStatus()).body(body);
 	}
 
 	@ExceptionHandler(ConstraintViolationException.class)
-	@ResponseBody
-	public ResponseEntity<ResponseDto> handleConstraintViolationException(ConstraintViolationException e) {
-		log.error("ConstraintViolationException: {}", e.getMessage());
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-			.body(ResponseDto.failure(HttpStatus.BAD_REQUEST, e.getMessage()));
+	public ResponseEntity<ExceptionResponse<?>> handleConstraintViolation(ConstraintViolationException ex) {
+		String msg = "Constraint violations: " + ex.getConstraintViolations();
+		log.warn(msg);
+		ExceptionResponse<?> body = ExceptionResponse.of(msg, HttpStatus.BAD_REQUEST);
+		return ResponseEntity.status(body.getStatus()).body(body);
 	}
 
 	@ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-	@ResponseBody
-	public ResponseEntity<ResponseDto> handleHttpRequestMethodNotSupportedException(
-		HttpRequestMethodNotSupportedException e) {
-		log.error("HttpRequestMethodNotSupportedException: {}", e.getMessage());
-		return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
-			.body(ResponseDto.failure(HttpStatus.METHOD_NOT_ALLOWED, e.getMessage()));
+	public ResponseEntity<ExceptionResponse<?>> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
+		String msg = ex.getMethod() + " method is not supported for this endpoint";
+		log.warn(msg);
+		ExceptionResponse<?> body = ExceptionResponse.of(msg, HttpStatus.METHOD_NOT_ALLOWED);
+		return ResponseEntity.status(body.getStatus()).body(body);
+	}
+
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ExceptionResponse<?>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+		String msg = "Malformed JSON request: " + ex.getMessage();
+		log.warn(msg);
+		ExceptionResponse<?> body = ExceptionResponse.of(msg, HttpStatus.BAD_REQUEST);
+		return ResponseEntity.status(body.getStatus()).body(body);
+	}
+
+	@ExceptionHandler(MissingServletRequestParameterException.class)
+	public ResponseEntity<ExceptionResponse<?>> handleMissingRequestParam(MissingServletRequestParameterException ex) {
+		String msg = "Missing request parameter: '" + ex.getParameterName() + "'";
+		log.warn(msg);
+		ExceptionResponse<?> body = ExceptionResponse.of(msg, HttpStatus.BAD_REQUEST);
+		return ResponseEntity.status(body.getStatus()).body(body);
+	}
+
+	@ExceptionHandler(MissingPathVariableException.class)
+	public ResponseEntity<ExceptionResponse<?>> handleMissingPathVariable(MissingPathVariableException ex) {
+		String msg = "Missing path variable: '" + ex.getVariableName() + "'";
+		log.warn(msg);
+		ExceptionResponse<?> body = ExceptionResponse.of(msg, HttpStatus.BAD_REQUEST);
+		return ResponseEntity.status(body.getStatus()).body(body);
+	}
+
+	@ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+	public ResponseEntity<ExceptionResponse<?>> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
+		String msg = "Content type '" + ex.getContentType() + "' not supported";
+		log.warn(msg);
+		ExceptionResponse<?> body = ExceptionResponse.of(msg, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+		return ResponseEntity.status(body.getStatus()).body(body);
+	}
+
+	@ExceptionHandler(DataIntegrityViolationException.class)
+	public ResponseEntity<ExceptionResponse<?>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+		String msg = "Database error: data integrity violation";
+		log.warn(msg + ": " + ex.getMessage());
+		ExceptionResponse<?> body = ExceptionResponse.of(msg, HttpStatus.CONFLICT);
+		return ResponseEntity.status(body.getStatus()).body(body);
+	}
+
+	@ExceptionHandler(EntityNotFoundException.class)
+	public ResponseEntity<ExceptionResponse<?>> handleEntityNotFound(EntityNotFoundException ex) {
+		String msg = ex.getMessage();
+		log.warn("Entity not found: {}", msg);
+		ExceptionResponse<?> body = ExceptionResponse.of(msg, HttpStatus.NOT_FOUND);
+		return ResponseEntity.status(body.getStatus()).body(body);
+	}
+
+	@ExceptionHandler(AccessDeniedException.class)
+	public ResponseEntity<ExceptionResponse<?>> handleAccessDenied(AccessDeniedException ex) {
+		String msg = "Access denied";
+		log.warn(msg + ": " + ex.getMessage());
+		ExceptionResponse<?> body = ExceptionResponse.of(msg, HttpStatus.FORBIDDEN);
+		return ResponseEntity.status(body.getStatus()).body(body);
+	}
+
+	@ExceptionHandler(MultipartException.class)
+	public ResponseEntity<ExceptionResponse<?>> handleMultipart(MultipartException ex) {
+		String msg = "Multipart request error: " + ex.getMessage();
+		log.warn(msg);
+		ExceptionResponse<?> body = ExceptionResponse.of(msg, HttpStatus.PAYLOAD_TOO_LARGE);
+		return ResponseEntity.status(body.getStatus()).body(body);
+	}
+
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<ExceptionResponse<?>> handleIllegalArgumentException(IllegalArgumentException ex) {
+		String msg = "IllegalArgumentException : " + ex.getMessage();
+		log.warn(msg);
+		ExceptionResponse<?> body = ExceptionResponse.of(msg, HttpStatus.BAD_REQUEST);
+		return ResponseEntity.status(body.getStatus()).body(body);
 	}
 
 	@ExceptionHandler(Exception.class)
-	@ResponseBody
-	public ResponseEntity<ResponseDto> handleException(Exception e) {
-		log.error("Unhandled Exception: ", e);
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-			.body(ResponseDto.failure(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error occurred."));
-	}
-
-	@ExceptionHandler(CustomConflictException.class)
-	@ResponseBody
-	public ResponseEntity<ResponseDto> handleCustomConflictException(CustomConflictException e) {
-		log.error("CustomConflictException: {}", e.getMessage());
-		return ResponseEntity.status(HttpStatus.CONFLICT)
-			.body(ResponseDto.failure(HttpStatus.CONFLICT, e.getMessage()));
+	public ResponseEntity<ExceptionResponse<?>> handleAll(Exception ex) {
+		String msg = "Internal server error: " + ex.getMessage();
+		log.error("Unhandled exception", ex);
+		ExceptionResponse<?> body = ExceptionResponse.of(msg, HttpStatus.INTERNAL_SERVER_ERROR);
+		return ResponseEntity.status(body.getStatus()).body(body);
 	}
 }

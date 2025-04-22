@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -24,6 +25,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+@Validated
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -62,7 +64,7 @@ public class AuthController {
 
 	@PostMapping("/refresh/redis")
 	public ResponseEntity<ResponseDto<TokenResponseDto>> refreshTokenRedis(
-		@RequestBody RefreshTokenRequestDto requestDto) {
+		@Valid @RequestBody RefreshTokenRequestDto requestDto) {
 		log.info("authController에서 refreshToken API를 실행!!!!!");
 		TokenResponseDto tokenResponseDto = authService.refreshTokenRedis(requestDto);
 		log.info("authController에서 authService.refreshToken을 무사히 마침!!!!!");
@@ -71,7 +73,7 @@ public class AuthController {
 
 	@PostMapping("/refresh/rdbs")
 	public ResponseEntity<ResponseDto<TokenResponseDto>> refreshTokenRDBS(
-		@RequestBody RefreshTokenRequestDto requestDto) {
+		@Valid @RequestBody RefreshTokenRequestDto requestDto) {
 		log.info("authController에서 refreshToken API를 실행!!!!!");
 		TokenResponseDto tokenResponseDto = authService.refreshTokenRDBS(requestDto);
 		log.info("authController에서 authService.refreshToken을 무사히 마침!!!!!");
