@@ -14,4 +14,6 @@ public interface JwtProvider {
 	Long extractUserIdIgnoreExpiration(String token);
 
 	boolean validateToken(String token);
+
+	Long getExpiration(String token);
 }

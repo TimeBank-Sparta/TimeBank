@@ -7,6 +7,7 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -17,15 +18,19 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter implements GlobalFilter {
 
 	@Value("${service.jwt.secret-key}")
 	private String secretKey;
+
+	private final ReactiveRedisTemplate<String, String> redisTemplate;
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -47,8 +52,20 @@ public class JwtAuthenticationFilter implements GlobalFilter {
 			return exchange.getResponse().setComplete();
 		}
 
-		ServerWebExchange newExchange = createNewExchange(claims, exchange);
-		return chain.filter(newExchange);
+		String blacklistKey = "blacklist:" + accessToken;
+
+		// Redis에서 블랙리스트 조회
+		return redisTemplate.hasKey(blacklistKey)
+			.flatMap(isBlacklisted -> {
+				if (Boolean.TRUE.equals(isBlacklisted)) {
+					log.warn("블랙리스트에 등록된 토큰으로 접근 시도됨.");
+					exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+					return exchange.getResponse().setComplete();
+				}
+
+				ServerWebExchange newExchange = createNewExchange(claims, exchange);
+				return chain.filter(newExchange);
+			});
 	}
 
 	//요청헤더에서 토큰 꺼내기
