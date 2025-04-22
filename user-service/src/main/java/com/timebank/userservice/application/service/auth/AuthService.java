@@ -1,5 +1,6 @@
 package com.timebank.userservice.application.service.auth;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -8,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.timebank.userservice.application.dto.request.auth.LoginRequestDto;
 import com.timebank.userservice.application.dto.request.auth.SignUpRequestDto;
 import com.timebank.userservice.application.dto.response.auth.LoginResponseDto;
+import com.timebank.userservice.application.dto.response.auth.LoginResultDto;
 import com.timebank.userservice.domain.jwt.JwtProvider;
 import com.timebank.userservice.domain.model.user.Role;
 import com.timebank.userservice.domain.model.user.User;
@@ -26,12 +28,13 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthService {
 	private final JpaUserRepository userRepository;
 	private final RefreshTokenService refreshTokenService;
+	private final AccessTokenBlacklistService accessTokenBlacklistService;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtProvider jwtProvider;
 	private final PointServiceClient pointServiceClient;
 
-	//todo:환경변수로 관리하기
-	private final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
+	@Value("${service.admin-token}")
+	private String ADMIN_TOKEN;
 
 	//회원가입
 	@Transactional
@@ -55,7 +58,7 @@ public class AuthService {
 
 	//로그인
 	@Transactional
-	public LoginResponseDto login(LoginRequestDto requestDto) {
+	public LoginResultDto login(LoginRequestDto requestDto) {
 		User user = userRepository.findByUsername(requestDto.getUsername()).orElseThrow(
 			() -> new EntityNotFoundException("해당 유저를 찾을 수 없습니다.")
 		);
@@ -70,8 +73,8 @@ public class AuthService {
 		user.updateRefreshToken(refreshToken);
 		userRepository.save(user); //rdbs에 저장
 		refreshTokenService.save(user.getId(), refreshToken); // Redis 저장
-
-		return new LoginResponseDto(user.getUsername(), accessToken, refreshToken, user.getRole());
+		LoginResponseDto dto = new LoginResponseDto(user.getUsername(), accessToken, user.getRole());
+		return new LoginResultDto(dto, refreshToken);
 	}
 
 	//리프레쉬토큰으로 새로운 accessToken발급받기
@@ -148,7 +151,16 @@ public class AuthService {
 		return new TokenResponseDto(newAccessToken, requestToken);
 	}
 
-	public void logout(String userId) {
+	public void logout(String userId, String authorizationHeader) {
+		String accessToken;
+
+		if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+			accessToken = authorizationHeader.substring(7);
+		} else {
+			throw new IllegalArgumentException("Invalid Authorization Header");
+		}
+
 		refreshTokenService.delete(Long.parseLong(userId));
+		accessTokenBlacklistService.addToBlacklist(accessToken);
 	}
 }

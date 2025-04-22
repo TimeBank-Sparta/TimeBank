@@ -15,6 +15,7 @@ import com.timebank.common.application.dto.ResponseDto;
 import com.timebank.userservice.application.dto.request.auth.LoginRequestDto;
 import com.timebank.userservice.application.dto.request.auth.SignUpRequestDto;
 import com.timebank.userservice.application.dto.response.auth.LoginResponseDto;
+import com.timebank.userservice.application.dto.response.auth.LoginResultDto;
 import com.timebank.userservice.application.service.auth.AuthService;
 import com.timebank.userservice.presentation.dto.request.RefreshTokenRequestDto;
 import com.timebank.userservice.presentation.dto.response.TokenResponseDto;
@@ -48,10 +49,11 @@ public class AuthController {
 	public ResponseEntity<ResponseDto<LoginResponseDto>> login(
 		@Valid @RequestBody LoginRequestDto requestDto,
 		HttpServletResponse response) {
-		LoginResponseDto responseDto = authService.login(requestDto);
+		LoginResultDto resultDto = authService.login(requestDto);
+		LoginResponseDto responseDto = resultDto.getResponseDto();
 
 		// refresh token 쿠키 설정
-		Cookie refreshTokenCookie = new Cookie("refreshToken", responseDto.getRefreshToken());
+		Cookie refreshTokenCookie = new Cookie("refreshToken", resultDto.getRefreshToken());
 		refreshTokenCookie.setHttpOnly(true);
 		refreshTokenCookie.setSecure(true); // HTTPS 환경일 때만 true
 		refreshTokenCookie.setPath("/");
@@ -81,8 +83,11 @@ public class AuthController {
 	}
 
 	@PostMapping("/logout")
-	public ResponseEntity<ResponseDto<?>> logout(@RequestHeader("X-User-Id") String userId) {
-		authService.logout(userId);
+	public ResponseEntity<ResponseDto<?>> logout(
+		@RequestHeader("X-User-Id") String userId,
+		@RequestHeader("Authorization") String authorizationHeader) {
+
+		authService.logout(userId, authorizationHeader);
 
 		Map<String, String> response = new HashMap<>();
 		response.put("message", "로그아웃이 완료되었습니다.");

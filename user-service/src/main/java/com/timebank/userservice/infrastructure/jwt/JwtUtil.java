@@ -131,4 +131,11 @@ public class JwtUtil implements JwtProvider {
 		}
 		return false;
 	}
+
+	@Override
+	public Long getExpiration(String token) {
+		Claims claims = extractAllClaims(token);
+		Date expiration = claims.getExpiration();
+		return expiration.getTime() - System.currentTimeMillis();
+	}
 }
