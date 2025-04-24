@@ -108,7 +108,7 @@ public class JwtUtil implements JwtProvider {
 				.getPayload();
 			return claims.get("user-Id", Long.class);
 		} catch (ExpiredJwtException e) {
-			return e.getClaims().get("user-Id", Long.class); // 만료된 토큰에서 claims 추출
+			return e.getClaims().get("user-id", Long.class); // 만료된 토큰에서 claims 추출
 		}
 	}
 
@@ -130,5 +130,13 @@ public class JwtUtil implements JwtProvider {
 			log.warn("JWT 토큰이 비어있습니다: {}", e.getMessage());
 		}
 		return false;
+	}
+
+	@Override
+	public Long getExpiration(String token) {
+		Claims claims = extractAllClaims(token);
+		Date expiration = claims.getExpiration();
+		Long diff = expiration.getTime() - System.currentTimeMillis();
+		return Math.max(diff, 0);
 	}
 }
