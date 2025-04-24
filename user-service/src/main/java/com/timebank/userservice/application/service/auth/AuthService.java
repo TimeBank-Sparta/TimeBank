@@ -70,8 +70,8 @@ public class AuthService {
 		String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole());
 		String refreshToken = jwtProvider.createRefreshToken(user.getId(), user.getRole());
 
-		user.updateRefreshToken(refreshToken);
-		userRepository.save(user); //rdbs에 저장
+//		user.updateRefreshToken(refreshToken);
+//		userRepository.save(user); //rdbs에 저장
 		refreshTokenService.save(user.getId(), refreshToken); // Redis 저장
 		LoginResponseDto dto = new LoginResponseDto(user.getUsername(), accessToken, user.getRole());
 		return new LoginResultDto(dto, refreshToken);
@@ -110,46 +110,46 @@ public class AuthService {
 	}
 
 	// RDB에서 refreshToken으로 accessToken 재발급
-	public TokenResponseDto refreshTokenRDBS(RefreshTokenRequestDto requestDto) {
-		log.info("RDB 기반 refreshToken 메서드 실행");
-
-		String requestToken = requestDto.getRefreshToken();
-
-		// 1. 위변조 및 만료 체크
-		if (!jwtProvider.validateToken(requestToken)) {
-			Long userId = null;
-			try {
-				userId = jwtProvider.extractUserIdIgnoreExpiration(requestToken);
-				userRepository.findById(userId).ifPresent(user -> {
-					user.updateRefreshToken(null);
-					userRepository.save(user);
-				});
-			} catch (Exception e) {
-				log.warn("만료된 토큰에서 사용자 ID 추출 실패");
-			}
-			throw new AuthorizationDeniedException("만료된 Refresh Token입니다. 다시 로그인해주세요.");
-		}
-
-		// 2. 토큰에서 사용자 정보 추출
-		Long userId = jwtProvider.extractUserId(requestToken);
-		Role role = jwtProvider.extractRole(requestToken);
-
-		// 3. DB에서 사용자 조회 및 저장된 refreshToken과 비교
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new EntityNotFoundException("해당 유저를 찾을 수 없습니다."));
-
-		String savedToken = user.getRefreshToken();
-		if (savedToken == null || !savedToken.equals(requestToken)) {
-			throw new AuthorizationDeniedException("Refresh Token이 일치하지 않습니다.");
-		}
-
-		log.info("DB에 저장된 refreshToken과 일치 확인 완료");
-
-		// 4. AccessToken 재발급
-		String newAccessToken = jwtProvider.createAccessToken(userId, role);
-
-		return new TokenResponseDto(newAccessToken, requestToken);
-	}
+//	public TokenResponseDto refreshTokenRDBS(RefreshTokenRequestDto requestDto) {
+//		log.info("RDB 기반 refreshToken 메서드 실행");
+//
+//		String requestToken = requestDto.getRefreshToken();
+//
+//		// 1. 위변조 및 만료 체크
+//		if (!jwtProvider.validateToken(requestToken)) {
+//			Long userId = null;
+//			try {
+//				userId = jwtProvider.extractUserIdIgnoreExpiration(requestToken);
+//				userRepository.findById(userId).ifPresent(user -> {
+//					user.updateRefreshToken(null);
+//					userRepository.save(user);
+//				});
+//			} catch (Exception e) {
+//				log.warn("만료된 토큰에서 사용자 ID 추출 실패");
+//			}
+//			throw new AuthorizationDeniedException("만료된 Refresh Token입니다. 다시 로그인해주세요.");
+//		}
+//
+//		// 2. 토큰에서 사용자 정보 추출
+//		Long userId = jwtProvider.extractUserId(requestToken);
+//		Role role = jwtProvider.extractRole(requestToken);
+//
+//		// 3. DB에서 사용자 조회 및 저장된 refreshToken과 비교
+//		User user = userRepository.findById(userId)
+//			.orElseThrow(() -> new EntityNotFoundException("해당 유저를 찾을 수 없습니다."));
+//
+//		String savedToken = user.getRefreshToken();
+//		if (savedToken == null || !savedToken.equals(requestToken)) {
+//			throw new AuthorizationDeniedException("Refresh Token이 일치하지 않습니다.");
+//		}
+//
+//		log.info("DB에 저장된 refreshToken과 일치 확인 완료");
+//
+//		// 4. AccessToken 재발급
+//		String newAccessToken = jwtProvider.createAccessToken(userId, role);
+//
+//		return new TokenResponseDto(newAccessToken, requestToken);
+//	}
 
 	public void logout(String userId, String authorizationHeader) {
 		String accessToken;
