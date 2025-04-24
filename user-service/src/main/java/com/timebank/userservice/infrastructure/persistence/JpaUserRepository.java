@@ -14,8 +14,8 @@ import jakarta.persistence.LockModeType;
 
 @Repository
 public interface JpaUserRepository extends JpaRepository<User, Long>, UserRepository {
-	@Lock(LockModeType.PESSIMISTIC_WRITE)
-	@Query("SELECT u FROM User u WHERE u.username = :username")
+//	@Lock(LockModeType.PESSIMISTIC_WRITE)
+//	@Query("SELECT u FROM User u WHERE u.username = :username")
 	Optional<User> findByUsername(String username);
 
 }
