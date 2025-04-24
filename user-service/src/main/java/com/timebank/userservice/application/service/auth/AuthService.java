@@ -151,7 +151,7 @@ public class AuthService {
 //		return new TokenResponseDto(newAccessToken, requestToken);
 //	}
 
-	public void logout(String userId, String authorizationHeader) {
+	public void logout(Long userId, String authorizationHeader) {
 		String accessToken;
 
 		if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
@@ -160,7 +160,12 @@ public class AuthService {
 			throw new IllegalArgumentException("Invalid Authorization Header");
 		}
 
-		refreshTokenService.delete(Long.parseLong(userId));
+		Long tokenUserId = jwtProvider.extractUserId(accessToken);
+		if (!userId.equals(tokenUserId)) {
+		   throw new AuthorizationDeniedException("Token user mismatch");
+		}
+
+		refreshTokenService.delete(userId);
 		accessTokenBlacklistService.addToBlacklist(accessToken);
 	}
 }

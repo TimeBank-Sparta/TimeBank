@@ -84,7 +84,7 @@ public class AuthController {
 
 	@PostMapping("/logout")
 	public ResponseEntity<ResponseDto<?>> logout(
-		@RequestHeader("X-User-Id") String userId,
+		@RequestHeader("X-User-Id") Long userId,
 		@RequestHeader("Authorization") String authorizationHeader) {
 
 		authService.logout(userId, authorizationHeader);

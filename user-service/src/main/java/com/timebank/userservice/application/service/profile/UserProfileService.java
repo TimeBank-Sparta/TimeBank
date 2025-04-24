@@ -123,7 +123,7 @@ public class UserProfileService {
 	// userId로 다른 사람 프로필 조회
 	public UserProfileResponseDto getProfileByUserId(Long userId) {
 		UserProfile userProfile = userProfileRepository.findWithServicesByUserId(userId)
-			.orElseThrow(() -> new EntityNotFoundException("해당 닉네임의 프로필이 없습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("해당 유저의 프로필이 없습니다."));
 
 		return UserProfileResponseDto.from(userProfile);
 	}

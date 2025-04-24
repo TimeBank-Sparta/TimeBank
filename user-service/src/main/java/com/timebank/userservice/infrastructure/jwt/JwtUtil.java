@@ -136,6 +136,7 @@ public class JwtUtil implements JwtProvider {
 	public Long getExpiration(String token) {
 		Claims claims = extractAllClaims(token);
 		Date expiration = claims.getExpiration();
-		return expiration.getTime() - System.currentTimeMillis();
+		Long diff = expiration.getTime() - System.currentTimeMillis();
+		return Math.max(diff, 0);
 	}
 }

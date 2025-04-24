@@ -43,11 +43,18 @@ public class JwtAuthenticationFilter implements GlobalFilter {
 		log.info("signup, login, refresh가 아닌 요청이라서 이 필터에 왔어요!!");
 		//헤더에서 토큰 꺼내기
 		String accessToken = extractToken(exchange);
+
+		//토큰이 null이면 401에러 발생
+		if (accessToken == null) {
+			exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+			return exchange.getResponse().setComplete();
+		}
+
 		//토큰에서 claims 꺼내기
 		Claims claims = parseToken(accessToken);
 
-		//토큰, 클레임이 null이거나 만료기간이 현재시간보다 이전이면 401에러 발생
-		if (accessToken == null || claims == null || claims.getExpiration().before(new Date())) {
+		//클레임이 null이거나 만료기간이 현재시간보다 이전이면 401에러 발생
+		if (claims == null || claims.getExpiration().before(new Date())) {
 			exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
 			return exchange.getResponse().setComplete();
 		}
