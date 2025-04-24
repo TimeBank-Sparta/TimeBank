@@ -108,7 +108,7 @@ public class JwtUtil implements JwtProvider {
 				.getPayload();
 			return claims.get("user-Id", Long.class);
 		} catch (ExpiredJwtException e) {
-			return e.getClaims().get("user-Id", Long.class); // 만료된 토큰에서 claims 추출
+			return e.getClaims().get("user-id", Long.class); // 만료된 토큰에서 claims 추출
 		}
 	}
 
