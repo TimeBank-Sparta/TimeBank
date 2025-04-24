@@ -4,7 +4,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.timebank.review.application.event.ReviewEvent;
+import com.timebank.common.infrastructure.external.review.dto.ReviewEvent;
 import com.timebank.review.domain.entity.Review;
 import com.timebank.review.domain.repository.ReviewRepository;
 

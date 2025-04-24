@@ -19,7 +19,9 @@ import com.timebank.notification_service.domain.repository.NotificationRepositor
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -87,7 +89,8 @@ public class NotificationService {
 				"해당 ID의 알림을 찾을 수 없습니다. id=" + notificationId));
 
 		if (Boolean.TRUE.equals(notification.getIsRead())) {
-			throw new IllegalStateException("이미 읽음 처리된 알림입니다. id=" + notificationId);
+			// throw new IllegalStateException("이미 읽음 처리된 알림입니다. id=" + notificationId);
+			log.info("이미 읽음 처리된 알림입니다. id=" + notificationId);
 		}
 
 		notification.setIsRead(true);
