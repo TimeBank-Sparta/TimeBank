@@ -16,6 +16,7 @@ import com.timebank.common.application.dto.ResponseDto;
 import com.timebank.userservice.application.dto.request.user.UserUpdateRequestDto;
 import com.timebank.userservice.application.dto.response.user.UserResponseDto;
 import com.timebank.userservice.application.service.user.UserService;
+import com.timebank.userservice.domain.model.user.Role;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +29,10 @@ public class UserController {
 	private final UserService userService;
 
 	@GetMapping("/{id}")
-	public ResponseEntity<ResponseDto<UserResponseDto>> getUser(@PathVariable long id) {
-		UserResponseDto userResponseDto = userService.getUser(id);
+	public ResponseEntity<ResponseDto<UserResponseDto>> getUser(
+		@PathVariable long id,
+		@RequestHeader("X-Role") Role role) {
+		UserResponseDto userResponseDto = userService.getUser(id, role);
 		return ResponseEntity.ok(ResponseDto.success(userResponseDto));
 	}
 
@@ -37,7 +40,7 @@ public class UserController {
 	public ResponseEntity<ResponseDto<UserResponseDto>> updateUser(
 		@PathVariable Long id,
 		@RequestHeader("X-User-Id") String currentId,
-		@Valid @RequestBody UserUpdateRequestDto userUpdateRequestDto
+		@RequestBody @Valid UserUpdateRequestDto userUpdateRequestDto
 	) {
 		UserResponseDto userResponseDto = userService.updateUser(id, currentId, userUpdateRequestDto);
 		return ResponseEntity.ok(ResponseDto.success(userResponseDto));

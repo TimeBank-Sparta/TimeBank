@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -41,7 +42,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class UserProfileService {
-	private String kakaoApiKey = "88ac9871f2cdd3bc858026fa777a9663";
+	@Value("${kakao.api.key}")
+	private String kakaoApiKey;
+
 	private final RestTemplate restTemplate = new RestTemplate();
 	private final JpaUserRepository userRepository;
 	private final JpaUserProfileRepository userProfileRepository;
@@ -80,6 +83,7 @@ public class UserProfileService {
 			request.getIntroduction(),
 			0.0, 0
 		);
+		profile.setCreatedBy(userId.toString());
 		UserProfile savedProfile = userProfileRepository.save(profile);
 
 		// 프로필 생성 이벤트 발행: CREATED 이벤트
@@ -101,7 +105,7 @@ public class UserProfileService {
 	 * 본인 프로필 조회
 	 */
 	public UserMyProfileResponseDto getMyProfile(Long userId) {
-		UserProfile profile = userProfileRepository.findByUserId(userId)
+		UserProfile profile = userProfileRepository.findWithServicesByUserId(userId)
 			.orElseThrow(() -> new EntityNotFoundException("프로필이 없습니다."));
 		PointAccountResponseDto account = pointServiceClient.getAccount(userId);
 		return UserMyProfileResponseDto.from(profile, account);
@@ -118,8 +122,8 @@ public class UserProfileService {
 
 	// userId로 다른 사람 프로필 조회
 	public UserProfileResponseDto getProfileByUserId(Long userId) {
-		UserProfile userProfile = userProfileRepository.findByUserId(userId)
-			.orElseThrow(() -> new EntityNotFoundException("해당 닉네임의 프로필이 없습니다."));
+		UserProfile userProfile = userProfileRepository.findWithServicesByUserId(userId)
+			.orElseThrow(() -> new EntityNotFoundException("해당 유저의 프로필이 없습니다."));
 
 		return UserProfileResponseDto.from(userProfile);
 	}

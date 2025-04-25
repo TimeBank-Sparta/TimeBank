@@ -58,13 +58,11 @@ public class User extends Timestamped {
 	@Enumerated(EnumType.STRING)
 	private Role role;
 
-	@Column(name = "refresh_token", length = 512)
-	private String refreshToken;
+//	@Column(name = "refresh_token", length = 512)
+//	private String refreshToken;
 
 	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
 	private UserProfile userProfile;
-
-	//todo : profile이랑 일대일 관계 매핑하기
 
 	public static User of(
 		String username,
@@ -91,7 +89,7 @@ public class User extends Timestamped {
 			this.phoneNumber = phoneNumber;
 	}
 
-	public void updateRefreshToken(String refreshToken) {
-		this.refreshToken = refreshToken;
-	}
+//	public void updateRefreshToken(String refreshToken) {
+//		this.refreshToken = refreshToken;
+//	}
 }
