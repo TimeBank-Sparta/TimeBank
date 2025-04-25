@@ -13,9 +13,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.timebank.common.application.dto.PageResponseDto;
 import com.timebank.common.application.dto.ResponseDto;
+import com.timebank.common.infrastructure.config.FeignConfig;
 import com.timebank.common.infrastructure.external.review.dto.ReviewDto;
 
-@FeignClient(name = "review-service")
+@FeignClient(name = "review-service", configuration = FeignConfig.class)
 public interface ReviewClient {
 
 	@PostMapping

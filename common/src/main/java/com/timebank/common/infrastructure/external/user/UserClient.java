@@ -10,10 +10,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import com.timebank.common.application.dto.ResponseDto;
+import com.timebank.common.infrastructure.config.FeignConfig;
 import com.timebank.common.infrastructure.external.user.dto.UserResponseDto;
 import com.timebank.common.infrastructure.external.user.dto.UserUpdateRequestDto;
 
-@FeignClient(name = "user-service")
+@FeignClient(name = "user-service", configuration = FeignConfig.class)
 public interface UserClient {
 
 	@GetMapping("/api/v1/users/{id}")
