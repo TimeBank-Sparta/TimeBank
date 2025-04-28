@@ -1,5 +1,6 @@
 services:
   config-server:
+    restart: always
     build:
       context: .
       dockerfile: config-server/Dockerfile
@@ -16,6 +17,7 @@ services:
       - msanet
 
   eureka-server:
+    restart: always
     build:
       context: .
       dockerfile: eureka-server/Dockerfile
@@ -29,6 +31,7 @@ services:
       - msanet
 
   gateway-service:
+    restart: always
     build:
       context: .
       dockerfile: gateway-service/Dockerfile
@@ -47,6 +50,7 @@ services:
     command: sh -c "./wait-for-it.sh config-server:8888 --timeout=15 -- ./wait-for-it.sh eureka:8761 --timeout=15 -- java -jar gateway.jar"
 
   help-service:
+    restart: always
     build:
       context: .
       dockerfile: help-service/Dockerfile
@@ -69,6 +73,7 @@ services:
       - msanet
 
   notification-service:
+    restart: always
     build:
       context: .
       dockerfile: notification-service/Dockerfile
@@ -89,6 +94,7 @@ services:
       - msanet
 
   review-service:
+    restart: always
     build:
       context: .
       dockerfile: review-service/Dockerfile
@@ -109,6 +115,7 @@ services:
       - msanet
 
   point-service:
+    restart: always
     build:
       context: .
       dockerfile: point-service/Dockerfile
@@ -131,6 +138,7 @@ services:
       - msanet
 
   user-service:
+    restart: always
     build:
       context: .
       dockerfile: user-service/Dockerfile
@@ -153,6 +161,7 @@ services:
 
   # Kafka 및 Zookeeper 추가
   zookeeper:
+    restart: always
     image: confluentinc/cp-zookeeper:7.3.2
     container_name: zookeeper
     environment:
@@ -164,6 +173,7 @@ services:
       - msanet
 
   kafka:
+    restart: always
     image: confluentinc/cp-kafka:7.3.2
     container_name: kafka
     depends_on:
@@ -183,11 +193,11 @@ services:
       - msanet
 
   kafka-ui:
+    restart: always
     image: provectuslabs/kafka-ui
     container_name: kafka-ui
     ports:
       - "9093:8080"
-    restart: always
     environment:
       - KAFKA_CLUSTERS_0_NAME=local
       - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka:9092
@@ -196,6 +206,7 @@ services:
       - msanet
 
   redis:
+    restart: always
     image: redis:7
     container_name: redis
     ports:
@@ -204,6 +215,7 @@ services:
       - msanet
 
   zipkin:
+    restart: always
     image: openzipkin/zipkin
     container_name: zipkin
     ports:
@@ -213,6 +225,7 @@ services:
 
   # MySQL 데이터베이스를 각 서비스별로 생성 (외부 접근을 위해 서로 다른 호스트 포트 사용)
   help-mysql:
+    restart: always
     image: mysql:8
     container_name: help-mysql
     environment:
@@ -226,6 +239,7 @@ services:
       - msanet
 
   notification-mysql:
+    restart: always
     image: mysql:8
     container_name: notification-mysql
     environment:
@@ -239,6 +253,7 @@ services:
       - msanet
 
   review-mysql:
+    restart: always
     image: mysql:8
     container_name: review-mysql
     environment:
@@ -252,6 +267,7 @@ services:
       - msanet
 
   point-mysql:
+    restart: always
     image: mysql:8
     container_name: point-mysql
     environment:
@@ -265,6 +281,7 @@ services:
       - msanet
 
   user-mysql:
+    restart: always
     image: mysql:8
     container_name: user-mysql
     environment:
