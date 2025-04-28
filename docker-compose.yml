@@ -1,10 +1,8 @@
 services:
   config-server:
-    restart: always
-    build:
-      context: .
-      dockerfile: config-server/Dockerfile
+    image: namgyu967/config-server:${TAG}
     container_name: config-server
+    restart: always
     ports:
       - "8888:8888"
     environment:
@@ -17,11 +15,9 @@ services:
       - msanet
 
   eureka-server:
-    restart: always
-    build:
-      context: .
-      dockerfile: eureka-server/Dockerfile
+    image: namgyu967/eureka-server:${TAG}
     container_name: eureka-server
+    restart: always
     ports:
       - "8761:8761"
     environment:
@@ -31,11 +27,9 @@ services:
       - msanet
 
   gateway-service:
-    restart: always
-    build:
-      context: .
-      dockerfile: gateway-service/Dockerfile
+    image: namgyu967/gateway-service:${TAG}
     container_name: gateway-service
+    restart: always
     ports:
       - "8080:8080"
     environment:
@@ -45,23 +39,20 @@ services:
     depends_on:
       - eureka-server
       - config-server
+    command: sh -c "./wait-for-it.sh config-server:8888 --timeout=15 -- ./wait-for-it.sh eureka-server:8761 --timeout=15 -- java -jar gateway.jar"
     networks:
       - msanet
-    command: sh -c "./wait-for-it.sh config-server:8888 --timeout=15 -- ./wait-for-it.sh eureka:8761 --timeout=15 -- java -jar gateway.jar"
 
   help-service:
-    restart: always
-    build:
-      context: .
-      dockerfile: help-service/Dockerfile
+    image: namgyu967/help-service:${TAG}
     container_name: help-service
+    restart: always
     ports:
       - "8081:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      # help-service에서 사용될 MySQL 호스트는 "help-mysql"입니다.
     depends_on:
       - eureka-server
       - config-server
@@ -73,18 +64,15 @@ services:
       - msanet
 
   notification-service:
-    restart: always
-    build:
-      context: .
-      dockerfile: notification-service/Dockerfile
+    image: namgyu967/notification-service:${TAG}
     container_name: notification-service
+    restart: always
     ports:
       - "8082:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      # notification-service에서 사용될 MySQL 호스트는 "notification-mysql"입니다.
     depends_on:
       - eureka-server
       - config-server
@@ -94,18 +82,15 @@ services:
       - msanet
 
   review-service:
-    restart: always
-    build:
-      context: .
-      dockerfile: review-service/Dockerfile
+    image: namgyu967/review-service:${TAG}
     container_name: review-service
+    restart: always
     ports:
       - "8083:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      # review-service에서 사용될 MySQL 호스트는 "review-mysql"입니다.
     depends_on:
       - eureka-server
       - config-server
@@ -115,18 +100,15 @@ services:
       - msanet
 
   point-service:
-    restart: always
-    build:
-      context: .
-      dockerfile: point-service/Dockerfile
+    image: namgyu967/point-service:${TAG}
     container_name: point-service
+    restart: always
     ports:
       - "8084:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      # point-service에서 사용될 MySQL 호스트는 "point-mysql"입니다.
     depends_on:
       - eureka-server
       - config-server
@@ -138,32 +120,27 @@ services:
       - msanet
 
   user-service:
-    restart: always
-    build:
-      context: .
-      dockerfile: user-service/Dockerfile
+    image: namgyu967/user-service:${TAG}
     container_name: user-service
+    restart: always
     ports:
       - "8085:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      # user-service에서 사용될 MySQL 호스트는 "user-mysql"입니다.
     depends_on:
       - eureka-server
       - config-server
       - user-mysql
       - gateway-service
-
     networks:
       - msanet
 
-  # Kafka 및 Zookeeper 추가
   zookeeper:
-    restart: always
     image: confluentinc/cp-zookeeper:7.3.2
     container_name: zookeeper
+    restart: always
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -173,9 +150,9 @@ services:
       - msanet
 
   kafka:
-    restart: always
     image: confluentinc/cp-kafka:7.3.2
     container_name: kafka
+    restart: always
     depends_on:
       - zookeeper
       - config-server
@@ -193,9 +170,9 @@ services:
       - msanet
 
   kafka-ui:
-    restart: always
     image: provectuslabs/kafka-ui
     container_name: kafka-ui
+    restart: always
     ports:
       - "9093:8080"
     environment:
@@ -206,28 +183,27 @@ services:
       - msanet
 
   redis:
-    restart: always
     image: redis:7
     container_name: redis
+    restart: always
     ports:
       - "6379:6379"
     networks:
       - msanet
 
   zipkin:
-    restart: always
     image: openzipkin/zipkin
     container_name: zipkin
+    restart: always
     ports:
       - "9411:9411"
     networks:
       - msanet
 
-  # MySQL 데이터베이스를 각 서비스별로 생성 (외부 접근을 위해 서로 다른 호스트 포트 사용)
   help-mysql:
-    restart: always
     image: mysql:8
     container_name: help-mysql
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: "1234"
       MYSQL_DATABASE: help_db
