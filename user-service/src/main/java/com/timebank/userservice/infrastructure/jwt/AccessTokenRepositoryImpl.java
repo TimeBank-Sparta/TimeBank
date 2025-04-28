@@ -21,10 +21,6 @@ public class AccessTokenRepositoryImpl implements AccessTokenRepository {
 
     @Override
     public void addToBlacklist(String accessToken, long expirationSeconds) {
-        if (accessToken == null || accessToken.isEmpty()) {
-            log.error("블랙리스트에 추가할 액세스 토큰이 null이거나 비어 있습니다.");
-            return;
-        }
         try {
             redisTemplate.opsForValue().set(buildKey(KEY_PREFIX_BLACKLIST, accessToken), "true", expirationSeconds, TimeUnit.SECONDS);
             log.info("AccessToken 블랙리스트 추가 완료: {}", accessToken);
@@ -34,26 +30,18 @@ public class AccessTokenRepositoryImpl implements AccessTokenRepository {
     }
 
     @Override
-    public boolean isBlacklisted(String accessToken) {
-        if (accessToken == null || accessToken.isEmpty()) {
-            log.warn("확인할 액세스 토큰이 null이거나 비어 있습니다.");
-            return false;
-        }
-        return Boolean.TRUE.equals(redisTemplate.hasKey(buildKey(KEY_PREFIX_BLACKLIST, accessToken)));
-    }
-
-    @Override
-    public void addToWhitelist(Long userId, String accessToken, long expirationSeconds) {
-        if (accessToken == null || accessToken.isEmpty()) {
-            log.error("화이트리스트에 추가할 액세스 토큰이 null이거나 비어 있습니다.");
-            return;
-        }
+    public void addToWhitelist(String accessToken, long expirationSeconds) {
         try {
             redisTemplate.opsForValue().set(buildKey(KEY_PREFIX_WHITELIST, accessToken), "true", expirationSeconds, TimeUnit.SECONDS);
             log.info("AccessToken 화이트리스트 추가 완료: {}", accessToken);
         } catch (Exception e) {
             log.error("액세스 토큰 화이트리스트 추가 중 오류 발생: {}", e.getMessage());
         }
+    }
+
+    @Override
+    public void removeFromWhitelist(String accessToken) {
+        redisTemplate.delete(buildKey(KEY_PREFIX_WHITELIST, accessToken));
     }
 
     private String buildKey(String prefix, String token) {

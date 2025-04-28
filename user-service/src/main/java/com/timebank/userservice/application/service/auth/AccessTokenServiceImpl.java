@@ -25,13 +25,8 @@ public class AccessTokenServiceImpl implements AccessTokenService {
 			log.error("블랙리스트에 추가할 액세스 토큰이 null이거나 비어 있습니다.");
 			return;
 		}
-		try {
-			long expiration = jwtProvider.getExpiration(accessToken);
-			long expirationSeconds = Math.max(expiration / 1000, 1);
-			accessTokenRepository.addToBlacklist(accessToken, expirationSeconds);
-		} catch (Exception e) {
-			log.error("액세스 토큰 블랙리스트 추가 중 오류 발생: {}", e.getMessage());
-		}
+		long expirationSeconds = calculateExpirationSeconds(accessToken);
+		accessTokenRepository.addToBlacklist(accessToken, expirationSeconds);
 	}
 
 	@Override
@@ -40,13 +35,23 @@ public class AccessTokenServiceImpl implements AccessTokenService {
 			log.error("화이트리스트에 추가할 액세스 토큰이 null이거나 비어 있습니다.");
 			return;
 		}
-		try {
-			long expiration = jwtProvider.getExpiration(accessToken);
-			long expirationSeconds = Math.max(expiration / 1000, 1);
-			accessTokenRepository.addToWhitelist(userId, accessToken, expirationSeconds);
-		} catch (Exception e) {
-			log.error("액세스 토큰 화이트리스트 추가 중 오류 발생: {}", e.getMessage());
+		long expirationSeconds = calculateExpirationSeconds(accessToken);
+		accessTokenRepository.addToWhitelist(accessToken, expirationSeconds);
+	}
+
+	@Override
+	public void removeFromWhitelist(String accessToken) {
+		if (accessToken == null || accessToken.isEmpty()) {
+			log.error("화이트리스트에서 제거할 accessToken이 null이거나 비어 있습니다.");
+			throw new IllegalArgumentException("accessToken must not be null or empty");
 		}
+		accessTokenRepository.removeFromWhitelist(accessToken);
+		log.info("화이트리스트에서 accessToken 삭제 완료: {}", accessToken);
+	}
+
+	private long calculateExpirationSeconds(String accessToken) {
+		long expiration = jwtProvider.getExpiration(accessToken);
+		return Math.max(expiration / 1000, 1);
 	}
 }
 

@@ -132,5 +132,6 @@ public class AuthService {
 
 		refreshTokenService.delete(userId);
 		accessTokenService.addToBlacklist(accessToken);
+		accessTokenService.removeFromWhitelist(accessToken);
 	}
 }
