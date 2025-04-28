@@ -51,11 +51,11 @@ jobs:
 
           docker image prune -af
 
-    # ✅ 추가 작업 (선택 사항): 배포 후 main의 내용을 develop에 반영
-    - name: Merge main into develop
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git checkout develop
-        git merge --no-ff main -m "Auto-merge main into develop [skip ci]"
-        git push origin develop
+    # # ✅ 추가 작업 (선택 사항): 배포 후 main의 내용을 develop에 반영
+    # - name: Merge main into develop
+    #   run: |
+    #     git config user.name "github-actions[bot]"
+    #     git config user.email "github-actions[bot]@users.noreply.github.com"
+    #     git checkout develop
+    #     git merge --no-ff main -m "Auto-merge main into develop [skip ci]"
+    #     git push origin develop
