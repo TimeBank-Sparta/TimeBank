@@ -3,11 +3,16 @@ name: Deploy to EC2 (Blue-Green)
 on:
   push:
     branches:
-      - main  # main에 push (develop에서 main으로 병합될 때만 실행)
+      - main
+      - develop
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    env:
+      SLACK_DEV_WEBHOOK_URL: ${{ secrets.SLACK_DEV_WEBHOOK_URL }}
+      SLACK_PROD_WEBHOOK_URL: ${{ secrets.SLACK_PROD_WEBHOOK_URL }}
 
     steps:
     - uses: actions/checkout@v4
@@ -27,10 +32,30 @@ jobs:
       id: define_tag
       run: echo "TAG=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
 
-    - name: Build and Push Docker Images
+    - name: Detect Changed Services
+      id: detect_services
       run: |
-        services="gateway-service help-service notification-service review-service point-service user-service config-server eureka-server"
-        for service in $services; do
+        SERVICES="gateway-service help-service notification-service review-service point-service user-service config-server eureka-server"
+        CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+        
+        if echo "$CHANGED_FILES" | grep -E '(^build.gradle|^settings.gradle|^gradlew|^gradlew.bat|^build.gradle.kts|^common/)' > /dev/null; then
+          echo "Gradle or common module changed. Building all services."
+          echo "CHANGED_SERVICES=$SERVICES" >> $GITHUB_ENV
+        else
+          CHANGED_SERVICES=$(echo "$CHANGED_FILES" | grep -E '^(gateway-service|help-service|notification-service|review-service|point-service|user-service|config-server|eureka-server)/' | awk -F/ '{print $1}' | sort -u | xargs)
+          echo "Detected changed services: $CHANGED_SERVICES"
+          echo "CHANGED_SERVICES=$CHANGED_SERVICES" >> $GITHUB_ENV
+        fi
+
+    - name: Cancel Workflow if No Changes
+      if: env.CHANGED_SERVICES == ''
+      run: |
+        echo "No services changed. Exiting workflow early."
+        exit 0
+
+    - name: Build and Push Only Changed Services
+      run: |
+        for service in ${{ env.CHANGED_SERVICES }}; do
           docker build -t namgyu967/$service:${{ env.TAG }} -f $service/Dockerfile .
           docker push namgyu967/$service:${{ env.TAG }}
         done
@@ -46,16 +71,60 @@ jobs:
           echo "TAG=${{ env.TAG }}" > .env-tag
           source .env-tag
 
-          docker-compose pull
-          docker-compose -f docker-compose.yml up -d
+          for service in ${{ env.CHANGED_SERVICES }}; do
+            docker-compose pull $service
+            docker-compose up -d $service
+          done
 
           docker image prune -af
 
-    # # ✅ 추가 작업 (선택 사항): 배포 후 main의 내용을 develop에 반영
-    # - name: Merge main into develop
-    #   run: |
-    #     git config user.name "github-actions[bot]"
-    #     git config user.email "github-actions[bot]@users.noreply.github.com"
-    #     git checkout develop
-    #     git merge --no-ff main -m "Auto-merge main into develop [skip ci]"
-    #     git push origin develop
+    - name: Health Check Changed Services
+      id: health_check
+      run: |
+        echo "Checking health of services..."
+        GATEWAY_URL="http://${{ secrets.EC2_PUBLIC_IP }}:8080"
+
+        SUCCESS_SERVICES=""
+        FAILED_SERVICES=""
+
+        for service in ${{ env.CHANGED_SERVICES }}; do
+          echo "Checking $service..."
+          for i in {1..10}; do
+            sleep 5
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$GATEWAY_URL/$service/actuator/health")
+            if [ "$STATUS" == "200" ]; then
+              echo "$service is healthy!"
+              SUCCESS_SERVICES="$SUCCESS_SERVICES $service"
+              break
+            fi
+            if [ "$i" -eq 10 ]; then
+              echo "$service health check failed."
+              FAILED_SERVICES="$FAILED_SERVICES $service"
+            fi
+          done
+        done
+
+        echo "SUCCESS_SERVICES=$SUCCESS_SERVICES" >> $GITHUB_ENV
+        echo "FAILED_SERVICES=$FAILED_SERVICES" >> $GITHUB_ENV
+
+    - name: Slack Notification (Success)
+      if: success()
+      uses: slackapi/slack-github-action@v1.24.0
+      with:
+        payload: |
+          {
+            "text": ":rocket: *TimeBank 배포 성공!*\n\n> 성공 서비스: `${{ env.SUCCESS_SERVICES }}`\n> 실패 서비스: `${{ env.FAILED_SERVICES }}`\n> 태그: `${{ env.TAG }}`\n\n▶️ [Gateway 바로가기](http://${{ secrets.EC2_PUBLIC_IP }}:8080)"
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ github.ref == 'refs/heads/main' && env.SLACK_PROD_WEBHOOK_URL || env.SLACK_DEV_WEBHOOK_URL }}
+
+    - name: Slack Notification (Failure)
+      if: failure()
+      uses: slackapi/slack-github-action@v1.24.0
+      with:
+        payload: |
+          {
+            "text": ":x: *TimeBank 배포 실패!*"
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ github.ref == 'refs/heads/main' && env.SLACK_PROD_WEBHOOK_URL || env.SLACK_DEV_WEBHOOK_URL }}
