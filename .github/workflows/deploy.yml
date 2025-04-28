@@ -27,10 +27,18 @@ jobs:
       id: define_tag
       run: echo "TAG=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
 
-    - name: Build and Push Docker Images
+    - name: Build and Push Only Changed Services
       run: |
-        services="gateway-service help-service notification-service review-service point-service user-service config-server eureka-server"
-        for service in $services; do
+        CHANGED_SERVICES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^(gateway-service|help-service|notification-service|review-service|point-service|user-service|config-server|eureka-server)/' | awk -F/ '{print $1}' | sort -u)
+    
+        echo "Changed services: $CHANGED_SERVICES"
+    
+        if [ -z "$CHANGED_SERVICES" ]; then
+          echo "No services changed. Skipping build."
+          exit 0
+        fi
+    
+        for service in $CHANGED_SERVICES; do
           docker build -t namgyu967/$service:${{ env.TAG }} -f $service/Dockerfile .
           docker push namgyu967/$service:${{ env.TAG }}
         done
