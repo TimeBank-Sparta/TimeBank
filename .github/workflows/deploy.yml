@@ -3,7 +3,7 @@ name: Deploy to EC2 (Blue-Green)
 on:
   push:
     branches:
-      - main  # main에 push (develop에서 main으로 병합될 때만 실행)
+      - main
 
 jobs:
   deploy:
@@ -27,18 +27,37 @@ jobs:
       id: define_tag
       run: echo "TAG=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
 
+    - name: Detect Changed Services
+      id: detect_services
+      run: |
+        # 서비스 목록
+        SERVICES="gateway-service help-service notification-service review-service point-service user-service config-server eureka-server"
+
+        # 변경된 파일 목록
+        CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+        echo "Changed files:"
+        echo "$CHANGED_FILES"
+
+        # Gradle 빌드 관련 파일 변경되었는지 확인
+        if echo "$CHANGED_FILES" | grep -E '(^build.gradle|^settings.gradle|^gradlew|^gradlew.bat|^build.gradle.kts|^common/)' > /dev/null; then
+          echo "Gradle or common module changed. Building all services."
+          echo "CHANGED_SERVICES=$SERVICES" >> $GITHUB_ENV
+        else
+          # 서비스 디렉터리만 추출
+          CHANGED_SERVICES=$(echo "$CHANGED_FILES" | grep -E '^(gateway-service|help-service|notification-service|review-service|point-service|user-service|config-server|eureka-server)/' | awk -F/ '{print $1}' | sort -u | xargs)
+          echo "Detected changed services: $CHANGED_SERVICES"
+          echo "CHANGED_SERVICES=$CHANGED_SERVICES" >> $GITHUB_ENV
+        fi
+
     - name: Build and Push Only Changed Services
       run: |
-        CHANGED_SERVICES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^(gateway-service|help-service|notification-service|review-service|point-service|user-service|config-server|eureka-server)/' | awk -F/ '{print $1}' | sort -u)
-    
-        echo "Changed services: $CHANGED_SERVICES"
-    
-        if [ -z "$CHANGED_SERVICES" ]; then
+        if [ -z "${{ env.CHANGED_SERVICES }}" ]; then
           echo "No services changed. Skipping build."
           exit 0
         fi
-    
-        for service in $CHANGED_SERVICES; do
+
+        for service in ${{ env.CHANGED_SERVICES }}; do
+          echo "Building and pushing $service"
           docker build -t namgyu967/$service:${{ env.TAG }} -f $service/Dockerfile .
           docker push namgyu967/$service:${{ env.TAG }}
         done
@@ -54,16 +73,17 @@ jobs:
           echo "TAG=${{ env.TAG }}" > .env-tag
           source .env-tag
 
-          docker-compose pull
-          docker-compose -f docker-compose.yml up -d
+          # 변경된 서비스만 pull
+          for service in ${{ env.CHANGED_SERVICES }}; do
+            echo "Pulling $service image..."
+            docker-compose pull $service
+          done
 
+          # 변경된 서비스만 다시 up
+          for service in ${{ env.CHANGED_SERVICES }}; do
+            echo "Restarting $service container..."
+            docker-compose up -d $service
+          done
+
+          # 불필요한 이미지 정리
           docker image prune -af
-
-    # # ✅ 추가 작업 (선택 사항): 배포 후 main의 내용을 develop에 반영
-    # - name: Merge main into develop
-    #   run: |
-    #     git config user.name "github-actions[bot]"
-    #     git config user.email "github-actions[bot]@users.noreply.github.com"
-    #     git checkout develop
-    #     git merge --no-ff main -m "Auto-merge main into develop [skip ci]"
-    #     git push origin develop
