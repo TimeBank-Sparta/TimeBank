@@ -67,20 +67,10 @@ public class AuthController {
 	@PostMapping("/refresh/redis")
 	public ResponseEntity<ResponseDto<TokenResponseDto>> refreshTokenRedis(
 		@Valid @RequestBody RefreshTokenRequestDto requestDto) {
-		log.info("authController에서 refreshToken API를 실행!!!!!");
 		TokenResponseDto tokenResponseDto = authService.refreshTokenRedis(requestDto);
-		log.info("authController에서 authService.refreshToken을 무사히 마침!!!!!");
 		return ResponseEntity.ok(ResponseDto.success(tokenResponseDto));
 	}
 
-//	@PostMapping("/refresh/rdbs")
-//	public ResponseEntity<ResponseDto<TokenResponseDto>> refreshTokenRDBS(
-//		@Valid @RequestBody RefreshTokenRequestDto requestDto) {
-//		log.info("authController에서 refreshToken API를 실행!!!!!");
-//		TokenResponseDto tokenResponseDto = authService.refreshTokenRDBS(requestDto);
-//		log.info("authController에서 authService.refreshToken을 무사히 마침!!!!!");
-//		return ResponseEntity.ok(ResponseDto.success(tokenResponseDto));
-//	}
 
 	@PostMapping("/logout")
 	public ResponseEntity<ResponseDto<?>> logout(

@@ -16,4 +16,6 @@ public interface JwtProvider {
 	boolean validateToken(String token);
 
 	Long getExpiration(String token);
+
+	String stripBearer(String token);
 }
