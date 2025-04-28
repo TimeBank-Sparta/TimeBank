@@ -1,0 +1,30 @@
+server:
+  port: 8888
+
+spring:
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/TimeBank-Sparta/Config.git
+          clone-on-start: true
+          username: "{cipher}412844803d5c600effc9094f96293ba2622a150aff8921cd71a5ae8f19d0ebfe"
+          password: "{cipher}cc50c95e1bf813fc2aead130d822a2e409c4da00b4129a9ad3bc8e6bc470fae83cfa06a452c019870b1e393bedf2b49b1052dd7521e66ec92c27c8e42b523e38"
+  application:
+    name: config-server
+encrypt:
+  key: timebank
+  #  key: ${SPRING_CLOUD_CONFIG_SERVER_ENCRYPT_KEY}
+  #  실무에선 서버 환경변수로 관리
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

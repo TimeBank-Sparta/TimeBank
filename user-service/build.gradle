@@ -1,0 +1,75 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.4'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.timebank'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+ext {
+    set('springCloudVersion', "2024.0.0")
+    snippetsDir = file('build/generated-snippets')
+}
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+dependencies {
+    //공통모듈
+    implementation 'com.timebank:common:0.0.1-SNAPSHOT'
+    //kafka
+    implementation 'org.apache.kafka:kafka-streams'
+    implementation 'org.springframework.kafka:spring-kafka'
+    //redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    //jwt
+    implementation 'io.jsonwebtoken:jjwt:0.12.6'
+    //feignClient
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    implementation 'io.github.openfeign:feign-micrometer'
+    //actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    //jpa
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    //security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    //spring web
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    //validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    //eureka client
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    //lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    //mysql
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    //test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
