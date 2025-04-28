@@ -60,6 +60,7 @@ services:
       - zookeeper
       - kafka
       - gateway-service
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
     networks:
       - msanet
 
@@ -78,6 +79,8 @@ services:
       - config-server
       - notification-mysql
       - gateway-service
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
+
     networks:
       - msanet
 
@@ -96,6 +99,7 @@ services:
       - config-server
       - review-mysql
       - gateway-service
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
     networks:
       - msanet
 
@@ -116,6 +120,7 @@ services:
       - gateway-service
       - zookeeper
       - kafka
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
     networks:
       - msanet
 
@@ -134,6 +139,7 @@ services:
       - config-server
       - user-mysql
       - gateway-service
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
     networks:
       - msanet
 
