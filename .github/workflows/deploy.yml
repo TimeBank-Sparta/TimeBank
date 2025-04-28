@@ -3,7 +3,7 @@ name: Deploy to EC2 (Blue-Green)
 on:
   push:
     branches:
-      - main
+      - main  # main에 push (develop에서 main으로 병합될 때만 실행)
 
 jobs:
   deploy:
@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # 전체 히스토리를 가져와야 병합 가능
+        fetch-depth: 0
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -51,12 +51,11 @@ jobs:
 
           docker image prune -af
 
-    # 🚨 추가된 부분: main에서 develop으로 자동 머지(push)
+    # ✅ 추가 작업 (선택 사항): 배포 후 main의 내용을 develop에 반영
     - name: Merge main into develop
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        git fetch origin develop
         git checkout develop
         git merge --no-ff main -m "Auto-merge main into develop [skip ci]"
         git push origin develop
