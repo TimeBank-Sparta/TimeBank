@@ -1,7 +1,7 @@
 package com.timebank.userservice.application.service.auth;
 
-public interface AccessTokenBlacklistService {
+public interface AccessTokenService {
 	void addToBlacklist(String accessToken);
-
-	boolean isBlacklisted(String accessToken);
+	void addToWhitelist(Long userId, String accessToken);
 }
+
