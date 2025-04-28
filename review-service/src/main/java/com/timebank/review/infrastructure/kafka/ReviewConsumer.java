@@ -33,7 +33,9 @@ public class ReviewConsumer {
 	@KafkaListener(topics = "reviews.events", groupId = "review-group")
 	public void consumeReviewEvent(ReviewEvent event) {
 		log.info("Consumed ReviewEvent: {}", event);
-		saveReviewEvent(event);
+		// 중복 처리 되어서 주석
+		// saveReviewEvent(event);
+
 	}
 
 	private void handleCreated(ReviewEvent event) {
