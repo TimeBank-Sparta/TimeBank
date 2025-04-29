@@ -12,9 +12,12 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      # Slack Webhooks
       SLACK_DEV_WEBHOOK_URL: ${{ secrets.SLACK_DEV_WEBHOOK_URL }}
       SLACK_PROD_WEBHOOK_URL: ${{ secrets.SLACK_PROD_WEBHOOK_URL }}
+      # 서비스 목록
       SERVICES: "gateway-service help-service notification-service review-service point-service user-service config-server eureka-server"
+      EC2_HOST: ${{ secrets.EC2_HOST }}
 
     steps:
       - name: Checkout
@@ -22,21 +25,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Docker Buildx 설치
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: DockerHub 로그인
+      - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: 태그 정의
+      - name: Define TAG
         id: define_tag
         run: |
           echo "TAG=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
 
-      - name: 변경된 서비스 감지
+      - name: Detect Changed Services
         id: detect_services
         run: |
           CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
@@ -49,8 +52,8 @@ jobs:
             echo "CHANGED=$CHANGED" >> $GITHUB_ENV
           fi
 
-      - name: EC2에 띄운 컨테이너 개수 조회
-        id: remote_check
+      - name: Count existing services on EC2
+        id: remote_count
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -64,26 +67,26 @@ jobs:
               --filter name=review-service --filter name=point-service \
               --filter name=user-service --filter name=config-server \
               --filter name=eureka-server \
-              --format '{{.Names}}' \
-              | wc -l
+              --format '{{.Names}}' | wc -l
 
-      - name: EXISTING_COUNT 환경변수로 내보내기
+      - name: Export EXISTING_COUNT
         run: |
-          RAW="${{ steps.remote_check.outputs.stdout }}"
+          RAW="${{ steps.remote_count.outputs.stdout }}"
           NUM=$(echo "$RAW" | head -n1 | tr -cd '0-9')
           echo "EXISTING_COUNT=$NUM" >> $GITHUB_ENV
 
-      - name: 배포 스킵 판단
+      - name: Decide whether to skip deploy
         run: |
-          echo "Existing on server: $EXISTING_COUNT"
-          if [ -z "$CHANGED" ] && [ "$EXISTING_COUNT" -gt 2 ]; then
-            echo "No changes & more than 2 existing → Skipping."
+          echo "Existing containers: $EXISTING_COUNT"
+          if [ -z "$CHANGED" ] && [ "$EXISTING_COUNT" -gt 13 ]; then
+            echo "No changes & already deployed → skipping"
             exit 0
           fi
 
-      - name: Build & Push 대상 결정 및 실행
+      - name: Build & Push images
+        id: build_push
         run: |
-          if [ "$CHANGED" = "ALL" ] || { [ -z "$CHANGED" ] && [ "$EXISTING_COUNT" -le 2 ]; }; then
+          if [ "$CHANGED" = "ALL" ] || { [ -z "$CHANGED" ] && [ "$EXISTING_COUNT" -le 13 ]; }; then
             TARGETS=($SERVICES)
           else
             TARGETS=($CHANGED)
@@ -93,50 +96,55 @@ jobs:
             docker build -t namgyu967/$svc:${TAG} -f $svc/Dockerfile .
             docker push namgyu967/$svc:${TAG}
           done
+          echo "TARGETS=${TARGETS[*]}" >> $GITHUB_ENV
 
-      - name: EC2에 Blue-Green 및 서비스 배포
+      - name: Deploy to EC2 (Blue-Green + others)
         uses: appleboy/ssh-action@master
         env:
           TAG: ${{ env.TAG }}
+          CHANGED: ${{ env.CHANGED }}
+          TARGETS: ${{ env.TARGETS }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd ~/timebank
-  
-            # 1) Gateway Blue-Green 스위치
+
+            # 1) Toggle gateway-blue / gateway-green
             if docker-compose ps | grep -q gateway-blue; then
               NEW=green; OLD=blue
             else
               NEW=blue; OLD=green
             fi
-  
-            # 새 Gateway 컨테이너만 빌드 후 기동
+
+            # Build & start new gateway
             docker-compose pull gateway-$NEW
             docker-compose up -d --no-deps --build gateway-$NEW
-  
-            # nginx upstream 토글
+
+            # Update nginx upstream and reload
             sed -i "s/server gateway-$OLD:8080;/server gateway-$NEW:8080;/" nginx-conf/gw.conf
             docker exec nginx nginx -s reload
-  
-            # 2) 나머지 TARGETS 서비스
+
+            # 2) Deploy other services
             for svc in ${TARGETS[@]}; do
               if [ "$svc" != "gateway-service" ]; then
                 docker-compose up -d --no-deps --build $svc
               fi
             done
-  
+
             docker image prune -af
 
-      - name: 헬스체크 및 결과 수집
+      - name: Health Check & collect
         id: health
         run: |
           SUCCESS=""; FAILED=""
-          BASE="http://${{ secrets.EC2_PUBLIC_IP }}:8080"
-          for svc in ${TARGETS[@]}; do
-            END="$BASE"; [ "$svc" != "gateway-service" ] && END="$BASE/$svc"
-            for i in {1..10}; do sleep 5
+          BASE="http://${{ env.EC2_HOST }}"
+          for svc in $TARGETS; do
+            END="$BASE"
+            [ "$svc" != "gateway-service" ] && END="$BASE/$svc"
+            for i in {1..10}; do
+              sleep 5
               CODE=$(curl -s -o /dev/null -w "%{http_code}" "$END/actuator/health")
               if [ "$CODE" = "200" ]; then
                 SUCCESS="$SUCCESS $svc"
@@ -148,17 +156,18 @@ jobs:
           echo "SUCCESS=${SUCCESS:-none}" >> $GITHUB_ENV
           echo "FAILED=${FAILED:-none}" >> $GITHUB_ENV
 
-      - name: Slack 알림
+      - name: Slack Notification (Success)
+        if: success()
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
             {
-              "text": "${{ github.ref == 'refs/heads/main' && ':white_check_mark: *[PROD]* 배포 성공!*' || ':white_check_mark: *[DEV]* 배포 성공!*' }}\n> 대상: ${{ env.CHANGED || 'all' }}\n> 정상: ${{ env.SUCCESS }}\n> 실패: ${{ env.FAILED }}\n> 태그: ${{ env.TAG }}\n> Gateway: http://${{ secrets.EC2_PUBLIC_IP }}"
+              "text": "${{ github.ref == 'refs/heads/main' && ':white_check_mark: *[PROD]* 배포 성공!*' || ':white_check_mark: *[DEV]* 배포 성공!*' }}\n> 대상: ${{ env.TARGETS || 'all' }}\n> 정상: ${{ env.SUCCESS }}\n> 실패: ${{ env.FAILED }}\n> 태그: ${{ env.TAG }}\n> Gateway: http://${{ env.EC2_HOST }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ github.ref == 'refs/heads/main' && secrets.SLACK_PROD_WEBHOOK_URL || secrets.SLACK_DEV_WEBHOOK_URL }}
 
-      - name: Slack 알림 (실패)
+      - name: Slack Notification (Failure)
         if: failure()
         uses: slackapi/slack-github-action@v1.24.0
         with:
