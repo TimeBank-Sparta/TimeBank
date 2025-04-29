@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   nginx:
     image: nginx:alpine
@@ -15,12 +17,11 @@ services:
           - gateway-service
 
   config-server:
-    build:
-      context: .
-      dockerfile: config-server/Dockerfile
-    image: namgyu967/config-server:latest
+    image: namgyu967/config-server:${TAG}
     container_name: config-server
     restart: always
+    env_file:
+      - .env-tag
     ports:
       - "8888:8888"
     environment:
@@ -31,12 +32,11 @@ services:
       - msanet
 
   eureka-server:
-    build:
-      context: .
-      dockerfile: eureka-server/Dockerfile
-    image: namgyu967/eureka-server:latest
+    image: namgyu967/eureka-server:${TAG}
     container_name: eureka-server
     restart: always
+    env_file:
+      - .env-tag
     ports:
       - "8761:8761"
     environment:
@@ -46,12 +46,11 @@ services:
       - msanet
 
   gateway-blue:
-    build:
-      context: .
-      dockerfile: gateway-service/Dockerfile
-    image: namgyu967/gateway-service:latest
+    image: namgyu967/gateway-service:${TAG}
     container_name: gateway-blue
     restart: always
+    env_file:
+      - .env-tag
     expose:
       - "8080"
     environment:
@@ -62,12 +61,11 @@ services:
       - msanet
 
   gateway-green:
-    build:
-      context: .
-      dockerfile: gateway-service/Dockerfile
-    image: namgyu967/gateway-service:latest
+    image: namgyu967/gateway-service:${TAG}
     container_name: gateway-green
     restart: always
+    env_file:
+      - .env-tag
     expose:
       - "8080"
     environment:
@@ -78,12 +76,11 @@ services:
       - msanet
 
   help-service:
-    build:
-      context: .
-      dockerfile: help-service/Dockerfile
-    image: namgyu967/help-service:latest
+    image: namgyu967/help-service:${TAG}
     container_name: help-service
     restart: always
+    env_file:
+      - .env-tag
     ports:
       - "8081:8080"
     environment:
@@ -103,12 +100,11 @@ services:
       - msanet
 
   notification-service:
-    build:
-      context: .
-      dockerfile: notification-service/Dockerfile
-    image: namgyu967/notification-service:latest
+    image: namgyu967/notification-service:${TAG}
     container_name: notification-service
     restart: always
+    env_file:
+      - .env-tag
     ports:
       - "8082:8080"
     environment:
@@ -125,12 +121,11 @@ services:
       - msanet
 
   review-service:
-    build:
-      context: .
-      dockerfile: review-service/Dockerfile
-    image: namgyu967/review-service:latest
+    image: namgyu967/review-service:${TAG}
     container_name: review-service
     restart: always
+    env_file:
+      - .env-tag
     ports:
       - "8083:8080"
     environment:
@@ -147,12 +142,11 @@ services:
       - msanet
 
   point-service:
-    build:
-      context: .
-      dockerfile: point-service/Dockerfile
-    image: namgyu967/point-service:latest
+    image: namgyu967/point-service:${TAG}
     container_name: point-service
     restart: always
+    env_file:
+      - .env-tag
     ports:
       - "8084:8080"
     environment:
@@ -171,12 +165,11 @@ services:
       - msanet
 
   user-service:
-    build:
-      context: .
-      dockerfile: user-service/Dockerfile
-    image: namgyu967/user-service:latest
+    image: namgyu967/user-service:${TAG}
     container_name: user-service
     restart: always
+    env_file:
+      - .env-tag
     ports:
       - "8085:8080"
     environment:
