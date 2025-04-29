@@ -66,14 +66,17 @@ jobs:
             --format '{{.Names}}' \
             | wc -l
 
+    - name: Export EXISTING_COUNT
+      run: echo "EXISTING_COUNT=${{ steps.remote_check.outputs.stdout }}" >> $GITHUB_ENV
+
     - name: Cancel if No Changes & Not Initial Deploy
       run: |
-        COUNT=${{ steps.remote_check.outputs.stdout }}
-        echo "Existing containers on server: $COUNT"
-        if [ -z "${CHANGED}" ] && [ "$COUNT" -gt 2 ]; then
+        echo "Existing containers on server: $EXISTING_COUNT"
+        if [ -z "$CHANGED" ] && [ "$EXISTING_COUNT" -gt 2 ]; then
           echo "No changes and more than 2 existing containers → Skipping deploy."
           exit 0
         fi
+
 
     - name: Build & Push Changed Services
       run: |
