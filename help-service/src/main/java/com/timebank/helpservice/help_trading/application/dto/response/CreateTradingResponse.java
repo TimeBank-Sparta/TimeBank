@@ -25,8 +25,6 @@ public record CreateTradingResponse(
 			.startedAt(helpTrading.getStartedAt())
 			.finishedAt(helpTrading.getFinishedAt())
 			.actualPoints(helpTrading.getActualPoints())
-			.requesterApproved(helpTrading.isRequesterApproved())
-			.helperApproved(helpTrading.isHelperApproved())
 			.tradeStatus(helpTrading.getTradeStatus())
 			.build();
 	}

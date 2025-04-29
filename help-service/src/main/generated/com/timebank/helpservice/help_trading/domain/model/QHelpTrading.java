@@ -37,15 +37,11 @@ public class QHelpTrading extends EntityPathBase<HelpTrading> {
 
     public final DateTimePath<java.time.LocalDateTime> finishedAt = createDateTime("finishedAt", java.time.LocalDateTime.class);
 
-    public final BooleanPath helperApproved = createBoolean("helperApproved");
-
     public final NumberPath<Long> helperId = createNumber("helperId", Long.class);
 
     public final NumberPath<Long> helpRequestId = createNumber("helpRequestId", Long.class);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
-
-    public final BooleanPath requesterApproved = createBoolean("requesterApproved");
 
     public final NumberPath<Long> requesterId = createNumber("requesterId", Long.class);
 

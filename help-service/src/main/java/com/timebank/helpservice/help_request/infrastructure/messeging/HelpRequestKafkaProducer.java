@@ -15,7 +15,7 @@ public class HelpRequestKafkaProducer implements HelpRequestEventProducer {
 
 	@Override
 	public void sendToHelper(HelpRequestToHelperKafkaDto helpRequestToHelperKafkaDto) {
-		kafkaTemplate.send("help-request.delete", helpRequestToHelperKafkaDto);
+		kafkaTemplate.send("help-request.complete", helpRequestToHelperKafkaDto);
 	}
 
 }

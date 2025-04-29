@@ -13,8 +13,6 @@ public record HelpTradingInfo(
 	Long helperId,
 	LocalDateTime startedAt,
 	int actualPoints,
-	boolean requesterApproved,
-	boolean helperApproved,
 	TradeStatus tradeStatus
 ) {
 
