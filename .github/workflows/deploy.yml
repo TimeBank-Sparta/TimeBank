@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - main
-      - develop
-
+      
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -82,7 +81,7 @@ jobs:
       id: health_check
       run: |
         echo "Checking health of services..."
-        GATEWAY_URL="http://${{ secrets.EC2_PUBLIC_IP }}:8080"
+        GATEWAY_URL="http://${{ secrets.EC2_PUBLIC_IP }}:8000"
 
         SUCCESS_SERVICES=""
         FAILED_SERVICES=""
