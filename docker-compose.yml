@@ -6,8 +6,12 @@ services:
       - "80:80"
     volumes:
       - ./nginx-conf:/etc/nginx/conf.d
+    depends_on:
+      - gateway-blue
+      - gateway-green
     networks:
       - msanet
+
   config-server:
     image: namgyu967/config-server:${TAG}
     container_name: config-server
@@ -35,20 +39,27 @@ services:
     networks:
       - msanet
 
-  gateway-service:
+  # 1) Blue Gateway
+  gateway-blue:
     image: namgyu967/gateway-service:${TAG}
-    container_name: gateway-service
+    container_name: gateway-blue
     restart: always
-    ports:
-      - "8000:8000"
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-    depends_on:
-      - eureka-server
-      - config-server
-    command: sh -c "./wait-for-it.sh config-server:8888 --timeout=15 -- ./wait-for-it.sh eureka-server:8761 --timeout=15 -- java -jar gateway.jar"
+    networks:
+      - msanet
+
+  # 2) Green Gateway
+  gateway-green:
+    image: namgyu967/gateway-service:${TAG}
+    container_name: gateway-green
+    restart: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SERVER_PORT=8080
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
     networks:
       - msanet
 
