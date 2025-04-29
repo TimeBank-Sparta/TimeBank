@@ -69,7 +69,6 @@ public class HelpRequestRepositoryImpl implements HelpRequestRepository {
 			.orderBy(createOrderSpecifier(pageable).toArray(new OrderSpecifier[0]))
 			.offset(pageable.getOffset())
 			.limit(pageSize)
-			.distinct()
 			.fetch();
 
 		return new PageImpl<>(fetch, pageable, totalCount == null ? 0 : totalCount);

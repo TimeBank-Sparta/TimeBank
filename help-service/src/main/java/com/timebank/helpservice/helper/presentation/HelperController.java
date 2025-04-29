@@ -17,7 +17,7 @@ import com.timebank.common.application.dto.PageResponseDto;
 import com.timebank.common.application.dto.ResponseDto;
 import com.timebank.helpservice.helper.application.dto.response.AcceptHelperResponse;
 import com.timebank.helpservice.helper.application.dto.response.CreateHelperResponse;
-import com.timebank.helpservice.helper.application.dto.response.FindHelperResponse;
+import com.timebank.helpservice.helper.application.dto.response.FindHelperInfoResponse;
 import com.timebank.helpservice.helper.application.service.HelperService;
 import com.timebank.helpservice.helper.presentation.dto.request.CreateHelperRequest;
 
@@ -41,11 +41,11 @@ public class HelperController {
 
 	//TODO 유저권한체크(자신의글만 조회가능)
 	@GetMapping("/{helpRequestId}")
-	public ResponseEntity<PageResponseDto<FindHelperResponse>> findByHelpRequestId(
+	public ResponseEntity<PageResponseDto<FindHelperInfoResponse>> findByHelpRequestId(
 		@PathVariable Long helpRequestId,
 		Pageable pageable
 	) {
-		Page<FindHelperResponse> helperPage =
+		Page<FindHelperInfoResponse> helperPage =
 			helperService.findByHelpRequestId(helpRequestId, pageable);
 		return ResponseEntity.ok(new PageResponseDto<>(HttpStatus.OK, helperPage, "조회완료"));
 	}
@@ -56,5 +56,4 @@ public class HelperController {
 	) {
 		return ResponseEntity.ok(new ResponseDto<>(HttpStatus.OK, helperService.acceptHelper(helperId)));
 	}
-
 }

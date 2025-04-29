@@ -21,7 +21,7 @@ import com.timebank.helpservice.helper.application.dto.request.HelpRequestFeignD
 import com.timebank.helpservice.helper.application.dto.request.HelperToTradingKafkaDto;
 import com.timebank.helpservice.helper.application.dto.response.AcceptHelperResponse;
 import com.timebank.helpservice.helper.application.dto.response.CreateHelperResponse;
-import com.timebank.helpservice.helper.application.dto.response.FindHelperResponse;
+import com.timebank.helpservice.helper.application.dto.response.FindHelperInfoResponse;
 import com.timebank.helpservice.helper.application.dto.response.FromHelpRequestKafkaDto;
 import com.timebank.helpservice.helper.application.dto.response.GetUserInfoFeignResponse;
 import com.timebank.helpservice.helper.domain.ApplicantStatus;
@@ -79,26 +79,21 @@ public class HelperService {
 	}
 
 	@Transactional(readOnly = true)
-	public Page<FindHelperResponse> findByHelpRequestId(Long helpRequestId, Pageable pageable) {
-		List<Helper> helpers = helperRepository.findByHelpRequestId(helpRequestId);
-
-		if (helpers.isEmpty()) {
-			throw new IllegalArgumentException("게시글 정보 없음");
-		}
+	public Page<FindHelperInfoResponse> findByHelpRequestId(Long helpRequestId, Pageable pageable) {
+		List<Helper> helpers = findHelpersByHelpRequestIdOrThrow(helpRequestId);
 
 		List<GetUserInfoFeignResponse> userInfoList = userClient.getUserInfoByHelper(helpers.stream()
-			.map(GetUserInfoFeignRequest::from)
-			.toList());
+			.map(GetUserInfoFeignRequest::from).toList());
 
 		Map<Long, GetUserInfoFeignResponse> userInfoMap = userInfoList.stream()
 			.collect(Collectors.toMap(GetUserInfoFeignResponse::userId, Function.identity()));
 
-		List<FindHelperResponse> content = helpers.stream()
+		//유저 정보와 helper 정보 조합
+		List<FindHelperInfoResponse> content = helpers.stream()
 			.map(helper -> {
 				GetUserInfoFeignResponse userInfo = userInfoMap.get(helper.getUserId());
-				return FindHelperResponse.of(userInfo, helper);
-			})
-			.toList();
+				return FindHelperInfoResponse.of(userInfo, helper);
+			}).toList();
 
 		return new PageImpl<>(content, pageable, helpers.size());
 	}
@@ -106,5 +101,13 @@ public class HelperService {
 	@Transactional
 	public void deleteHelpersByStatusSupported(FromHelpRequestKafkaDto dto) {
 		helperRepository.deleteHelperStatusSupported(dto.helpRequestId());
+	}
+
+	public List<Helper> findHelpersByHelpRequestIdOrThrow(Long helpRequestId) {
+		List<Helper> helpers = helperRepository.findByHelpRequestId(helpRequestId);
+		if (helpers.isEmpty()) {
+			throw new IllegalArgumentException("게시글에 대한 지원자 정보 없음");
+		}
+		return helpers;
 	}
 }

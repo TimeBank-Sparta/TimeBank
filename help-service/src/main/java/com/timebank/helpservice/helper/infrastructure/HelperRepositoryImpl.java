@@ -1,27 +1,23 @@
-package com.timebank.helpservice.helper.infrastructure.db;
+package com.timebank.helpservice.helper.infrastructure;
 
-import static com.timebank.helpservice.helper.domain.model.QHelper.*;
-
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.timebank.helpservice.helper.domain.ApplicantStatus;
 import com.timebank.helpservice.helper.domain.model.Helper;
 import com.timebank.helpservice.helper.domain.repository.HelperRepository;
+import com.timebank.helpservice.helper.infrastructure.jpa.JpaHelperRepository;
+import com.timebank.helpservice.helper.infrastructure.redis.RedisHelperRepository;
 
 import lombok.RequiredArgsConstructor;
 
 @Repository
 @RequiredArgsConstructor
-public class JpaHelperRepositoryCustomImpl implements HelperRepository {
+public class HelperRepositoryImpl implements HelperRepository {
 	private final JpaHelperRepository jpaHelperRepository;
-	private final JPAQueryFactory queryFactory;
+	private final RedisHelperRepository redisHelperRepository;
 
 	@Override
 	public Helper save(Helper helper) {
@@ -50,17 +46,6 @@ public class JpaHelperRepositoryCustomImpl implements HelperRepository {
 
 	@Override
 	public void deleteHelperStatusSupported(Long helpRequestId) {
-		queryFactory
-			.update(helper)
-			.set(helper.deletedAt, LocalDateTime.now())
-			.where(
-				helper.applicantStatus.eq(ApplicantStatus.SUPPORTED),
-				helpRequestIdEq(helpRequestId)
-			)
-			.execute();
-	}
-
-	private BooleanExpression helpRequestIdEq(Long helpRequestId) {
-		return Objects.nonNull(helpRequestId) ? helper.helpRequestId.eq(helpRequestId) : null;
+		jpaHelperRepository.deleteHelperStatusSupported(helpRequestId);
 	}
 }

@@ -10,8 +10,7 @@ import com.timebank.helpservice.helper.application.dto.request.HelpRequestFeignD
 public interface HelpRequestFeignClient {
 
 	@GetMapping("/api/v1/help-requests/{helpRequestId}/info")
-	HelpRequestFeignDto getHelpRequestById(
-		@PathVariable Long helpRequestId);
+	HelpRequestFeignDto getHelpRequestById(@PathVariable Long helpRequestId);
 
 	@GetMapping("/api/v1/help-requests/{helpRequestId}/exists")
 	boolean existHelpRequestById(@PathVariable Long helpRequestId);

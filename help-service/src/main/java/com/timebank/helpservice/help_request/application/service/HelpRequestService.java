@@ -41,8 +41,8 @@ public class HelpRequestService {
 	 */
 	@Transactional
 	public CreateHelpRequestResponse createHelpRequest(CreateHelpRequestCommand command, Long userId) {
-		HelpRequest helpRequest = HelpRequest.createFrom(command.toHelpRequestInfoWithUserID(userId));
-		helpRequest = helpRequestRepository.save(helpRequest);
+		HelpRequest helpRequest = helpRequestRepository.save(
+			HelpRequest.createFrom(command.toHelpRequestInfoWithUserID(userId)));
 
 		// (선택 사항) 도움 요청 글 생성 시 알림 이벤트 (예: POST_CREATED)
 		NotificationEvent event = NotificationEvent.builder()
@@ -56,6 +56,7 @@ public class HelpRequestService {
 		kafkaTemplate.send(NotificationEventType.CREATED.getTopic(), event);
 
 		pointClient.holdPoint(HoldPointRequestDto.of(userId, command.requestedPoint()));
+
 		return CreateHelpRequestResponse.from(helpRequest);
 	}
 
@@ -147,6 +148,7 @@ public class HelpRequestService {
 		kafkaTemplate.send(NotificationEventType.DELETED.getTopic(), event);
 	}
 
+	@Transactional(readOnly = true)
 	public boolean existHelpRequest(Long helpRequestId) {
 		return helpRequestRepository.existsById(helpRequestId);
 	}
