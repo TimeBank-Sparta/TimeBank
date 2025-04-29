@@ -55,21 +55,23 @@ jobs:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
+        capture_stdout: true
         script: |
-          COUNT=$(docker ps \
+          docker ps \
             --filter name=gateway-blue --filter name=gateway-green \
             --filter name=help-service --filter name=notification-service \
             --filter name=review-service --filter name=point-service \
             --filter name=user-service --filter name=config-server \
             --filter name=eureka-server \
             --format '{{.Names}}' \
-            | wc -l)
-          echo "EXISTING_COUNT=$COUNT" >> $GITHUB_ENV
+            | wc -l
 
     - name: Cancel if No Changes & Not Initial Deploy
       run: |
-        if [ -z "${CHANGED}" ] && [ "${EXISTING_COUNT}" -gt 2 ]; then
-          echo "No changes and not initial deploy. Skipping."
+        COUNT=${{ steps.remote_check.outputs.stdout }}
+        echo "Existing containers on server: $COUNT"
+        if [ -z "${CHANGED}" ] && [ "$COUNT" -gt 2 ]; then
+          echo "No changes and more than 2 existing containers → Skipping deploy."
           exit 0
         fi
 
@@ -85,7 +87,7 @@ jobs:
           docker push namgyu967/$service:${TAG}
         done
 
-    - name: Deploy via SSH (Blue-Green + Other Services)
+    - name: Deploy via SSH (Blue-Green + Others)
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.EC2_HOST }}
@@ -93,7 +95,7 @@ jobs:
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
           cd ~/timebank
-          # 1) Toggle Blue-Green
+          # Blue-Green toggle
           if docker ps --filter name=gateway-blue --filter status=running | grep -q gateway-blue; then
             NEW=green; OLD=blue
           else
@@ -105,7 +107,7 @@ jobs:
           docker run -d --name gateway-$NEW --network msanet -e SERVER_PORT=8080 namgyu967/gateway-service:${TAG}-$NEW
           sed -i "s/server gateway-$OLD:8080;/server gateway-$NEW:8080;/" nginx-conf/gw.conf
           docker exec nginx nginx -s reload
-          # 2) Other services
+          # 기타 서비스
           if [ "${CHANGED}" = "ALL" ]; then
             TARGETS=($SERVICES)
           else
@@ -125,9 +127,10 @@ jobs:
         SUCCESS=""; FAILED=""
         BASE="http://${{ secrets.EC2_PUBLIC_IP }}:8080"
         for svc in ${{ env.CHANGED }}; do
-          END="$BASE"; [ "$svc" != "gateway-service" ] && END="$BASE/$svc"
+          ENDPOINT="$BASE"
+          [ "$svc" != "gateway-service" ] && ENDPOINT="$BASE/$svc"
           for i in {1..10}; do sleep 5
-            CODE=$(curl -s -o /dev/null -w "%{http_code}" "$END/actuator/health")
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" "$ENDPOINT/actuator/health")
             if [ "$CODE" = "200" ]; then SUCCESS="$SUCCESS $svc"; break; fi
             [ "$i" -eq 10 ] && FAILED="$FAILED $svc"
           done
@@ -141,7 +144,7 @@ jobs:
       with:
         payload: |
           {
-            "text": "${{ github.ref == 'refs/heads/main' && ':white_check_mark: *[PROD]* 배포 성공!*' || ':white_check_mark: *[DEV]* 배포 성공!*' }}\n> 변경 서비스: ${{ env.CHANGED || 'none' }}\n> 정상: ${{ env.SUCCESS }}\n> 실패: ${{ env.FAILED }}\n> 태그: ${{ env.TAG }}\n> Gateway: http://${{ secrets.EC2_PUBLIC_IP }}"
+            "text": "${{ github.ref == 'refs/heads/main' && ':white_check_mark: *[PROD]* 배포 성공!*' || ':white_check_mark: *[DEV]* 배포 성공!*' }}\n> 변경된 서비스: ${{ env.CHANGED || 'none' }}\n> 정상: ${{ env.SUCCESS }}\n> 실패: ${{ env.FAILED }}\n> 태그: ${{ env.TAG }}\n> Gateway: http://${{ secrets.EC2_PUBLIC_IP }}"
           }
       env:
         SLACK_WEBHOOK_URL: ${{ github.ref == 'refs/heads/main' && secrets.SLACK_PROD_WEBHOOK_URL || secrets.SLACK_DEV_WEBHOOK_URL }}
@@ -152,7 +155,7 @@ jobs:
       with:
         payload: |
           {
-            "text": "${{ github.ref == 'refs/heads/main' && ':x: *[PROD]* 배포 실패!*' || ':x: *[DEV]* 배포 실패!*' }}\n> 에러 로그 확인 바랍니다."
+            "text": "${{ github.ref == 'refs/heads/main' && ':x: *[PROD]* 배포 실패!*' || ':x: *[DEV]* 배포 실패!*' }}\n> 에러 로그를 확인해주세요."
           }
       env:
         SLACK_WEBHOOK_URL: ${{ github.ref == 'refs/heads/main' && secrets.SLACK_PROD_WEBHOOK_URL || secrets.SLACK_DEV_WEBHOOK_URL }}
