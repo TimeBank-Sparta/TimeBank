@@ -1,4 +1,13 @@
 services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx-conf:/etc/nginx/conf.d
+    networks:
+      - msanet
   config-server:
     image: namgyu967/config-server:${TAG}
     container_name: config-server
@@ -279,6 +288,7 @@ services:
 networks:
   msanet:
     driver: bridge
+    external: true
 
 volumes:
   help_mysql_data:
