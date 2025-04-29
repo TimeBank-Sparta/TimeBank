@@ -128,12 +128,12 @@ jobs:
 
             # 2) Deploy other services
             for svc in ${TARGETS[@]}; do
-              if [ "$svc" != "gateway-service" ]; then
-                docker-compose up -d --no-deps --build $svc
+              if [ "$svc" = "gateway-service" ]; then
+                continue
               fi
+              docker-compose pull $svc
+              docker-compose up -d --no-deps $svc
             done
-
-            docker image prune -af
 
       - name: 헬스체크 및 결과 수집
         id: health
