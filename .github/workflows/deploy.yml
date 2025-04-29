@@ -104,7 +104,8 @@ jobs:
         uses: appleboy/ssh-action@master
         env:
           TAG: ${{ env.TAG }}
-          TARGETS: ${{ env.TARGETS }}
+          SERVICES: ${{ env.SERVICES }}
+          CHANGED: ${{ env.CHANGED }}        
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
@@ -118,12 +119,24 @@ jobs:
             docker-compose up -d nginx
           
             # 1) Blue-Green gateway
-            if docker-compose ps | grep -q gateway-blue; then NEW=green; OLD=blue; else NEW=blue; OLD=green; fi
+            if docker-compose ps | grep -q gateway-blue; then
+              NEW=green; OLD=blue
+            else
+              NEW=blue; OLD=green
+            fi
             docker-compose pull gateway-$NEW
             docker-compose up -d gateway-$NEW
             sed -i "s/server gateway-$OLD:8080;/server gateway-$NEW:8080;/" nginx-conf/gw.conf
             docker exec nginx nginx -s reload
-            
+            # 2) SSH 세션에서 다시 TARGETS 계산
+            if [ "$CHANGED" = "ALL" ] || [ -z "$CHANGED" ]; then
+              IFS=' ' read -r -a targets <<< "$SERVICES"
+            else
+              IFS=' ' read -r -a targets <<< "$CHANGED"
+            fi
+    
+            echo "=== DEBUG: Final deploy targets ==="
+            printf " - %s\n" "${targets[@]}"
             # 디버깅1
             echo "=== DEBUG: Raw TARGETS string ==="
             echo ">$TARGETS<"
@@ -131,10 +144,10 @@ jobs:
             # 디버깅2
             IFS=' ' read -r -a services <<< "$TARGETS"
             echo "=== DEBUG: Parsed services array ==="
-            printf "[%s]\n" "${services[@]}"
+            printf "[%s]\n" "${targets[@]}"
             
             # 2) 나머지 서비스
-            for svc in "${services[@]}"; do
+            for svc in "${targets[@]}"; do
               [ "$svc" = "gateway-service" ] && continue
               echo "Deploying $svc..."
               docker-compose pull $svc
