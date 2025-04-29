@@ -52,8 +52,8 @@ services:
     image: namgyu967/gateway-service:latest
     container_name: gateway-blue
     restart: always
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
@@ -68,8 +68,8 @@ services:
     image: namgyu967/gateway-service:latest
     container_name: gateway-green
     restart: always
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
