@@ -10,7 +10,9 @@ services:
       - gateway-blue
       - gateway-green
     networks:
-      - msanet
+      msanet:
+        aliases:
+          - gateway-service
 
   config-server:
     image: namgyu967/config-server:${TAG}
@@ -76,10 +78,10 @@ services:
     depends_on:
       - eureka-server
       - config-server
+      - nginx
       - help-mysql
       - zookeeper
       - kafka
-      - gateway-service
     entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
     networks:
       - msanet
@@ -97,8 +99,8 @@ services:
     depends_on:
       - eureka-server
       - config-server
+      - nginx
       - notification-mysql
-      - gateway-service
     entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
 
     networks:
@@ -117,8 +119,8 @@ services:
     depends_on:
       - eureka-server
       - config-server
+      - nginx
       - review-mysql
-      - gateway-service
     entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
     networks:
       - msanet
@@ -137,7 +139,7 @@ services:
       - eureka-server
       - config-server
       - point-mysql
-      - gateway-service
+      - nginx
       - zookeeper
       - kafka
     entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
@@ -158,7 +160,7 @@ services:
       - eureka-server
       - config-server
       - user-mysql
-      - gateway-service
+      - nginx
     entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
     networks:
       - msanet
