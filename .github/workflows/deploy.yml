@@ -123,18 +123,18 @@ jobs:
             docker-compose up -d gateway-$NEW
             sed -i "s/server gateway-$OLD:8080;/server gateway-$NEW:8080;/" nginx-conf/gw.conf
             docker exec nginx nginx -s reload
-
-            # 디버깅1: TARGETS 내용 확인
+            
+            # 디버깅1
             echo "=== DEBUG: Raw TARGETS string ==="
             echo ">$TARGETS<"
             
-            # 디버깅2: 배열로 읽어들이기
+            # 디버깅2
             IFS=' ' read -r -a services <<< "$TARGETS"
             echo "=== DEBUG: Parsed services array ==="
             printf "[%s]\n" "${services[@]}"
-          
+            
             # 2) 나머지 서비스
-            for svc in ${TARGETS[@]}; do
+            for svc in "${services[@]}"; do
               [ "$svc" = "gateway-service" ] && continue
               echo "Deploying $svc..."
               docker-compose pull $svc
