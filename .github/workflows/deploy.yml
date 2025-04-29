@@ -57,18 +57,18 @@ jobs:
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
           COUNT=$(docker ps \
-            --filter "name=gateway-blue" --filter "name=gateway-green" \
-            --filter "name=help-service" --filter "name=notification-service" \
-            --filter "name=review-service" --filter "name=point-service" \
-            --filter "name=user-service" --filter "name=config-server" \
-            --filter "name=eureka-server" \
+            --filter name=gateway-blue --filter name=gateway-green \
+            --filter name=help-service --filter name=notification-service \
+            --filter name=review-service --filter name=point-service \
+            --filter name=user-service --filter name=config-server \
+            --filter name=eureka-server \
             --format '{{.Names}}' \
             | wc -l)
           echo "EXISTING_COUNT=$COUNT" >> $GITHUB_ENV
 
     - name: Cancel if No Changes & Not Initial Deploy
       run: |
-        if [ "${CHANGED}" = "" ] && [ "${EXISTING_COUNT}" -gt 2 ]; then
+        if [ -z "${CHANGED}" ] && [ "${EXISTING_COUNT}" -gt 2 ]; then
           echo "No changes and not initial deploy. Skipping."
           exit 0
         fi
@@ -85,7 +85,7 @@ jobs:
           docker push namgyu967/$service:${TAG}
         done
 
-    - name: Deploy via SSH (Blue-Green Gateway + Others)
+    - name: Deploy via SSH (Blue-Green + Other Services)
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.EC2_HOST }}
@@ -93,25 +93,19 @@ jobs:
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
           cd ~/timebank
-
-          # Blue-Green toggle
+          # 1) Toggle Blue-Green
           if docker ps --filter name=gateway-blue --filter status=running | grep -q gateway-blue; then
             NEW=green; OLD=blue
           else
             NEW=blue; OLD=green
           fi
-
-          # Deploy new gateway
           docker pull namgyu967/gateway-service:${TAG}-$NEW
           docker stop gateway-$OLD || true
           docker rm gateway-$OLD || true
           docker run -d --name gateway-$NEW --network msanet -e SERVER_PORT=8080 namgyu967/gateway-service:${TAG}-$NEW
-
-          # Update Nginx upstream
           sed -i "s/server gateway-$OLD:8080;/server gateway-$NEW:8080;/" nginx-conf/gw.conf
           docker exec nginx nginx -s reload
-
-          # Deploy other changed services
+          # 2) Other services
           if [ "${CHANGED}" = "ALL" ]; then
             TARGETS=($SERVICES)
           else
@@ -123,52 +117,31 @@ jobs:
               docker-compose up -d $service
             fi
           done
-
           docker image prune -af
 
     - name: Health Check & Summarize
       id: health
       run: |
-        SUCCESS=""
-        FAILED=""
+        SUCCESS=""; FAILED=""
         BASE="http://${{ secrets.EC2_PUBLIC_IP }}:8080"
         for svc in ${{ env.CHANGED }}; do
-          ENDPOINT="$BASE"
-          if [ "$svc" != "gateway-service" ]; then
-            ENDPOINT="$BASE/$svc"
-          fi
-          for i in {1..10}; do
-            sleep 5
-            code=$(curl -s -o /dev/null -w "%{http_code}" "$ENDPOINT/actuator/health")
-            if [ "$code" = "200" ]; then
-              SUCCESS="$SUCCESS $svc"
-              break
-            fi
-            if [ "$i" -eq 10 ]; then
-              FAILED="$FAILED $svc"
-            fi
+          END="$BASE"; [ "$svc" != "gateway-service" ] && END="$BASE/$svc"
+          for i in {1..10}; do sleep 5
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" "$END/actuator/health")
+            if [ "$CODE" = "200" ]; then SUCCESS="$SUCCESS $svc"; break; fi
+            [ "$i" -eq 10 ] && FAILED="$FAILED $svc"
           done
         done
-        echo "SUCCESS=$SUCCESS" >> $GITHUB_ENV
-        echo "FAILED=$FAILED" >> $GITHUB_ENV
+        echo "SUCCESS=${SUCCESS:-none}" >> $GITHUB_ENV
+        echo "FAILED=${FAILED:-none}" >> $GITHUB_ENV
 
-    - name: Slack Notification
+    - name: Slack Notification (Success)
+      if: success()
       uses: slackapi/slack-github-action@v1.24.0
       with:
         payload: |
           {
-            "text": ${{ toJson(join(
-              [
-                github.ref == 'refs/heads/main'
-                  ? ":white_check_mark: *[PROD]* 배포 성공!"
-                  : ":white_check_mark: *[DEV]* 배포 성공!",
-                "> 변경된 서비스:${CHANGED:- none}",
-                "> 정상:${SUCCESS:- none}",
-                "> 실패:${FAILED:- none}",
-                "> 태그:${TAG}",
-                "> Gateway: http://${{ secrets.EC2_PUBLIC_IP }}"
-              ], "\n"
-            )) }}
+            "text": "${{ github.ref == 'refs/heads/main' && ':white_check_mark: *[PROD]* 배포 성공!*' || ':white_check_mark: *[DEV]* 배포 성공!*' }}\n> 변경 서비스: ${{ env.CHANGED || 'none' }}\n> 정상: ${{ env.SUCCESS }}\n> 실패: ${{ env.FAILED }}\n> 태그: ${{ env.TAG }}\n> Gateway: http://${{ secrets.EC2_PUBLIC_IP }}"
           }
       env:
         SLACK_WEBHOOK_URL: ${{ github.ref == 'refs/heads/main' && secrets.SLACK_PROD_WEBHOOK_URL || secrets.SLACK_DEV_WEBHOOK_URL }}
@@ -179,14 +152,7 @@ jobs:
       with:
         payload: |
           {
-            "text": ${{ toJson(join(
-              [
-                github.ref == 'refs/heads/main'
-                  ? ":x: *[PROD]* 배포 실패!*"
-                  : ":x: *[DEV]* 배포 실패!*",
-                "> 에러 로그를 확인해주세요."
-              ], "\n"
-            )) }}
+            "text": "${{ github.ref == 'refs/heads/main' && ':x: *[PROD]* 배포 실패!*' || ':x: *[DEV]* 배포 실패!*' }}\n> 에러 로그 확인 바랍니다."
           }
       env:
         SLACK_WEBHOOK_URL: ${{ github.ref == 'refs/heads/main' && secrets.SLACK_PROD_WEBHOOK_URL || secrets.SLACK_DEV_WEBHOOK_URL }}
