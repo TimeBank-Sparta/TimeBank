@@ -135,17 +135,27 @@ jobs:
 
             docker image prune -af
 
-      - name: Health Check & collect
+      - name: 헬스체크 및 결과 수집
         id: health
+        shell: bash
         run: |
+          set +e
+
           SUCCESS=""; FAILED=""
           BASE="http://${{ env.EC2_HOST }}"
+
           for svc in $TARGETS; do
-            END="$BASE"
-            [ "$svc" != "gateway-service" ] && END="$BASE/$svc"
+            # gateway-service는 base, 나머진 /svc
+            if [ "$svc" = "gateway-service" ]; then
+              END="$BASE/actuator/health"
+            else
+              END="$BASE/$svc/actuator/health"
+            fi
+
             for i in {1..10}; do
               sleep 5
-              CODE=$(curl -s -o /dev/null -w "%{http_code}" "$END/actuator/health")
+              # 실패해도 스크립트 중단되지 않도록 || echo 000
+              CODE=$(curl -s -o /dev/null -w "%{http_code}" "$END" || echo "000")
               if [ "$CODE" = "200" ]; then
                 SUCCESS="$SUCCESS $svc"
                 break
@@ -153,6 +163,7 @@ jobs:
               [ "$i" -eq 10 ] && FAILED="$FAILED $svc"
             done
           done
+
           echo "SUCCESS=${SUCCESS:-none}" >> $GITHUB_ENV
           echo "FAILED=${FAILED:-none}" >> $GITHUB_ENV
 
