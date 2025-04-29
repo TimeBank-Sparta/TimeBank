@@ -67,7 +67,11 @@ jobs:
             | wc -l
 
     - name: Export EXISTING_COUNT
-      run: echo "EXISTING_COUNT=${{ steps.remote_check.outputs.stdout }}" >> $GITHUB_ENV
+      run: |
+        # ssh-action 출력에서 첫 줄(컨테이너 숫자)만 추출하고, 숫자가 아닌 건 삭제
+        COUNT_RAW="${{ steps.remote_check.outputs.stdout }}"
+        COUNT_NUM=$(echo "$COUNT_RAW" | head -n1 | tr -cd '0-9')
+        echo "EXISTING_COUNT=$COUNT_NUM" >> $GITHUB_ENV
 
     - name: Cancel if No Changes & Not Initial Deploy
       run: |
@@ -76,6 +80,7 @@ jobs:
           echo "No changes and more than 2 existing containers → Skipping deploy."
           exit 0
         fi
+
 
 
     - name: Build & Push Changed Services
