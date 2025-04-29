@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   nginx:
     image: nginx:alpine
@@ -15,7 +17,7 @@ services:
           - gateway-service
 
   config-server:
-    image: namgyu967/config-server:${TAG}
+    image: namgyu967/config-server
     container_name: config-server
     restart: always
     ports:
@@ -27,9 +29,8 @@ services:
     networks:
       - msanet
 
-
   eureka-server:
-    image: namgyu967/eureka-server:${TAG}
+    image: namgyu967/eureka-server
     container_name: eureka-server
     restart: always
     ports:
@@ -42,7 +43,7 @@ services:
 
   # 1) Blue Gateway
   gateway-blue:
-    image: namgyu967/gateway-service:${TAG}
+    image: namgyu967/gateway-service
     container_name: gateway-blue
     restart: always
     environment:
@@ -54,7 +55,7 @@ services:
 
   # 2) Green Gateway
   gateway-green:
-    image: namgyu967/gateway-service:${TAG}
+    image: namgyu967/gateway-service
     container_name: gateway-green
     restart: always
     environment:
@@ -65,7 +66,7 @@ services:
       - msanet
 
   help-service:
-    image: namgyu967/help-service:${TAG}
+    image: namgyu967/help-service
     container_name: help-service
     restart: always
     ports:
@@ -87,7 +88,7 @@ services:
       - msanet
 
   notification-service:
-    image: namgyu967/notification-service:${TAG}
+    image: namgyu967/notification-service
     container_name: notification-service
     restart: always
     ports:
@@ -101,13 +102,12 @@ services:
       - config-server
       - nginx
       - notification-mysql
-    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
-
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar notification-service.jar"
     networks:
       - msanet
 
   review-service:
-    image: namgyu967/review-service:${TAG}
+    image: namgyu967/review-service
     container_name: review-service
     restart: always
     ports:
@@ -121,12 +121,12 @@ services:
       - config-server
       - nginx
       - review-mysql
-    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar review-service.jar"
     networks:
       - msanet
 
   point-service:
-    image: namgyu967/point-service:${TAG}
+    image: namgyu967/point-service
     container_name: point-service
     restart: always
     ports:
@@ -142,12 +142,12 @@ services:
       - nginx
       - zookeeper
       - kafka
-    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar point-service.jar"
     networks:
       - msanet
 
   user-service:
-    image: namgyu967/user-service:${TAG}
+    image: namgyu967/user-service
     container_name: user-service
     restart: always
     ports:
@@ -159,9 +159,9 @@ services:
     depends_on:
       - eureka-server
       - config-server
-      - user-mysql
       - nginx
-    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
+      - user-mysql
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar user-service.jar"
     networks:
       - msanet
 
@@ -243,9 +243,9 @@ services:
       - msanet
 
   notification-mysql:
-    restart: always
     image: mysql:8
     container_name: notification-mysql
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: "1234"
       MYSQL_DATABASE: notification_db
@@ -257,9 +257,9 @@ services:
       - msanet
 
   review-mysql:
-    restart: always
     image: mysql:8
     container_name: review-mysql
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: "1234"
       MYSQL_DATABASE: review_db
@@ -271,9 +271,9 @@ services:
       - msanet
 
   point-mysql:
-    restart: always
     image: mysql:8
     container_name: point-mysql
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: "1234"
       MYSQL_DATABASE: point_db
@@ -285,9 +285,9 @@ services:
       - msanet
 
   user-mysql:
-    restart: always
     image: mysql:8
     container_name: user-mysql
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: "1234"
       MYSQL_DATABASE: user_db
@@ -300,6 +300,7 @@ services:
 
   prometheus:
     image: prom/prometheus
+    container_name: prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
@@ -309,6 +310,7 @@ services:
 
   grafana:
     image: grafana/grafana
+    container_name: grafana
     ports:
       - "3000:3000"
     volumes:
@@ -321,8 +323,8 @@ services:
 
 networks:
   msanet:
-    driver: bridge
     external: true
+    driver: bridge
 
 volumes:
   help_mysql_data:
