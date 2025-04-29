@@ -31,7 +31,7 @@ services:
     container_name: gateway-service
     restart: always
     ports:
-      - "8080:8080"
+      - "8000:8000"
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
