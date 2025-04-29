@@ -111,7 +111,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd ~/timebank
-    
+            echo "TAG=${TAG}" > .env-tag
+            
             # 0) nginx 보장
             docker-compose up -d nginx
     
