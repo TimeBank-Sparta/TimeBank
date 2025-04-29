@@ -3,8 +3,10 @@ name: Deploy to EC2 (Blue-Green)
 on:
   push:
     branches:
+      - develop
       - main
-      
+  workflow_dispatch:
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -12,9 +14,11 @@ jobs:
     env:
       SLACK_DEV_WEBHOOK_URL: ${{ secrets.SLACK_DEV_WEBHOOK_URL }}
       SLACK_PROD_WEBHOOK_URL: ${{ secrets.SLACK_PROD_WEBHOOK_URL }}
+      SERVICES: "gateway-service help-service notification-service review-service point-service user-service config-server eureka-server"
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -27,39 +31,61 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Define Tag
+    - name: Define TAG
       id: define_tag
       run: echo "TAG=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
 
     - name: Detect Changed Services
       id: detect_services
       run: |
-        SERVICES="gateway-service help-service notification-service review-service point-service user-service config-server eureka-server"
         CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
-        
-        if echo "$CHANGED_FILES" | grep -E '(^build.gradle|^settings.gradle|^gradlew|^gradlew.bat|^build.gradle.kts|^common/)' > /dev/null; then
-          echo "Gradle or common module changed. Building all services."
-          echo "CHANGED_SERVICES=$SERVICES" >> $GITHUB_ENV
+        if echo "$CHANGED_FILES" | grep -Eq '(^build.gradle|^settings.gradle|^gradlew|^build.gradle.kts|^common/)'; then
+          echo "CHANGED=ALL" >> $GITHUB_ENV
         else
-          CHANGED_SERVICES=$(echo "$CHANGED_FILES" | grep -E '^(gateway-service|help-service|notification-service|review-service|point-service|user-service|config-server|eureka-server)/' | awk -F/ '{print $1}' | sort -u | xargs)
-          echo "Detected changed services: $CHANGED_SERVICES"
-          echo "CHANGED_SERVICES=$CHANGED_SERVICES" >> $GITHUB_ENV
+          CHANGED=$(echo "$CHANGED_FILES" \
+            | grep -E '^(gateway-service|help-service|notification-service|review-service|point-service|user-service|config-server|eureka-server)/' \
+            | awk -F/ '{print $1}' | sort -u | xargs)
+          echo "CHANGED=$CHANGED" >> $GITHUB_ENV
         fi
 
-    # - name: Cancel Workflow if No Changes
-    #   if: env.CHANGED_SERVICES == ''
-    #   run: |
-    #     echo "No services changed. Exiting workflow early."
-    #     exit 0
+    - name: Check EC2 for Existing Containers
+      id: remote_check
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          COUNT=$(docker ps \
+            --filter "name=gateway-blue" --filter "name=gateway-green" \
+            --filter "name=help-service" --filter "name=notification-service" \
+            --filter "name=review-service" --filter "name=point-service" \
+            --filter "name=user-service" --filter "name=config-server" \
+            --filter "name=eureka-server" \
+            --format '{{.Names}}' \
+            | wc -l)
+          echo "EXISTING_COUNT=$COUNT" >> $GITHUB_ENV
 
-    - name: Build and Push Only Changed Services
+    - name: Cancel if No Changes & Not Initial Deploy
       run: |
-        for service in ${{ env.CHANGED_SERVICES }}; do
-          docker build -t namgyu967/$service:${{ env.TAG }} -f $service/Dockerfile .
-          docker push namgyu967/$service:${{ env.TAG }}
+        if [ "${CHANGED}" = "" ] && [ "${EXISTING_COUNT}" -gt 2 ]; then
+          echo "No changes and not initial deploy. Skipping."
+          exit 0
+        fi
+
+    - name: Build & Push Changed Services
+      run: |
+        if [ "${CHANGED}" = "ALL" ]; then
+          TARGETS=($SERVICES)
+        else
+          TARGETS=($CHANGED)
+        fi
+        for service in "${TARGETS[@]}"; do
+          docker build -t namgyu967/$service:${TAG} -f $service/Dockerfile .
+          docker push namgyu967/$service:${TAG}
         done
 
-    - name: Deploy to EC2
+    - name: Deploy via SSH (Blue-Green Gateway + Others)
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.EC2_HOST }}
@@ -67,55 +93,85 @@ jobs:
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
           cd ~/timebank
-          echo "TAG=${{ env.TAG }}" > .env-tag
-          source .env-tag
 
-          for service in ${{ env.CHANGED_SERVICES }}; do
-            docker-compose pull $service
-            docker-compose up -d $service
+          # Blue-Green toggle
+          if docker ps --filter name=gateway-blue --filter status=running | grep -q gateway-blue; then
+            NEW=green; OLD=blue
+          else
+            NEW=blue; OLD=green
+          fi
+
+          # Deploy new gateway
+          docker pull namgyu967/gateway-service:${TAG}-$NEW
+          docker stop gateway-$OLD || true
+          docker rm gateway-$OLD || true
+          docker run -d --name gateway-$NEW --network msanet -e SERVER_PORT=8080 namgyu967/gateway-service:${TAG}-$NEW
+
+          # Update Nginx upstream
+          sed -i "s/server gateway-$OLD:8080;/server gateway-$NEW:8080;/" nginx-conf/gw.conf
+          docker exec nginx nginx -s reload
+
+          # Deploy other changed services
+          if [ "${CHANGED}" = "ALL" ]; then
+            TARGETS=($SERVICES)
+          else
+            TARGETS=($CHANGED)
+          fi
+          for service in "${TARGETS[@]}"; do
+            if [ "$service" != "gateway-service" ]; then
+              docker-compose pull $service
+              docker-compose up -d $service
+            fi
           done
 
           docker image prune -af
 
-    - name: Health Check Changed Services
-      id: health_check
+    - name: Health Check & Summarize
+      id: health
       run: |
-        echo "Checking health of services..."
-        GATEWAY_URL="http://${{ secrets.EC2_PUBLIC_IP }}:8000"
-
-        SUCCESS_SERVICES=""
-        FAILED_SERVICES=""
-
-        for service in ${{ env.CHANGED_SERVICES }}; do
-          echo "Checking $service..."
+        SUCCESS=""
+        FAILED=""
+        BASE="http://${{ secrets.EC2_PUBLIC_IP }}:8080"
+        for svc in ${{ env.CHANGED }}; do
+          ENDPOINT="$BASE"
+          if [ "$svc" != "gateway-service" ]; then
+            ENDPOINT="$BASE/$svc"
+          fi
           for i in {1..10}; do
             sleep 5
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$GATEWAY_URL/$service/actuator/health")
-            if [ "$STATUS" == "200" ]; then
-              echo "$service is healthy!"
-              SUCCESS_SERVICES="$SUCCESS_SERVICES $service"
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$ENDPOINT/actuator/health")
+            if [ "$code" = "200" ]; then
+              SUCCESS="$SUCCESS $svc"
               break
             fi
             if [ "$i" -eq 10 ]; then
-              echo "$service health check failed."
-              FAILED_SERVICES="$FAILED_SERVICES $service"
+              FAILED="$FAILED $svc"
             fi
           done
         done
+        echo "SUCCESS=$SUCCESS" >> $GITHUB_ENV
+        echo "FAILED=$FAILED" >> $GITHUB_ENV
 
-        echo "SUCCESS_SERVICES=$SUCCESS_SERVICES" >> $GITHUB_ENV
-        echo "FAILED_SERVICES=$FAILED_SERVICES" >> $GITHUB_ENV
-
-    - name: Slack Notification (Success)
-      if: success()
+    - name: Slack Notification
       uses: slackapi/slack-github-action@v1.24.0
       with:
         payload: |
           {
-            "text": ":rocket: *TimeBank 배포 성공!*\n\n> 성공 서비스: `${{ env.SUCCESS_SERVICES }}`\n> 실패 서비스: `${{ env.FAILED_SERVICES }}`\n> 태그: `${{ env.TAG }}`\n\n▶️ [Eureka Server 바로가기](http://${{ secrets.EC2_HOST }}:8761)"
+            "text": ${{ toJson(join(
+              [
+                github.ref == 'refs/heads/main'
+                  ? ":white_check_mark: *[PROD]* 배포 성공!"
+                  : ":white_check_mark: *[DEV]* 배포 성공!",
+                "> 변경된 서비스:${CHANGED:- none}",
+                "> 정상:${SUCCESS:- none}",
+                "> 실패:${FAILED:- none}",
+                "> 태그:${TAG}",
+                "> Gateway: http://${{ secrets.EC2_PUBLIC_IP }}"
+              ], "\n"
+            )) }}
           }
       env:
-        SLACK_WEBHOOK_URL: ${{ github.ref == 'refs/heads/main' && env.SLACK_PROD_WEBHOOK_URL || env.SLACK_DEV_WEBHOOK_URL }}
+        SLACK_WEBHOOK_URL: ${{ github.ref == 'refs/heads/main' && secrets.SLACK_PROD_WEBHOOK_URL || secrets.SLACK_DEV_WEBHOOK_URL }}
 
     - name: Slack Notification (Failure)
       if: failure()
@@ -123,7 +179,14 @@ jobs:
       with:
         payload: |
           {
-            "text": ":x: *TimeBank 배포 실패!*"
+            "text": ${{ toJson(join(
+              [
+                github.ref == 'refs/heads/main'
+                  ? ":x: *[PROD]* 배포 실패!*"
+                  : ":x: *[DEV]* 배포 실패!*",
+                "> 에러 로그를 확인해주세요."
+              ], "\n"
+            )) }}
           }
       env:
-        SLACK_WEBHOOK_URL: ${{ github.ref == 'refs/heads/main' && env.SLACK_PROD_WEBHOOK_URL || env.SLACK_DEV_WEBHOOK_URL }}
+        SLACK_WEBHOOK_URL: ${{ github.ref == 'refs/heads/main' && secrets.SLACK_PROD_WEBHOOK_URL || secrets.SLACK_DEV_WEBHOOK_URL }}
