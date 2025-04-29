@@ -32,6 +32,7 @@ public class SecurityConfig {
 				.requestMatchers("/api/v1/auth/signup").permitAll()
 				.requestMatchers("/api/v1/auth/login").permitAll()
 				.requestMatchers("/api/v1/**").permitAll()
+				.requestMatchers("/actuator/prometheus").permitAll()
 				.anyRequest().authenticated()
 			)
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
