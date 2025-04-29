@@ -48,7 +48,7 @@ public class HelperController {
 	) {
 		Page<FindHelperInfoResponse> helperPage =
 			helperService.findByHelpRequestId(helpRequestId, pageable);
-		PageResponseDto<FindHelperResponse> responseDto = new PageResponseDto<>(
+		PageResponseDto<FindHelperInfoResponse> responseDto = new PageResponseDto<>(
 			HttpStatus.OK, helperPage, "조회 완료");
 		return ResponseEntity.ok(ResponseDto.success(responseDto).getData());
 	}
