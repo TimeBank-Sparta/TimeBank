@@ -46,11 +46,11 @@ jobs:
           echo "CHANGED_SERVICES=$CHANGED_SERVICES" >> $GITHUB_ENV
         fi
 
-    - name: Cancel Workflow if No Changes
-      if: env.CHANGED_SERVICES == ''
-      run: |
-        echo "No services changed. Exiting workflow early."
-        exit 0
+    # - name: Cancel Workflow if No Changes
+    #   if: env.CHANGED_SERVICES == ''
+    #   run: |
+    #     echo "No services changed. Exiting workflow early."
+    #     exit 0
 
     - name: Build and Push Only Changed Services
       run: |
