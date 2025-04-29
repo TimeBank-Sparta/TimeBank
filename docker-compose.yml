@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   nginx:
     image: nginx:alpine
@@ -17,7 +15,10 @@ services:
           - gateway-service
 
   config-server:
-    image: namgyu967/config-server
+    build:
+      context: ./config-server
+      dockerfile: Dockerfile
+    image: namgyu967/config-server:latest
     container_name: config-server
     restart: always
     ports:
@@ -30,7 +31,10 @@ services:
       - msanet
 
   eureka-server:
-    image: namgyu967/eureka-server
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    image: namgyu967/eureka-server:latest
     container_name: eureka-server
     restart: always
     ports:
@@ -41,9 +45,11 @@ services:
     networks:
       - msanet
 
-  # 1) Blue Gateway
   gateway-blue:
-    image: namgyu967/gateway-service
+    build:
+      context: ./gateway-service
+      dockerfile: Dockerfile
+    image: namgyu967/gateway-service:latest
     container_name: gateway-blue
     restart: always
     environment:
@@ -53,9 +59,11 @@ services:
     networks:
       - msanet
 
-  # 2) Green Gateway
   gateway-green:
-    image: namgyu967/gateway-service
+    build:
+      context: ./gateway-service
+      dockerfile: Dockerfile
+    image: namgyu967/gateway-service:latest
     container_name: gateway-green
     restart: always
     environment:
@@ -66,7 +74,10 @@ services:
       - msanet
 
   help-service:
-    image: namgyu967/help-service
+    build:
+      context: ./help-service
+      dockerfile: Dockerfile
+    image: namgyu967/help-service:latest
     container_name: help-service
     restart: always
     ports:
@@ -88,7 +99,10 @@ services:
       - msanet
 
   notification-service:
-    image: namgyu967/notification-service
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    image: namgyu967/notification-service:latest
     container_name: notification-service
     restart: always
     ports:
@@ -107,7 +121,10 @@ services:
       - msanet
 
   review-service:
-    image: namgyu967/review-service
+    build:
+      context: ./review-service
+      dockerfile: Dockerfile
+    image: namgyu967/review-service:latest
     container_name: review-service
     restart: always
     ports:
@@ -126,7 +143,10 @@ services:
       - msanet
 
   point-service:
-    image: namgyu967/point-service
+    build:
+      context: ./point-service
+      dockerfile: Dockerfile
+    image: namgyu967/point-service:latest
     container_name: point-service
     restart: always
     ports:
@@ -147,7 +167,10 @@ services:
       - msanet
 
   user-service:
-    image: namgyu967/user-service
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    image: namgyu967/user-service:latest
     container_name: user-service
     restart: always
     ports:
