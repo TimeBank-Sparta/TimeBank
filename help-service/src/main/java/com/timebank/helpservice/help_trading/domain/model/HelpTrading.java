@@ -37,10 +37,6 @@ public class HelpTrading extends Timestamped {
 
 	private int actualPoints;
 
-	private boolean requesterApproved;
-
-	private boolean helperApproved;
-
 	@Enumerated(EnumType.STRING)
 	private TradeStatus tradeStatus;
 
@@ -54,8 +50,6 @@ public class HelpTrading extends Timestamped {
 		Long helperId,
 		LocalDateTime startedAt,
 		int actualPoints,
-		boolean requesterApproved,
-		boolean helperApproved,
 		TradeStatus tradeStatus
 	) {
 		this.helpRequestId = helpRequestId;
@@ -63,8 +57,6 @@ public class HelpTrading extends Timestamped {
 		this.helperId = helperId;
 		this.startedAt = startedAt;
 		this.actualPoints = actualPoints;
-		this.requesterApproved = requesterApproved;
-		this.helperApproved = helperApproved;
 		this.tradeStatus = tradeStatus;
 	}
 
@@ -75,8 +67,6 @@ public class HelpTrading extends Timestamped {
 			.helperId(helpTradingInfo.helperId())
 			.startedAt(LocalDateTime.now())
 			.actualPoints(helpTradingInfo.actualPoints())
-			.requesterApproved(false)
-			.helperApproved(false)
 			.tradeStatus(TradeStatus.CREATED)
 			.build();
 	}

@@ -17,8 +17,8 @@ public class HelperEventKafkaListener {
 
 	private final HelperService helperService;
 
-	@KafkaListener(topics = "help-request.delete", groupId = "helpers")
-	public void consumeFromGroupA(String message) {
+	@KafkaListener(topics = "help-request.complete", groupId = "helpers")
+	public void consumeCompletedHelpRequest(String message) {
 		FromHelpRequestKafkaDto parsedDto = KafkaMessageParser.parse(message, FromHelpRequestKafkaDto.class);
 		helperService.deleteHelpersByStatusSupported(parsedDto);
 	}

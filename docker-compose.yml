@@ -80,6 +80,7 @@ services:
       - zookeeper
       - kafka
       - gateway-service
+      - redis
     entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
     networks:
       - msanet
@@ -296,6 +297,27 @@ services:
     networks:
       - msanet
 
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - msanet
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - msanet
+
 networks:
   msanet:
     driver: bridge
@@ -307,3 +329,4 @@ volumes:
   review_mysql_data:
   point_mysql_data:
   user_mysql_data:
+  grafana-storage:

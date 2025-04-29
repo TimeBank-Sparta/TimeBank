@@ -13,6 +13,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -25,7 +26,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Entity
-@Table(name = "p_help_request")
+@Table(
+	name = "p_help_request",
+	indexes = {
+		@Index(name = "idx_requester_id", columnList = "requesterId"),
+		@Index(name = "idx_title", columnList = "title"),
+		@Index(name = "idx_scheduled_at", columnList = "scheduledAt")
+	}
+)
 public class HelpRequest extends Timestamped {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
