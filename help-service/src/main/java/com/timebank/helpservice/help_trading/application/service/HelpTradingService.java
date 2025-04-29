@@ -8,7 +8,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.timebank.common.application.exception.CustomNotFoundException;
 import com.timebank.common.infrastructure.dto.PointTransferRequestMessage;
 import com.timebank.common.infrastructure.external.notification.dto.NotificationEvent;
 import com.timebank.common.infrastructure.external.notification.dto.NotificationEventType;
@@ -27,6 +26,7 @@ import com.timebank.helpservice.help_trading.domain.UserRole;
 import com.timebank.helpservice.help_trading.domain.model.HelpTrading;
 import com.timebank.helpservice.help_trading.domain.repository.HelpTradingRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -82,7 +82,7 @@ public class HelpTradingService {
 	@Transactional
 	public void delete(Long helpTradingId, String userId) {
 		HelpTrading helpTrading = helpTradingRepository.findById(helpTradingId)
-			.orElseThrow(() -> new CustomNotFoundException("거래내역이 없습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("거래내역이 없습니다."));
 		helpTrading.delete(userId);
 
 		// 거래 취소 시 알림 이벤트 발행: 거래 종료 요청 (취소)
@@ -100,7 +100,7 @@ public class HelpTradingService {
 	@Transactional
 	public void delete(Long helpRequestId) {
 		HelpTrading helpTrading = helpTradingRepository.findById(helpRequestId).orElseThrow(() ->
-			new CustomNotFoundException("거래내역이 없습니다."));
+			new EntityNotFoundException("거래내역이 없습니다."));
 	}
 
 	@Transactional
@@ -170,6 +170,6 @@ public class HelpTradingService {
 
 	public HelpTrading getHelpTradingOrThrow(Long helpTradingId) {
 		return helpTradingRepository.findById(helpTradingId).orElseThrow(() ->
-			new CustomNotFoundException("거래내역이 없습니다."));
+			new EntityNotFoundException("거래내역이 없습니다."));
 	}
 }

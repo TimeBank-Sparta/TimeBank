@@ -41,7 +41,7 @@ public class NotificationController {
 		@RequestBody @Valid NotificationDto notificationDto) {
 		NotificationDto created = notificationService.createNotification(notificationDto);
 		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(ResponseDto.success(HttpStatus.CREATED, created));
+			.body(ResponseDto.success(created));
 	}
 
 	/**
@@ -54,8 +54,7 @@ public class NotificationController {
 		// PageResponseDto.success(HttpStatus status, Page<T> page, String message) 사용
 		PageResponseDto<NotificationDto> responseDto = PageResponseDto.success(
 			HttpStatus.OK, notificationsPage, "Notifications fetched successfully");
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(responseDto);
+		return ResponseEntity.ok(ResponseDto.success(responseDto).getData());
 	}
 
 	/**
@@ -66,8 +65,7 @@ public class NotificationController {
 	public ResponseEntity<ResponseDto<NotificationDto>> getNotification(
 		@PathVariable Long notificationId) {
 		NotificationDto notification = notificationService.getNotification(notificationId);
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(ResponseDto.success(HttpStatus.OK, notification));
+		return ResponseEntity.ok(ResponseDto.success(notification));
 	}
 
 	/**
@@ -78,8 +76,7 @@ public class NotificationController {
 	public ResponseEntity<ResponseDto<NotificationDto>> markNotificationAsRead(
 		@PathVariable Long notificationId) {
 		NotificationDto updatedNotification = notificationService.markAsRead(notificationId);
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(ResponseDto.success(HttpStatus.OK, updatedNotification));
+		return ResponseEntity.ok(ResponseDto.success(updatedNotification));
 	}
 
 	/**
@@ -87,10 +84,10 @@ public class NotificationController {
 	 * DELETE /api/v1/notifications/{notificationId}
 	 */
 	@DeleteMapping("/{notificationId}")
-	public ResponseEntity<ResponseDto<String>> deleteNotification(
+	public ResponseEntity<ResponseDto<Void>> deleteNotification(
 		@PathVariable Long notificationId) {
 		notificationService.deleteNotification(notificationId);
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(ResponseDto.success(HttpStatus.OK, "Notification deleted successfully"));
+		return ResponseEntity.ok(ResponseDto.responseWithNoData(
+			HttpStatus.NO_CONTENT, "삭제완료"));
 	}
 }

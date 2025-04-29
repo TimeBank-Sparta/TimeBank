@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,6 +28,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+@Validated
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -42,7 +44,7 @@ public class UserProfileController {
 		@RequestBody @Valid UserProfileCreateRequestDto request
 	) {
 		UserProfileResponseDto response = userProfileService.createProfile(userId, request);
-		return ResponseEntity.status(HttpStatus.CREATED).body(ResponseDto.success(HttpStatus.CREATED, response));
+		return ResponseEntity.status(HttpStatus.CREATED).body(ResponseDto.success(response));
 	}
 
 	// 내 프로필 조회
@@ -51,7 +53,7 @@ public class UserProfileController {
 		@RequestHeader("X-User-Id") Long userId
 	) {
 		UserMyProfileResponseDto response = userProfileService.getMyProfile(userId);
-		return ResponseEntity.ok(ResponseDto.success(HttpStatus.OK, response));
+		return ResponseEntity.ok(ResponseDto.success(response));
 	}
 
 	// 다른 사람 프로필 조회 (닉네임 기반)
@@ -60,7 +62,7 @@ public class UserProfileController {
 		@PathVariable String nickname
 	) {
 		UserProfileResponseDto response = userProfileService.getProfileByNickname(nickname);
-		return ResponseEntity.ok(ResponseDto.success(HttpStatus.OK, response));
+		return ResponseEntity.ok(ResponseDto.success(response));
 	}
 
 	// 다른 사람 프로필 조회 (닉네임 기반)
@@ -69,7 +71,7 @@ public class UserProfileController {
 		@PathVariable Long userId
 	) {
 		UserProfileResponseDto response = userProfileService.getProfileByUserId(userId);
-		return ResponseEntity.ok(ResponseDto.success(HttpStatus.OK, response));
+		return ResponseEntity.ok(ResponseDto.success(response));
 	}
 
 	// 프로필 수정
@@ -79,7 +81,7 @@ public class UserProfileController {
 		@RequestBody @Valid UserProfileUpdateRequestDto request
 	) {
 		UserProfileResponseDto response = userProfileService.updateProfile(userId, request);
-		return ResponseEntity.ok(ResponseDto.success(HttpStatus.OK, response));
+		return ResponseEntity.ok(ResponseDto.success(response));
 	}
 
 	// 프로필 삭제
@@ -88,13 +90,14 @@ public class UserProfileController {
 		@RequestHeader("X-User-Id") Long userId
 	) {
 		userProfileService.deleteProfile(userId);
-		return ResponseEntity.noContent().build();
+		return ResponseEntity.ok(ResponseDto
+			.responseWithNoData(HttpStatus.NO_CONTENT, "성공적으로 처리되었습니다."));
 	}
 
 	// 지원자 리스트 조회하기
 	@PostMapping("/apply-list")
 	public List<GetUserInfoFeignResponse> getUserInfoByHelper(
-		@RequestBody List<GetUserInfoFeignRequest> requestList
+		@Valid @RequestBody List<GetUserInfoFeignRequest> requestList
 	) {
 		List<Long> userIdList = requestList.stream()
 			.map(GetUserInfoFeignRequest::userId)

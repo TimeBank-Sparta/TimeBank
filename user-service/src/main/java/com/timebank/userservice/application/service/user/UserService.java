@@ -5,6 +5,7 @@ import static org.springframework.util.StringUtils.*;
 import java.time.LocalDateTime;
 
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,9 +15,11 @@ import com.timebank.common.infrastructure.external.notification.dto.Notification
 import com.timebank.common.infrastructure.external.notification.dto.NotificationType;
 import com.timebank.userservice.application.dto.request.user.UserUpdateRequestDto;
 import com.timebank.userservice.application.dto.response.user.UserResponseDto;
+import com.timebank.userservice.domain.model.user.Role;
 import com.timebank.userservice.domain.model.user.User;
 import com.timebank.userservice.infrastructure.persistence.JpaUserRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,7 +36,7 @@ public class UserService {
 	// 로그인 처리: 사용자 로그인 성공 후 알림 이벤트 발행
 	public UserResponseDto processLogin(Long id) {
 		User user = userRepository.findById(id)
-			.orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("회원을 찾을 수 없습니다."));
 
 		// 로그인 성공 이벤트 생성 (생성 이벤트)
 		NotificationEvent event = NotificationEvent.builder()
@@ -51,9 +54,12 @@ public class UserService {
 		return UserResponseDto.from(user);
 	}
 
-	public UserResponseDto getUser(Long id) {
+	public UserResponseDto getUser(Long id, Role role) {
+		if (Role.USER.equals(role)) {
+			throw new AccessDeniedException("접근 권한이 없습니다.");
+		}
 		User user = userRepository.findById(id)
-			.orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("회원을 찾을 수 없습니다."));
 		return UserResponseDto.from(user);
 	}
 
@@ -61,7 +67,7 @@ public class UserService {
 	@Transactional
 	public UserResponseDto updateUser(Long id, String currentId, UserUpdateRequestDto requestDto) {
 		User user = userRepository.findById(id)
-			.orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("회원을 찾을 수 없습니다."));
 
 		if (!user.getId().equals(Long.parseLong(currentId))) {
 			log.info("현재 사용자: {}", currentId);
@@ -104,12 +110,14 @@ public class UserService {
 	@Transactional
 	public void deleteUser(Long id, String currentId) {
 		User user = userRepository.findById(id)
-			.orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("회원을 찾을 수 없습니다."));
 
 		if (!user.getId().equals(Long.parseLong(currentId))) {
 			throw new IllegalArgumentException("동일 회원이 아닙니다.");
 		}
+		
 		user.delete(currentId);
+		user.getUserProfile().delete(currentId);
 
 		// 회원 탈퇴(삭제) 이벤트 생성
 		NotificationEvent event = NotificationEvent.builder()

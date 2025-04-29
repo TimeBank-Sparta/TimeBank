@@ -4,7 +4,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.timebank.review.application.event.ReviewEvent;
+import com.timebank.common.infrastructure.external.review.dto.ReviewEvent;
 import com.timebank.review.domain.entity.Review;
 import com.timebank.review.domain.repository.ReviewRepository;
 
@@ -33,7 +33,9 @@ public class ReviewConsumer {
 	@KafkaListener(topics = "reviews.events", groupId = "review-group")
 	public void consumeReviewEvent(ReviewEvent event) {
 		log.info("Consumed ReviewEvent: {}", event);
-		saveReviewEvent(event);
+		// 중복 처리 되어서 주석
+		// saveReviewEvent(event);
+
 	}
 
 	private void handleCreated(ReviewEvent event) {

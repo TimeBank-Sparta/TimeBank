@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -14,6 +15,7 @@ import com.timebank.common.application.dto.ResponseDto;
 import com.timebank.userservice.application.dto.request.auth.LoginRequestDto;
 import com.timebank.userservice.application.dto.request.auth.SignUpRequestDto;
 import com.timebank.userservice.application.dto.response.auth.LoginResponseDto;
+import com.timebank.userservice.application.dto.response.auth.LoginResultDto;
 import com.timebank.userservice.application.service.auth.AuthService;
 import com.timebank.userservice.presentation.dto.request.RefreshTokenRequestDto;
 import com.timebank.userservice.presentation.dto.response.TokenResponseDto;
@@ -24,6 +26,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+@Validated
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -46,10 +49,11 @@ public class AuthController {
 	public ResponseEntity<ResponseDto<LoginResponseDto>> login(
 		@Valid @RequestBody LoginRequestDto requestDto,
 		HttpServletResponse response) {
-		LoginResponseDto responseDto = authService.login(requestDto);
+		LoginResultDto resultDto = authService.login(requestDto);
+		LoginResponseDto responseDto = resultDto.getResponseDto();
 
 		// refresh token 쿠키 설정
-		Cookie refreshTokenCookie = new Cookie("refreshToken", responseDto.getRefreshToken());
+		Cookie refreshTokenCookie = new Cookie("refreshToken", resultDto.getRefreshToken());
 		refreshTokenCookie.setHttpOnly(true);
 		refreshTokenCookie.setSecure(true); // HTTPS 환경일 때만 true
 		refreshTokenCookie.setPath("/");
@@ -62,25 +66,18 @@ public class AuthController {
 
 	@PostMapping("/refresh/redis")
 	public ResponseEntity<ResponseDto<TokenResponseDto>> refreshTokenRedis(
-		@RequestBody RefreshTokenRequestDto requestDto) {
-		log.info("authController에서 refreshToken API를 실행!!!!!");
+		@Valid @RequestBody RefreshTokenRequestDto requestDto) {
 		TokenResponseDto tokenResponseDto = authService.refreshTokenRedis(requestDto);
-		log.info("authController에서 authService.refreshToken을 무사히 마침!!!!!");
 		return ResponseEntity.ok(ResponseDto.success(tokenResponseDto));
 	}
 
-	@PostMapping("/refresh/rdbs")
-	public ResponseEntity<ResponseDto<TokenResponseDto>> refreshTokenRDBS(
-		@RequestBody RefreshTokenRequestDto requestDto) {
-		log.info("authController에서 refreshToken API를 실행!!!!!");
-		TokenResponseDto tokenResponseDto = authService.refreshTokenRDBS(requestDto);
-		log.info("authController에서 authService.refreshToken을 무사히 마침!!!!!");
-		return ResponseEntity.ok(ResponseDto.success(tokenResponseDto));
-	}
 
 	@PostMapping("/logout")
-	public ResponseEntity<ResponseDto<?>> logout(@RequestHeader("X-User-Id") String userId) {
-		authService.logout(userId);
+	public ResponseEntity<ResponseDto<?>> logout(
+		@RequestHeader("X-User-Id") Long userId,
+		@RequestHeader("Authorization") String authorizationHeader) {
+
+		authService.logout(userId, authorizationHeader);
 
 		Map<String, String> response = new HashMap<>();
 		response.put("message", "로그아웃이 완료되었습니다.");

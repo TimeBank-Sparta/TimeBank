@@ -1,6 +1,8 @@
 package com.timebank.userservice.presentation.controller.user;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,9 +16,12 @@ import com.timebank.common.application.dto.ResponseDto;
 import com.timebank.userservice.application.dto.request.user.UserUpdateRequestDto;
 import com.timebank.userservice.application.dto.response.user.UserResponseDto;
 import com.timebank.userservice.application.service.user.UserService;
+import com.timebank.userservice.domain.model.user.Role;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Validated
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
@@ -24,8 +29,10 @@ public class UserController {
 	private final UserService userService;
 
 	@GetMapping("/{id}")
-	public ResponseEntity<ResponseDto<UserResponseDto>> getUser(@PathVariable long id) {
-		UserResponseDto userResponseDto = userService.getUser(id);
+	public ResponseEntity<ResponseDto<UserResponseDto>> getUser(
+		@PathVariable long id,
+		@RequestHeader("X-Role") Role role) {
+		UserResponseDto userResponseDto = userService.getUser(id, role);
 		return ResponseEntity.ok(ResponseDto.success(userResponseDto));
 	}
 
@@ -33,7 +40,7 @@ public class UserController {
 	public ResponseEntity<ResponseDto<UserResponseDto>> updateUser(
 		@PathVariable Long id,
 		@RequestHeader("X-User-Id") String currentId,
-		@RequestBody UserUpdateRequestDto userUpdateRequestDto
+		@RequestBody @Valid UserUpdateRequestDto userUpdateRequestDto
 	) {
 		UserResponseDto userResponseDto = userService.updateUser(id, currentId, userUpdateRequestDto);
 		return ResponseEntity.ok(ResponseDto.success(userResponseDto));
@@ -45,6 +52,7 @@ public class UserController {
 		@RequestHeader("X-User-Id") String currentId
 	) {
 		userService.deleteUser(id, currentId);
-		return ResponseEntity.noContent().build();
+		return ResponseEntity.ok(ResponseDto
+			.responseWithNoData(HttpStatus.NO_CONTENT, "성공적으로 처리되었습니다."));
 	}
 }

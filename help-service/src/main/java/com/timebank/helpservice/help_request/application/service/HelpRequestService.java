@@ -9,7 +9,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.timebank.common.application.exception.CustomNotFoundException;
 import com.timebank.common.infrastructure.external.notification.dto.NotificationEvent;
 import com.timebank.common.infrastructure.external.notification.dto.NotificationEventType;
 import com.timebank.common.infrastructure.external.notification.dto.NotificationType;
@@ -24,6 +23,7 @@ import com.timebank.helpservice.help_request.application.dto.response.UpdateHelp
 import com.timebank.helpservice.help_request.domain.model.HelpRequest;
 import com.timebank.helpservice.help_request.domain.repository.HelpRequestRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -155,7 +155,7 @@ public class HelpRequestService {
 
 	private HelpRequest getHelpRequestOrThrow(Long helpRequestId) {
 		return helpRequestRepository.findById(helpRequestId)
-			.orElseThrow(() -> new CustomNotFoundException("게시글이 없습니다."));
+			.orElseThrow(() -> new EntityNotFoundException("게시글이 없습니다."));
 	}
 
 }

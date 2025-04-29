@@ -3,6 +3,8 @@ package com.timebank.userservice.domain.model.profile;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.springframework.util.StringUtils;
+
 import com.timebank.common.domain.Timestamped;
 import com.timebank.userservice.domain.model.user.User;
 
@@ -101,7 +103,7 @@ public class UserProfile extends Timestamped {
 		Set<ServiceCategory> needServices,
 		UserLocation location,
 		String introduction) {
-		if (nickname != null) {
+		if (StringUtils.hasText(nickname)) {
 			this.nickname = nickname;
 		}
 		if (helpServices != null) {
@@ -113,7 +115,7 @@ public class UserProfile extends Timestamped {
 		if (location != null) {
 			this.location = location;
 		}
-		if (introduction != null) {
+		if (StringUtils.hasText(introduction)) {
 			this.introduction = introduction;
 		}
 	}
