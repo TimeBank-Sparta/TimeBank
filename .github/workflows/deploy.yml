@@ -77,15 +77,15 @@ jobs:
     - name: 배포 스킵 판단
       run: |
         echo "Existing on server: $EXISTING_COUNT"
-        # 변경 없고, 이미 3개 이상 서비스가 올라와 있으면 스킵
-        if [ -z "$CHANGED" ] && [ "$EXISTING_COUNT" -gt 2 ]; then
-          echo "No changes & more than 2 existing → Skipping."
+        # 변경 없고, 이미 13개 이상 서비스가 올라와 있으면 스킵
+        if [ -z "$CHANGED" ] && [ "$EXISTING_COUNT" -gt 13 ]; then
+          echo "No changes & more than 13 existing → Skipping."
           exit 0
         fi
 
     - name: Build & Push 대상 결정 및 실행
       run: |
-        if [ "$CHANGED" = "ALL" ] || { [ -z "$CHANGED" ] && [ "$EXISTING_COUNT" -le 2 ]; }; then
+        if [ "$CHANGED" = "ALL" ] || { [ -z "$CHANGED" ] && [ "$EXISTING_COUNT" -le 13 ]; }; then
           TARGETS=($SERVICES)
         else
           TARGETS=($CHANGED)
