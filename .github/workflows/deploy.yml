@@ -110,6 +110,10 @@ jobs:
 
       - name: EC2에 Blue-Green 및 서비스 배포
         uses: appleboy/ssh-action@master
+        env: 
+          TAG:      ${{ env.TAG }}
+          SERVICES: ${{ env.SERVICES }}
+          CHANGED:  ${{ env.CHANGED }}
         with:
           host:             ${{ secrets.EC2_HOST }}
           username:         ${{ secrets.EC2_USER }}
@@ -120,10 +124,6 @@ jobs:
           command_timeout:  10m
           capture_stdout:   true
           curl_insecure:    false
-          envs: |
-            TAG:      ${{ env.TAG }}
-            SERVICES: ${{ env.SERVICES }}
-            CHANGED:  ${{ env.CHANGED }}
           script: |
             set -e
             cd ~/timebank
