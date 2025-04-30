@@ -138,8 +138,6 @@ jobs:
             sed -i "s/server gateway-$OLD:8080;/server gateway-$NEW:8080;/" nginx-conf/gw.conf
             docker exec nginx nginx -s reload
 
-            docker-compose stop gateway-$OLD || true
-            docker-compose rm -f gateway-$OLD || true
 
             # 2) targets 계산
             if [ "${CHANGED}" = "ALL" ] || [ -z "${CHANGED}" ]; then
