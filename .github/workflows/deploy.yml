@@ -59,13 +59,21 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          protocol: tcp
+          timeout: 30s
+          command_timeout: 1m
           capture_stdout: true
           script: |
             docker ps \
-              --filter name=gateway-blue --filter name=gateway-green \
-              --filter name=help-service --filter name=notification-service \
-              --filter name=review-service --filter name=point-service \
-              --filter name=user-service --filter name=config-server \
+              --filter name=gateway-blue \
+              --filter name=gateway-green \
+              --filter name=help-service \
+              --filter name=notification-service \
+              --filter name=review-service \
+              --filter name=point-service \
+              --filter name=user-service \
+              --filter name=config-server \
               --filter name=eureka-server \
               --format '{{.Names}}' | wc -l
 
