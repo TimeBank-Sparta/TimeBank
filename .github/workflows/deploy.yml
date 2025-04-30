@@ -12,10 +12,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      # Slack Webhooks
       SLACK_DEV_WEBHOOK_URL: ${{ secrets.SLACK_DEV_WEBHOOK_URL }}
       SLACK_PROD_WEBHOOK_URL: ${{ secrets.SLACK_PROD_WEBHOOK_URL }}
-      # 서비스 목록
       SERVICES: "gateway-service help-service notification-service review-service point-service user-service config-server eureka-server"
       EC2_HOST: ${{ secrets.EC2_HOST }}
 
@@ -36,8 +34,7 @@ jobs:
 
       - name: Define TAG
         id: define_tag
-        run: |
-          echo "TAG=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+        run: echo "TAG=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
 
       - name: Detect Changed Services
         id: detect_services
@@ -60,8 +57,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key:      ${{ secrets.EC2_SSH_KEY }}
           port:     22
-          sync:     true            # ← 추가: 원격 stdout/stderr를 바로 로그에 스트리밍
-          debug:    true            # ← 추가: SSH 액션 디버그 정보도 출력
+          sync:     true
           script: |
             docker ps \
               --filter name=gateway-blue \
@@ -78,7 +74,7 @@ jobs:
       - name: Export EXISTING_COUNT
         run: |
           RAW="${{ steps.remote_count.outputs.stdout || '0' }}"
-          NUM=$(echo "$RAW" | head -n1 | tr -cd '0-9')
+          NUM=$(echo "$RAW" | tr -cd '0-9')
           echo "EXISTING_COUNT=$NUM" >> $GITHUB_ENV
 
       - name: Decide whether to skip deploy
@@ -108,25 +104,23 @@ jobs:
 
       - name: EC2에 Blue-Green 및 서비스 배포
         uses: appleboy/ssh-action@master
-        env:
-          TAG:      ${{ env.TAG }}
-          SERVICES: ${{ env.SERVICES }}
-          CHANGED:  ${{ env.CHANGED }}
         with:
-          host:             ${{ secrets.EC2_HOST }}
-          username:         ${{ secrets.EC2_USER }}
-          key:              ${{ secrets.EC2_SSH_KEY }}
-          port:             22
-          protocol:         tcp
-          timeout:          30s
-          command_timeout:  10m
-          sync:             true    # ← 추가: 원격 명령의 모든 출력이 실시간 로그로
-          debug:            true    # ← 추가: SSH 액션 레벨 디버그 정보도
-          curl_insecure:    false
+          host:            ${{ secrets.EC2_HOST }}
+          username:        ${{ secrets.EC2_USER }}
+          key:             ${{ secrets.EC2_SSH_KEY }}
+          port:            22
+          protocol:        tcp
+          timeout:         30s
+          command_timeout: 10m
+          sync:            true
+          debug:           true
+          envs: |
+            TAG=${{ env.TAG }}
+            SERVICES=${{ env.SERVICES }}
+            CHANGED=${{ env.CHANGED }}
           script: |
             set -e
             cd ~/timebank
-            source .env-tag
 
             # 0) nginx 보장
             docker-compose up -d nginx
@@ -143,13 +137,16 @@ jobs:
             docker exec nginx nginx -s reload
 
             # 2) targets 계산
-            if [ "$CHANGED" = "ALL" ] || [ -z "$CHANGED" ]; then
-              IFS=' ' read -r -a targets <<< "$SERVICES"
+            if [ "${CHANGED}" = "ALL" ] || [ -z "${CHANGED}" ]; then
+              IFS=' ' read -r -a targets <<< "${SERVICES}"
             else
-              IFS=' ' read -r -a targets <<< "$CHANGED"
+              IFS=' ' read -r -a targets <<< "${CHANGED}"
             fi
+
             echo "=== DEBUG: Final deploy targets ==="
-            printf " - %s\n" "${targets[@]}"
+            for svc in "${targets[@]}"; do
+              echo " - $svc"
+            done
 
             # 3) 나머지 서비스 기동
             for svc in "${targets[@]}"; do
@@ -164,7 +161,6 @@ jobs:
         shell: bash
         run: |
           set +e
-
           SUCCESS=""; FAILED=""
           BASE="http://${{ env.EC2_HOST }}"
 
@@ -174,7 +170,6 @@ jobs:
             else
               END="$BASE/$svc/actuator/health"
             fi
-
             for i in {1..10}; do
               sleep 5
               CODE=$(curl -s -o /dev/null -w "%{http_code}" "$END" || echo "000")
