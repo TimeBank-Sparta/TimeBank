@@ -95,7 +95,11 @@ services:
       - zookeeper
       - kafka
       - redis
-    entrypoint: sh -c "./wait-for-it.sh gateway-service:80 --timeout=60 --strict -- java -jar help-service.jar"
+    entrypoint: >
+      sh -c "./wait-for-it.sh config-server:8888 --timeout=60 --strict -- &&
+            ./wait-for-it.sh eureka-server:8761 --timeout=60 --strict -- &&
+            ./wait-for-it.sh gateway-service:80 --timeout=60 --strict -- &&
+            java -jar help-service.jar"
     networks:
       - msanet
 
@@ -116,7 +120,11 @@ services:
       - config-server
       - nginx
       - notification-mysql
-    entrypoint: sh -c "./wait-for-it.sh gateway-service:80 --timeout=60 --strict -- java -jar notification-service.jar"
+    entrypoint: >
+      sh -c "./wait-for-it.sh config-server:8888 --timeout=60 --strict -- &&
+            ./wait-for-it.sh eureka-server:8761 --timeout=60 --strict -- &&
+            ./wait-for-it.sh gateway-service:80 --timeout=60 --strict -- &&
+            java -jar help-service.jar"
     networks:
       - msanet
 
@@ -137,7 +145,11 @@ services:
       - config-server
       - nginx
       - review-mysql
-    entrypoint: sh -c "./wait-for-it.sh gateway-service:80 --timeout=60 --strict -- java -jar review-service.jar"
+    entrypoint: >
+      sh -c "./wait-for-it.sh config-server:8888 --timeout=60 --strict -- &&
+            ./wait-for-it.sh eureka-server:8761 --timeout=60 --strict -- &&
+            ./wait-for-it.sh gateway-service:80 --timeout=60 --strict -- &&
+            java -jar help-service.jar"
     networks:
       - msanet
 
@@ -160,7 +172,11 @@ services:
       - nginx
       - zookeeper
       - kafka
-    entrypoint: sh -c "./wait-for-it.sh gateway-service:80 --timeout=60 --strict -- java -jar point-service.jar"
+    entrypoint: >
+      sh -c "./wait-for-it.sh config-server:8888 --timeout=60 --strict -- &&
+            ./wait-for-it.sh eureka-server:8761 --timeout=60 --strict -- &&
+            ./wait-for-it.sh gateway-service:80 --timeout=60 --strict -- &&
+            java -jar help-service.jar"
     networks:
       - msanet
 
@@ -181,7 +197,11 @@ services:
       - config-server
       - nginx
       - user-mysql
-    entrypoint: sh -c "./wait-for-it.sh gateway-service:80 --timeout=60 --strict -- java -jar user-service.jar"
+    entrypoint: >
+      sh -c "./wait-for-it.sh config-server:8888 --timeout=60 --strict -- &&
+            ./wait-for-it.sh eureka-server:8761 --timeout=60 --strict -- &&
+            ./wait-for-it.sh gateway-service:80 --timeout=60 --strict -- &&
+            java -jar help-service.jar"
     networks:
       - msanet
 
