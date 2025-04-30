@@ -145,7 +145,7 @@ jobs:
               echo " - $svc"
             done
 
-            for svc in "${targets[@]}"; do
+            for svc in "${targets[*]}"; do
               [ "$svc" = "gateway-service" ] && continue
               echo "Deploying $svc..."
               docker-compose pull $svc
