@@ -145,8 +145,7 @@ jobs:
             else
               IFS=' ' read -r -a targets <<< "${CHANGED}"
             fi
-  
-            echo "=== DEBUG: Final deploy targets ==="
+            echo "=== DEBUG:Final deploy targets ==="
             for svc in "${targets[@]}"; do
               echo " - $svc"
             done
