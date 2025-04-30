@@ -97,9 +97,13 @@ services:
       - redis
     entrypoint: >
       sh -c "./wait-for-it.sh config-server:8888 --timeout=60 --strict -- &&
-            ./wait-for-it.sh eureka-server:8761 --timeout=60 --strict -- &&
-            ./wait-for-it.sh gateway-service:80 --timeout=60 --strict -- &&
-            java -jar help-service.jar"
+             ./wait-for-it.sh eureka-server:8761  --timeout=60 --strict -- &&
+             ./wait-for-it.sh gateway-service:80  --timeout=60 --strict -- &&
+             ./wait-for-it.sh help-mysql:3307     --timeout=60 --strict -- &&
+             ./wait-for-it.sh zookeeper:2181      --timeout=60 --strict -- &&
+             ./wait-for-it.sh kafka:9092          --timeout=60 --strict -- &&
+             ./wait-for-it.sh redis:6379          --timeout=60 --strict -- &&
+             java -jar help-service.jar"
     networks:
       - msanet
 
@@ -122,9 +126,10 @@ services:
       - notification-mysql
     entrypoint: >
       sh -c "./wait-for-it.sh config-server:8888 --timeout=60 --strict -- &&
-            ./wait-for-it.sh eureka-server:8761 --timeout=60 --strict -- &&
-            ./wait-for-it.sh gateway-service:80 --timeout=60 --strict -- &&
-            java -jar help-service.jar"
+             ./wait-for-it.sh eureka-server:8761  --timeout=60 --strict -- &&
+             ./wait-for-it.sh gateway-service:80  --timeout=60 --strict -- &&
+             ./wait-for-it.sh notification-mysql:3308 --timeout=60 --strict -- &&
+             java -jar notification-service.jar"
     networks:
       - msanet
 
@@ -147,9 +152,10 @@ services:
       - review-mysql
     entrypoint: >
       sh -c "./wait-for-it.sh config-server:8888 --timeout=60 --strict -- &&
-            ./wait-for-it.sh eureka-server:8761 --timeout=60 --strict -- &&
-            ./wait-for-it.sh gateway-service:80 --timeout=60 --strict -- &&
-            java -jar help-service.jar"
+             ./wait-for-it.sh eureka-server:8761  --timeout=60 --strict -- &&
+             ./wait-for-it.sh gateway-service:80  --timeout=60 --strict -- &&
+             ./wait-for-it.sh review-mysql:3309    --timeout=60 --strict -- &&
+             java -jar review-service.jar"
     networks:
       - msanet
 
@@ -174,9 +180,12 @@ services:
       - kafka
     entrypoint: >
       sh -c "./wait-for-it.sh config-server:8888 --timeout=60 --strict -- &&
-            ./wait-for-it.sh eureka-server:8761 --timeout=60 --strict -- &&
-            ./wait-for-it.sh gateway-service:80 --timeout=60 --strict -- &&
-            java -jar help-service.jar"
+             ./wait-for-it.sh eureka-server:8761  --timeout=60 --strict -- &&
+             ./wait-for-it.sh gateway-service:80  --timeout=60 --strict -- &&
+             ./wait-for-it.sh point-mysql:3310     --timeout=60 --strict -- &&
+             ./wait-for-it.sh zookeeper:2181      --timeout=60 --strict -- &&
+             ./wait-for-it.sh kafka:9092          --timeout=60 --strict -- &&
+             java -jar point-service.jar"
     networks:
       - msanet
 
@@ -199,9 +208,10 @@ services:
       - user-mysql
     entrypoint: >
       sh -c "./wait-for-it.sh config-server:8888 --timeout=60 --strict -- &&
-            ./wait-for-it.sh eureka-server:8761 --timeout=60 --strict -- &&
-            ./wait-for-it.sh gateway-service:80 --timeout=60 --strict -- &&
-            java -jar help-service.jar"
+             ./wait-for-it.sh eureka-server:8761  --timeout=60 --strict -- &&
+             ./wait-for-it.sh gateway-service:80  --timeout=60 --strict -- &&
+             ./wait-for-it.sh user-mysql:3311      --timeout=60 --strict -- &&
+             java -jar user-service.jar"
     networks:
       - msanet
 
