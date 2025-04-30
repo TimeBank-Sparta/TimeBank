@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   nginx:
     image: nginx:alpine
@@ -5,23 +7,25 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx-conf:/etc/nginx/conf.d
+      - ./nginx-conf/gw.conf:/etc/nginx/conf.d/gw.conf:ro
     depends_on:
       - gateway-blue
       - gateway-green
     networks:
-      - msanet
+      msanet:
+        aliases:
+          - gateway-service
 
   config-server:
     image: namgyu967/config-server:${TAG}
     container_name: config-server
     restart: always
+    env_file:
+      - .env-tag
     ports:
       - "8888:8888"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-    env_file:
-      - .env
     depends_on:
       - eureka-server
     networks:
@@ -31,6 +35,8 @@ services:
     image: namgyu967/eureka-server:${TAG}
     container_name: eureka-server
     restart: always
+    env_file:
+      - .env-tag
     ports:
       - "8761:8761"
     environment:
@@ -39,11 +45,14 @@ services:
     networks:
       - msanet
 
-  # 1) Blue Gateway
   gateway-blue:
     image: namgyu967/gateway-service:${TAG}
     container_name: gateway-blue
     restart: always
+    env_file:
+      - .env-tag
+    expose:
+      - "8080"
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
@@ -51,11 +60,14 @@ services:
     networks:
       - msanet
 
-  # 2) Green Gateway
   gateway-green:
     image: namgyu967/gateway-service:${TAG}
     container_name: gateway-green
     restart: always
+    env_file:
+      - .env-tag
+    expose:
+      - "8080"
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
@@ -67,6 +79,8 @@ services:
     image: namgyu967/help-service:${TAG}
     container_name: help-service
     restart: always
+    env_file:
+      - .env-tag
     ports:
       - "8081:8080"
     environment:
@@ -76,10 +90,10 @@ services:
     depends_on:
       - eureka-server
       - config-server
+      - nginx
       - help-mysql
       - zookeeper
       - kafka
-      - gateway-service
       - redis
     entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
     networks:
@@ -89,6 +103,8 @@ services:
     image: namgyu967/notification-service:${TAG}
     container_name: notification-service
     restart: always
+    env_file:
+      - .env-tag
     ports:
       - "8082:8080"
     environment:
@@ -98,10 +114,9 @@ services:
     depends_on:
       - eureka-server
       - config-server
+      - nginx
       - notification-mysql
-      - gateway-service
-    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
-
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar notification-service.jar"
     networks:
       - msanet
 
@@ -109,6 +124,8 @@ services:
     image: namgyu967/review-service:${TAG}
     container_name: review-service
     restart: always
+    env_file:
+      - .env-tag
     ports:
       - "8083:8080"
     environment:
@@ -118,9 +135,9 @@ services:
     depends_on:
       - eureka-server
       - config-server
+      - nginx
       - review-mysql
-      - gateway-service
-    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar review-service.jar"
     networks:
       - msanet
 
@@ -128,6 +145,8 @@ services:
     image: namgyu967/point-service:${TAG}
     container_name: point-service
     restart: always
+    env_file:
+      - .env-tag
     ports:
       - "8084:8080"
     environment:
@@ -138,10 +157,10 @@ services:
       - eureka-server
       - config-server
       - point-mysql
-      - gateway-service
+      - nginx
       - zookeeper
       - kafka
-    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar point-service.jar"
     networks:
       - msanet
 
@@ -149,6 +168,8 @@ services:
     image: namgyu967/user-service:${TAG}
     container_name: user-service
     restart: always
+    env_file:
+      - .env-tag
     ports:
       - "8085:8080"
     environment:
@@ -158,9 +179,9 @@ services:
     depends_on:
       - eureka-server
       - config-server
+      - nginx
       - user-mysql
-      - gateway-service
-    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar user-service.jar"
     networks:
       - msanet
 
@@ -242,9 +263,9 @@ services:
       - msanet
 
   notification-mysql:
-    restart: always
     image: mysql:8
     container_name: notification-mysql
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: "1234"
       MYSQL_DATABASE: notification_db
@@ -256,9 +277,9 @@ services:
       - msanet
 
   review-mysql:
-    restart: always
     image: mysql:8
     container_name: review-mysql
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: "1234"
       MYSQL_DATABASE: review_db
@@ -270,9 +291,9 @@ services:
       - msanet
 
   point-mysql:
-    restart: always
     image: mysql:8
     container_name: point-mysql
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: "1234"
       MYSQL_DATABASE: point_db
@@ -284,9 +305,9 @@ services:
       - msanet
 
   user-mysql:
-    restart: always
     image: mysql:8
     container_name: user-mysql
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: "1234"
       MYSQL_DATABASE: user_db
@@ -299,6 +320,7 @@ services:
 
   prometheus:
     image: prom/prometheus
+    container_name: prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
@@ -308,6 +330,7 @@ services:
 
   grafana:
     image: grafana/grafana
+    container_name: grafana
     ports:
       - "3000:3000"
     volumes:
@@ -320,8 +343,8 @@ services:
 
 networks:
   msanet:
-    driver: bridge
     external: true
+    driver: bridge
 
 volumes:
   help_mysql_data:
