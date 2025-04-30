@@ -123,34 +123,34 @@ jobs:
           script: |
             set -e
             cd ~/timebank
-
+            source .env-tag
+  
             # 0) nginx 보장
             docker-compose up -d nginx
-
+  
             # 1) Blue-Green gateway
             if docker-compose ps | grep -q gateway-blue; then
               NEW=green; OLD=blue
             else
-              NEW=blue; OLD=green
+              NEW=blue;  OLD=green
             fi
             docker-compose pull gateway-$NEW
             docker-compose up -d gateway-$NEW
             sed -i "s/server gateway-$OLD:8080;/server gateway-$NEW:8080;/" nginx-conf/gw.conf
             docker exec nginx nginx -s reload
-
-
+  
             # 2) targets 계산
             if [ "${CHANGED}" = "ALL" ] || [ -z "${CHANGED}" ]; then
               IFS=' ' read -r -a targets <<< "${SERVICES}"
             else
               IFS=' ' read -r -a targets <<< "${CHANGED}"
             fi
-
+  
             echo "=== DEBUG: Final deploy targets ==="
             for svc in "${targets[@]}"; do
               echo " - $svc"
             done
-
+  
             # 3) 나머지 서비스 기동
             for svc in "${targets[@]}"; do
               [ "$svc" = "gateway-service" ] && continue
@@ -166,6 +166,13 @@ jobs:
           set +e
           SUCCESS=""; FAILED=""
           BASE="http://${{ env.EC2_HOST }}"
+
+          # 헬스체크 대상도 동일하게 계산
+          if [ "${CHANGED}" = "ALL" ] || [ -z "${CHANGED}" ]; then
+            IFS=' ' read -r -a targets <<< "${SERVICES}"
+          else
+            IFS=' ' read -r -a targets <<< "${CHANGED}"
+          fi
 
           for svc in "${targets[@]}"; do
             if [ "$svc" = "gateway-service" ]; then
