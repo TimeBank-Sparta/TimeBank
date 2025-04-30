@@ -43,7 +43,7 @@ jobs:
         id: detect_services
         run: |
           CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
-          if echo "$CHANGED_FILES" | grep -Eq '(^build.gradle|^settings.gradle|^gradlew|^build.gradle.kts|^common/)'; then
+          if echo "$CHANGED_FILES" | grep -Eq '(^build.gradle|^settings.gradle|^gradlew|^gradlew.bat|^build.gradle.kts|^common/)'; then
             echo "CHANGED=ALL" >> $GITHUB_ENV
           else
             CHANGED=$(echo "$CHANGED_FILES" \
@@ -103,14 +103,14 @@ jobs:
           for svc in "${TARGETS[@]}"; do
             docker build -t namgyu967/$svc:${TAG} -f $svc/Dockerfile .
             docker push namgyu967/$svc:${TAG}
-            docker tag namgyu967/$svc:${{ env.TAG }} namgyu967/$svc:latest
+            docker tag namgyu967/$svc:${TAG} namgyu967/$svc:latest
             docker push namgyu967/$svc:latest
           done
           echo "TARGETS=${TARGETS[*]}" >> $GITHUB_ENV
 
       - name: EC2에 Blue-Green 및 서비스 배포
         uses: appleboy/ssh-action@master
-        env: 
+        env:
           TAG:      ${{ env.TAG }}
           SERVICES: ${{ env.SERVICES }}
           CHANGED:  ${{ env.CHANGED }}
@@ -128,21 +128,21 @@ jobs:
             set -e
             cd ~/timebank
             source .env-tag
-      
+
             # 0) nginx 보장
             docker-compose up -d nginx
-      
+
             # 1) Blue-Green gateway
             if docker-compose ps | grep -q gateway-blue; then
               NEW=green; OLD=blue
             else
-              NEW=blue;  OLD=green
+              NEW=blue; OLD=green
             fi
             docker-compose pull gateway-$NEW
             docker-compose up -d gateway-$NEW
             sed -i "s/server gateway-$OLD:8080;/server gateway-$NEW:8080;/" nginx-conf/gw.conf
             docker exec nginx nginx -s reload
-      
+
             # 2) targets 계산
             if [ "$CHANGED" = "ALL" ] || [ -z "$CHANGED" ]; then
               IFS=' ' read -r -a targets <<< "$SERVICES"
@@ -151,7 +151,7 @@ jobs:
             fi
             echo "=== DEBUG: Final deploy targets ==="
             printf " - %s\n" "${targets[@]}"
-      
+
             # 3) 나머지 서비스 기동
             for svc in "${targets[@]}"; do
               [ "$svc" = "gateway-service" ] && continue
@@ -159,7 +159,6 @@ jobs:
               docker-compose pull $svc
               docker-compose up -d $svc
             done
-
 
       - name: 헬스체크 및 결과 수집
         id: health
@@ -171,7 +170,6 @@ jobs:
           BASE="http://${{ env.EC2_HOST }}"
 
           for svc in $TARGETS; do
-            # gateway-service는 base, 나머진 /svc
             if [ "$svc" = "gateway-service" ]; then
               END="$BASE/actuator/health"
             else
@@ -180,7 +178,6 @@ jobs:
 
             for i in {1..10}; do
               sleep 5
-              # 실패해도 스크립트 중단되지 않도록 || echo 000
               CODE=$(curl -s -o /dev/null -w "%{http_code}" "$END" || echo "000")
               if [ "$CODE" = "200" ]; then
                 SUCCESS="$SUCCESS $svc"
@@ -214,3 +211,4 @@ jobs:
             }
         env:
           SLACK_WEBHOOK_URL: ${{ github.ref == 'refs/heads/main' && secrets.SLACK_PROD_WEBHOOK_URL || secrets.SLACK_DEV_WEBHOOK_URL }}
+```
