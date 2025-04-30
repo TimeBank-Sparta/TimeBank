@@ -147,12 +147,12 @@ jobs:
             fi
 
             echo "=== DEBUG: Final deploy targets ==="
-            for svc in "${TARGETS[*]}"; do
+            for svc in "${targets[@]}"; do
               echo " - $svc"
             done
 
             # 3) 나머지 서비스 기동
-            for svc in "${TARGETS[*]}"; do
+            for svc in "${targets[@]}"; do
               [ "$svc" = "gateway-service" ] && continue
               echo "Deploying $svc..."
               docker-compose pull $svc
@@ -167,7 +167,7 @@ jobs:
           SUCCESS=""; FAILED=""
           BASE="http://${{ env.EC2_HOST }}"
 
-          for svc in "${TARGETS[@]}"; do
+          for svc in "${targets[@]}"; do
             if [ "$svc" = "gateway-service" ]; then
               END="$BASE/actuator/health"
             else
