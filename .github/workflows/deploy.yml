@@ -56,11 +56,12 @@ jobs:
         id: remote_count
         uses: appleboy/ssh-action@v0.1.8
         with:
-          host: ${{ secrets.EC2_HOST }}
+          host:     ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          sync: true
+          key:      ${{ secrets.EC2_SSH_KEY }}
+          port:     22
+          sync:     true            # ← 추가: 원격 stdout/stderr를 바로 로그에 스트리밍
+          debug:    true            # ← 추가: SSH 액션 디버그 정보도 출력
           script: |
             docker ps \
               --filter name=gateway-blue \
@@ -119,7 +120,8 @@ jobs:
           protocol:         tcp
           timeout:          30s
           command_timeout:  10m
-          capture_stdout:   true
+          sync:             true    # ← 추가: 원격 명령의 모든 출력이 실시간 로그로
+          debug:            true    # ← 추가: SSH 액션 레벨 디버그 정보도
           curl_insecure:    false
           script: |
             set -e
