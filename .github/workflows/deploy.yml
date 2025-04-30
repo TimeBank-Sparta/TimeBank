@@ -60,7 +60,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          capture_stdout: true
+          sync: true
           script: |
             docker ps \
               --filter name=gateway-blue \
@@ -76,7 +76,7 @@ jobs:
 
       - name: Export EXISTING_COUNT
         run: |
-          RAW="${{ steps.remote_count.outputs.stdout }}"
+          RAW="${{ steps.remote_count.outputs.stdout || '0' }}"
           NUM=$(echo "$RAW" | head -n1 | tr -cd '0-9')
           echo "EXISTING_COUNT=$NUM" >> $GITHUB_ENV
 
