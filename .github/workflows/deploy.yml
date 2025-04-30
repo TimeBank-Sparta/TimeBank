@@ -192,7 +192,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "${{ github.ref == 'refs/heads/main' && ':white_check_mark: *[PROD]* 배포 성공!*' || ':white_check_mark: *[DEV]* 배포 성공!*' }}\n> 대상: ${{ env.TARGETS || 'all' }}\n> 정상: ${{ env.SUCCESS }}\n> 실패: ${{ env.FAILED }}\n> 태그: ${{ env.TAG }}\n> Gateway: http://${{ env.EC2_HOST }}"
+              "text": "${{ github.ref == 'refs/heads/main' && ':white_check_mark: *[PROD]* 배포 성공!*' || ':white_check_mark: *[DEV]* 배포 성공!*' }}\n> 대상: ${{ env.TARGETS || 'all' }}\n> 정상: ${{ env.SUCCESS }}\n> 실패: ${{ env.FAILED }}\n> 태그: ${{ env.TAG }}\n> Eureka Server: http://${{ env.EC2_HOST }}:8761"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ github.ref == 'refs/heads/main' && secrets.SLACK_PROD_WEBHOOK_URL || secrets.SLACK_DEV_WEBHOOK_URL }}
