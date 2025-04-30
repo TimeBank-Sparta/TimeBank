@@ -111,22 +111,27 @@ jobs:
       - name: EC2에 Blue-Green 및 서비스 배포
         uses: appleboy/ssh-action@master
         env:
-          # CI 단계에서 정의된 TAG, SERVICES, CHANGED 를 이 단계에 넘깁니다
           TAG:      ${{ env.TAG }}
           SERVICES: ${{ env.SERVICES }}
           CHANGED:  ${{ env.CHANGED }}
         with:
-          host:     ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key:      ${{ secrets.EC2_SSH_KEY }}
+          host:             ${{ secrets.EC2_HOST }}
+          username:         ${{ secrets.EC2_USER }}
+          key:              ${{ secrets.EC2_SSH_KEY }}
+          port:             22
+          protocol:         tcp
+          timeout:          30s
+          command_timeout:  10m
+          capture_stdout:   true
+          curl_insecure:    false
           script: |
             set -e
             cd ~/timebank
             source .env-tag
-  
+      
             # 0) nginx 보장
             docker-compose up -d nginx
-  
+      
             # 1) Blue-Green gateway
             if docker-compose ps | grep -q gateway-blue; then
               NEW=green; OLD=blue
@@ -137,27 +142,23 @@ jobs:
             docker-compose up -d gateway-$NEW
             sed -i "s/server gateway-$OLD:8080;/server gateway-$NEW:8080;/" nginx-conf/gw.conf
             docker exec nginx nginx -s reload
-  
-            # 2) SSH 내부에서 실제 targets 배열 계산
+      
+            # 2) targets 계산
             if [ "$CHANGED" = "ALL" ] || [ -z "$CHANGED" ]; then
-              # 변경없거나 ALL이면 전체 서비스
               IFS=' ' read -r -a targets <<< "$SERVICES"
             else
-              # 특정 서비스만 변경됐으면 그 목록만
               IFS=' ' read -r -a targets <<< "$CHANGED"
             fi
-   
             echo "=== DEBUG: Final deploy targets ==="
             printf " - %s\n" "${targets[@]}"
-  
-            # 3) 나머지 서비스 순회 & 기동
+      
+            # 3) 나머지 서비스 기동
             for svc in "${targets[@]}"; do
               [ "$svc" = "gateway-service" ] && continue
               echo "Deploying $svc..."
               docker-compose pull $svc
               docker-compose up -d $svc
             done
-
 
 
       - name: 헬스체크 및 결과 수집
