@@ -146,12 +146,12 @@ jobs:
             fi
 
             echo "=== DEBUG: Final deploy targets ==="
-            for svc in "${targets[@]}"; do
+            for svc in "${TARGETS[*]}"; do
               echo " - $svc"
             done
 
             # 3) 나머지 서비스 기동
-            for svc in "${targets[@]}"; do
+            for svc in "${TARGETS[*]}"; do
               [ "$svc" = "gateway-service" ] && continue
               echo "Deploying $svc..."
               docker-compose pull $svc
