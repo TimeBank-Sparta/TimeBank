@@ -19,9 +19,11 @@ import com.timebank.common.application.dto.PageResponseDto;
 import com.timebank.common.application.dto.ResponseDto;
 import com.timebank.helpservice.help_request.application.dto.response.CreateHelpRequestResponse;
 import com.timebank.helpservice.help_request.application.dto.response.HelpRequestResponse;
+import com.timebank.helpservice.help_request.application.dto.response.NearByUserLocationResponse;
 import com.timebank.helpservice.help_request.application.dto.response.UpdateHelpRequestResponse;
 import com.timebank.helpservice.help_request.application.service.HelpRequestService;
 import com.timebank.helpservice.help_request.presentation.dto.request.CreateHelpRequest;
+import com.timebank.helpservice.help_request.presentation.dto.request.NearByUserLocationRequest;
 import com.timebank.helpservice.help_request.presentation.dto.request.SearchHelpRequest;
 import com.timebank.helpservice.help_request.presentation.dto.request.UpdateHelpRequest;
 
@@ -65,6 +67,18 @@ public class HelpRequestExternalController {
 			helpRequestService.searchHelpRequest(request.toQuery(), pageable);
 		PageResponseDto<HelpRequestResponse> responseDto = new PageResponseDto<>(
 			HttpStatus.OK, helpRequestResponses, "조회 완료");
+
+		return ResponseEntity.ok(ResponseDto.success(responseDto).getData());
+	}
+
+	@GetMapping("/nearby")
+	public ResponseEntity<PageResponseDto<NearByUserLocationResponse>> nearByHelpRequest(
+		NearByUserLocationRequest request,
+		Pageable pageable
+	) {
+		PageResponseDto<NearByUserLocationResponse> responseDto = new PageResponseDto<>(
+			HttpStatus.OK, helpRequestService.nearByUserLocation(request.toQuery(), pageable),
+			"조회 완료");
 		return ResponseEntity.ok(ResponseDto.success(responseDto).getData());
 	}
 

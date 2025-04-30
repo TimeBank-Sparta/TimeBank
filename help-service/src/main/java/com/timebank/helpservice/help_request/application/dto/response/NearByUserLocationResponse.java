@@ -9,9 +9,8 @@ import com.timebank.helpservice.help_request.domain.vo.HelpRequestLocation;
 import lombok.Builder;
 
 @Builder
-public record HelpRequestResponse(
+public record NearByUserLocationResponse(
 	Long helpRequestId,
-	Long requesterId,
 	String title,
 	String content,
 	LocalDateTime scheduledAt,
@@ -21,10 +20,9 @@ public record HelpRequestResponse(
 	PostStatus postStatus,
 	HelpRequestLocation location
 ) {
-	public static HelpRequestResponse from(HelpRequest helpRequest) {
-		return HelpRequestResponse.builder()
+	public static NearByUserLocationResponse from(HelpRequest helpRequest) {
+		return NearByUserLocationResponse.builder()
 			.helpRequestId(helpRequest.getId())
-			.requesterId(helpRequest.getRequesterId())
 			.title(helpRequest.getTitle())
 			.content(helpRequest.getContent())
 			.scheduledAt(helpRequest.getScheduledAt())

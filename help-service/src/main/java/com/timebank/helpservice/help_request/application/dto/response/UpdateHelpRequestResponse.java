@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.timebank.helpservice.help_request.domain.PostStatus;
 import com.timebank.helpservice.help_request.domain.model.HelpRequest;
+import com.timebank.helpservice.help_request.domain.vo.HelpRequestLocation;
 
 import lombok.Builder;
 
@@ -12,24 +13,24 @@ public record UpdateHelpRequestResponse(
 	Long helpRequestId,
 	String title,
 	String content,
-	String address,
 	LocalDateTime scheduledAt,
 	int requiredTime,
 	int requestedPoint,
 	int recruitmentCount,
-	PostStatus postStatus
+	PostStatus postStatus,
+	HelpRequestLocation location
 ) {
 	public static UpdateHelpRequestResponse from(HelpRequest helpRequest) {
 		return UpdateHelpRequestResponse.builder()
 			.helpRequestId(helpRequest.getId())
 			.title(helpRequest.getTitle())
 			.content(helpRequest.getContent())
-			.address(helpRequest.getAddress())
 			.scheduledAt(helpRequest.getScheduledAt())
 			.requiredTime(helpRequest.getRequiredTime())
 			.requestedPoint(helpRequest.getRequestedPoint())
 			.recruitmentCount(helpRequest.getRecruitmentCount())
 			.postStatus(helpRequest.getPostStatus())
+			.location(helpRequest.getLocation())
 			.build();
 	}
 }

@@ -1,4 +1,4 @@
-package com.timebank.helpservice.help_request.infrastructure.db.config;
+package com.timebank.helpservice.help_request.infrastructure.jpa.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

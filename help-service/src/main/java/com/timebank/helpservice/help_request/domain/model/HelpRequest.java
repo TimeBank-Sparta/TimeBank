@@ -5,8 +5,11 @@ import java.time.LocalDateTime;
 import com.timebank.common.domain.Timestamped;
 import com.timebank.helpservice.help_request.domain.PostStatus;
 import com.timebank.helpservice.help_request.domain.vo.HelpRequestInfo;
+import com.timebank.helpservice.help_request.domain.vo.HelpRequestLocation;
+import com.timebank.helpservice.help_request.domain.vo.HelpRequestMetrics;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -46,8 +49,6 @@ public class HelpRequest extends Timestamped {
 
 	private String content;
 
-	private String address;
-
 	private int requiredTime;
 
 	private LocalDateTime scheduledAt;
@@ -59,27 +60,33 @@ public class HelpRequest extends Timestamped {
 	@Enumerated(EnumType.STRING)
 	private PostStatus postStatus;
 
+	@Embedded
+	private HelpRequestMetrics postMetric;
+
+	@Embedded
+	private HelpRequestLocation location;
+
 	@Builder(builderMethodName = "helpRequestOnlyBuilder")
 	public HelpRequest(
 		Long requesterId,
 		String title,
 		String content,
-		String address,
 		LocalDateTime scheduledAt,
 		int requiredTime,
 		int requestedPoint,
 		int recruitmentCount,
-		PostStatus postStatus
+		PostStatus postStatus,
+		HelpRequestLocation location
 	) {
 		this.requesterId = requesterId;
 		this.title = title;
 		this.content = content;
-		this.address = address;
 		this.scheduledAt = scheduledAt;
 		this.requiredTime = requiredTime;
 		this.requestedPoint = requestedPoint;
 		this.recruitmentCount = recruitmentCount;
 		this.postStatus = postStatus;
+		this.location = location;
 	}
 
 	public static HelpRequest createFrom(HelpRequestInfo helpRequestInfo) {
@@ -87,24 +94,24 @@ public class HelpRequest extends Timestamped {
 			.requesterId(helpRequestInfo.requesterId())
 			.title(helpRequestInfo.title())
 			.content(helpRequestInfo.content())
-			.address(helpRequestInfo.address())
 			.scheduledAt(helpRequestInfo.scheduledAt())
 			.requiredTime(helpRequestInfo.requiredTime())
 			.requestedPoint(helpRequestInfo.requestedPoint())
 			.recruitmentCount(helpRequestInfo.recruitmentCount())
 			.postStatus(PostStatus.IN_PROGRESS)
+			.location(helpRequestInfo.location())
 			.build();
 	}
 
 	public void update(HelpRequestInfo helpRequestInfo) {
 		this.title = helpRequestInfo.title();
 		this.content = helpRequestInfo.content();
-		this.address = helpRequestInfo.address();
 		this.scheduledAt = helpRequestInfo.scheduledAt();
 		this.requiredTime = helpRequestInfo.requiredTime();
 		this.requestedPoint = helpRequestInfo.requestedPoint();
 		this.recruitmentCount = helpRequestInfo.recruitmentCount();
 		this.postStatus = helpRequestInfo.postStatus();
+		this.location = helpRequestInfo.location();
 	}
 
 	public void completePostStatus() {

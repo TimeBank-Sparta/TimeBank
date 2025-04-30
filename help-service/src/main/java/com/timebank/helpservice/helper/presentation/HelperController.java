@@ -1,6 +1,5 @@
 package com.timebank.helpservice.helper.presentation;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,10 +45,8 @@ public class HelperController {
 		@PathVariable Long helpRequestId,
 		Pageable pageable
 	) {
-		Page<FindHelperInfoResponse> helperPage =
-			helperService.findByHelpRequestId(helpRequestId, pageable);
-		PageResponseDto<FindHelperResponse> responseDto = new PageResponseDto<>(
-			HttpStatus.OK, helperPage, "조회 완료");
+		PageResponseDto<FindHelperInfoResponse> responseDto = new PageResponseDto<>(
+			HttpStatus.OK, helperService.findByHelpRequestId(helpRequestId, pageable), "조회 완료");
 		return ResponseEntity.ok(ResponseDto.success(responseDto).getData());
 	}
 
