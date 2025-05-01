@@ -94,12 +94,12 @@ jobs:
             TARGETS=($CHANGED)
           fi
           echo "Deploy targets: ${TARGETS[*]}"
-          for svc in "${TARGETS[@]}"; do
+          # for svc in "${TARGETS[@]}"; do
             # docker build -t namgyu967/$svc:${TAG} -f $svc/Dockerfile .
             # docker push namgyu967/$svc:${TAG}
             # docker tag namgyu967/$svc:${TAG} namgyu967/$svc:latest
             # docker push namgyu967/$svc:latest
-          done
+          # done
           echo "TARGETS=${TARGETS[*]}" >> $GITHUB_ENV
 
       - name: EC2에 Blue-Green 및 서비스 배포
