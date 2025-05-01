@@ -2,7 +2,7 @@ services:
   config-server:
     build:
       context: .
-      dockerfile: ./config-server/Dockerfile
+      dockerfile: config-server/Dockerfile
     container_name: config-server
     restart: always
     ports:
@@ -17,7 +17,7 @@ services:
   eureka-server:
     build:
       context: .
-      dockerfile: ./eureka-server/Dockerfile
+      dockerfile: eureka-server/Dockerfile
     container_name: eureka-server
     restart: always
     ports:
@@ -31,7 +31,7 @@ services:
   gateway-service:
     build:
       context: .
-      dockerfile: ./gateway-service/Dockerfile
+      dockerfile: gateway-service/Dockerfile
     container_name: gateway-service
     restart: always
     expose:
@@ -47,7 +47,7 @@ services:
   help-service:
     build:
       context: .
-      dockerfile: ./help-service/Dockerfile
+      dockerfile: help-service/Dockerfile
     container_name: help-service
     restart: always
     ports:
@@ -70,7 +70,7 @@ services:
   notification-service:
     build:
       context: .
-      dockerfile: ./notification-service/Dockerfile
+      dockerfile: notification-service/Dockerfile
     container_name: notification-service
     restart: always
     #    env_file:
@@ -92,7 +92,7 @@ services:
   review-service:
     build:
       context: .
-      dockerfile: ./review-service/Dockerfile
+      dockerfile: review-service/Dockerfile
     container_name: review-service
     restart: always
     #    env_file:
@@ -114,7 +114,7 @@ services:
   point-service:
     build:
       context: .
-      dockerfile: ./point-service/Dockerfile
+      dockerfile: point-service/Dockerfile
     container_name: point-service
     restart: always
     #    env_file:
@@ -138,7 +138,7 @@ services:
   user-service:
     build:
       context: .
-      dockerfile: ./user-service/Dockerfile
+      dockerfile: user-service/Dockerfile
     container_name: user-service
     restart: always
     #    env_file:
