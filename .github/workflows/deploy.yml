@@ -48,7 +48,6 @@ jobs:
               | awk -F/ '{print $1}' | sort -u | xargs)
             echo "CHANGED=$CHANGED" >> $GITHUB_ENV
           fi
-
       - name: Count existing services on EC2
         id: remote_count
         uses: appleboy/ssh-action@v0.1.8
@@ -70,13 +69,11 @@ jobs:
               --filter name=config-server \
               --filter name=eureka-server \
               --format '{{.Names}}' | wc -l
-
       - name: Export EXISTING_COUNT
         run: |
           RAW="${{ steps.remote_count.outputs.stdout || '0' }}"
           NUM=$(echo "$RAW" | tr -cd '0-9')
           echo "EXISTING_COUNT=$NUM" >> $GITHUB_ENV
-
       - name: Decide whether to skip deploy
         run: |
           echo "Existing containers: $EXISTING_COUNT"
@@ -84,7 +81,6 @@ jobs:
             echo "No changes & already deployed → skipping"
             exit 0
           fi
-
       - name: Build & Push images
         id: build_push
         run: |
@@ -93,7 +89,14 @@ jobs:
           else
             TARGETS=($CHANGED)
           fi
-
+          echo "Deploy targets: ${TARGETS[*]}"
+          for svc in "${TARGETS[@]}"; do
+            docker build -t namgyu967/$svc:${TAG} -f $svc/Dockerfile .
+            docker push namgyu967/$svc:${TAG}
+            docker tag namgyu967/$svc:${TAG} namgyu967/$svc:latest
+            docker push namgyu967/$svc:latest
+          done
+          echo "TARGETS=${TARGETS[*]}" >> $GITHUB_ENV
       - name: EC2에 Blue-Green 및 서비스 배포
         uses: appleboy/ssh-action@master
         with:
@@ -102,26 +105,19 @@ jobs:
           key:              ${{ secrets.EC2_SSH_KEY }}
           port:             22
           protocol:         tcp
-          timeout:          30s
-          command_timeout:  10m
           sync:             true
+          debug:            true
           capture_stdout:   true
           curl_insecure:    false
-
           envs: |
             TAG=${{ env.TAG }}
             SERVICES=${{ env.SERVICES }}
             CHANGED=${{ env.CHANGED }}
-
           script: |
             set -e
             cd ~/timebank
             source .env-tag
-
-            # 0) nginx 보장
             docker-compose up -d nginx
-
-            # 1) Blue-Green gateway
             if docker-compose ps | grep -q gateway-blue; then
               NEW=green; OLD=blue
             else
@@ -131,28 +127,21 @@ jobs:
             docker-compose up -d gateway-$NEW
             sed -i "s/server gateway-$OLD:8080;/server gateway-$NEW:8080;/" nginx-conf/gw.conf
             docker exec nginx nginx -s reload
-
-            # 2) deploy 대상 계산
-            if [ "$CHANGED" = "ALL" ] || [ -z "$CHANGED" ]; then
-              IFS=' ' read -r -a targets <<< "$SERVICES"
+            if [ "${CHANGED}" = "ALL" ] || [ -z "${CHANGED}" ]; then
+              IFS=' ' read -r -a targets <<< "${SERVICES}"
             else
-              IFS=' ' read -r -a targets <<< "$CHANGED"
+              IFS=' ' read -r -a targets <<< "${CHANGED}"
             fi
-
             echo "=== DEBUG:Final deploy targets ==="
-            for svc in "${targets[*]}"; do
+            for svc in "${targets[@]}"; do
               echo " - $svc"
             done
-
-            # 3) 나머지 서비스 순차 배포
             for svc in "${targets[*]}"; do
               [ "$svc" = "gateway-service" ] && continue
               echo "Deploying $svc..."
               docker-compose pull $svc
               docker-compose up -d $svc
             done
-
-
       - name: 헬스체크 및 결과 수집
         id: health
         shell: bash
@@ -160,14 +149,12 @@ jobs:
           set +e
           SUCCESS=""; FAILED=""
           BASE="http://${{ env.EC2_HOST }}"
-
           # 헬스체크 대상도 동일하게 계산
           if [ "${CHANGED}" = "ALL" ] || [ -z "${CHANGED}" ]; then
             IFS=' ' read -r -a targets <<< "${SERVICES}"
           else
             IFS=' ' read -r -a targets <<< "${CHANGED}"
           fi
-
           for svc in "${targets[@]}"; do
             if [ "$svc" = "gateway-service" ]; then
               END="$BASE/actuator/health"
@@ -184,10 +171,8 @@ jobs:
               [ "$i" -eq 10 ] && FAILED="$FAILED $svc"
             done
           done
-
           echo "SUCCESS=${SUCCESS:-none}" >> $GITHUB_ENV
           echo "FAILED=${FAILED:-none}" >> $GITHUB_ENV
-
       - name: Slack Notification (Success)
         if: success()
         uses: slackapi/slack-github-action@v1.24.0
