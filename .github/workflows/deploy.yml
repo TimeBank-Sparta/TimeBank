@@ -114,10 +114,12 @@ jobs:
           debug:            true
           capture_stdout:   true
           curl_insecure:    false
+          
           envs: |
             TAG=${{ env.TAG }}
             SERVICES=${{ env.SERVICES }}
             CHANGED=${{ env.CHANGED }}
+            
           script: |
             set -e
             cd ~/timebank
