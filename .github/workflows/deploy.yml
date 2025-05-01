@@ -95,7 +95,7 @@ jobs:
           fi
           echo "Deploy targets: ${TARGETS[*]}"
           for svc in "${TARGETS[@]}"; do
-            docker build -t namgyu967/$svc:${TAG} -f $svc/Dockerfile .
+            # docker build -t namgyu967/$svc:${TAG} -f $svc/Dockerfile .
             docker push namgyu967/$svc:${TAG}
             docker tag namgyu967/$svc:${TAG} namgyu967/$svc:latest
             docker push namgyu967/$svc:latest
