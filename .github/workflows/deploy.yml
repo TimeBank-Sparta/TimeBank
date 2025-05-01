@@ -103,7 +103,7 @@ jobs:
           echo "TARGETS=${TARGETS[*]}" >> $GITHUB_ENV
 
       - name: EC2에 Blue-Green 및 서비스 배포
-        uses: appleboy/ssh-action@v1.8.1
+        uses: appleboy/ssh-action@master
         with:
           host:             ${{ secrets.EC2_HOST }}
           username:         ${{ secrets.EC2_USER }}
