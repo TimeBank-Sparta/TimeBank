@@ -17,7 +17,8 @@ services:
           - gateway-service
 
   config-server:
-    image: namgyu967/config-server:${TAG}
+    #    image: namgyu967/config-server:${TAG}
+    image: namgyu967/config-server
     container_name: config-server
     restart: always
     env_file:
@@ -32,7 +33,7 @@ services:
       - msanet
 
   eureka-server:
-    image: namgyu967/eureka-server:${TAG}
+    image: namgyu967/eureka-server
     container_name: eureka-server
     restart: always
     env_file:
@@ -46,7 +47,7 @@ services:
       - msanet
 
   gateway-blue:
-    image: namgyu967/gateway-service:${TAG}
+    image: namgyu967/gateway-service
     container_name: gateway-blue
     restart: always
     env_file:
@@ -61,7 +62,7 @@ services:
       - msanet
 
   gateway-green:
-    image: namgyu967/gateway-service:${TAG}
+    image: namgyu967/gateway-service
     container_name: gateway-green
     restart: always
     env_file:
@@ -76,7 +77,7 @@ services:
       - msanet
 
   help-service:
-    image: namgyu967/help-service:${TAG}
+    image: namgyu967/help-service
     container_name: help-service
     restart: always
     env_file:
@@ -108,7 +109,7 @@ services:
       - msanet
 
   notification-service:
-    image: namgyu967/notification-service:${TAG}
+    image: namgyu967/notification-service
     container_name: notification-service
     restart: always
     env_file:
@@ -134,7 +135,7 @@ services:
       - msanet
 
   review-service:
-    image: namgyu967/review-service:${TAG}
+    image: namgyu967/review-service
     container_name: review-service
     restart: always
     env_file:
@@ -160,7 +161,7 @@ services:
       - msanet
 
   point-service:
-    image: namgyu967/point-service:${TAG}
+    image: namgyu967/point-service
     container_name: point-service
     restart: always
     env_file:
@@ -190,7 +191,7 @@ services:
       - msanet
 
   user-service:
-    image: namgyu967/user-service:${TAG}
+    image: namgyu967/user-service
     container_name: user-service
     restart: always
     env_file:
