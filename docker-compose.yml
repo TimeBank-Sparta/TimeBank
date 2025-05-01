@@ -1,6 +1,8 @@
 services:
   config-server:
-    image: namgyu967/config-server
+    build:
+      context: ./config-server
+      dockerfile: Dockerfile
     container_name: config-server
     restart: always
     ports:
@@ -13,7 +15,9 @@ services:
       - msanet
 
   eureka-server:
-    image: namgyu967/eureka-server
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
     container_name: eureka-server
     restart: always
     ports:
@@ -25,7 +29,9 @@ services:
       - msanet
 
   gateway-service:
-    image: namgyu967/gateway-service
+    build:
+      context: ./gateway-service
+      dockerfile: Dockerfile
     container_name: gateway-service
     restart: always
     expose:
@@ -39,7 +45,9 @@ services:
 
 
   help-service:
-    image: namgyu967/help-service
+    build:
+      context: ./help-service
+      dockerfile: Dockerfile
     container_name: help-service
     restart: always
     ports:
@@ -56,13 +64,13 @@ services:
       - gateway-service
       - kafka
       - redis
-    entrypoint: >
-      sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
     networks:
       - msanet
 
   notification-service:
-    image: namgyu967/notification-service
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
     container_name: notification-service
     restart: always
     #    env_file:
@@ -78,13 +86,13 @@ services:
       - config-server
       - gateway-service
       - notification-mysql
-    entrypoint: >
-      sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar notification-service.jar"
     networks:
       - msanet
 
   review-service:
-    image: namgyu967/review-service
+    build:
+      context: ./review-service
+      dockerfile: Dockerfile
     container_name: review-service
     restart: always
     #    env_file:
@@ -100,13 +108,13 @@ services:
       - eureka-server
       - config-server
       - review-mysql
-    entrypoint: >
-      sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar review-service.jar"
     networks:
       - msanet
 
   point-service:
-    image: namgyu967/point-service
+    build:
+      context: ./point-service
+      dockerfile: Dockerfile
     container_name: point-service
     restart: always
     #    env_file:
@@ -124,13 +132,13 @@ services:
       - point-mysql
       - zookeeper
       - kafka
-    entrypoint: >
-      sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar point-service.jar"
     networks:
       - msanet
 
   user-service:
-    image: namgyu967/user-service
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
     container_name: user-service
     restart: always
     #    env_file:
@@ -146,8 +154,6 @@ services:
       - eureka-server
       - config-server
       - user-mysql
-    entrypoint: >
-      sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar user-service.jar"
     networks:
       - msanet
 
