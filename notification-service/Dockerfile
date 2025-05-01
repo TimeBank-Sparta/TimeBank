@@ -29,9 +29,5 @@ COPY --from=builder /wait-for-it.sh /wait-for-it.sh
 COPY --from=builder /app/notification-service/build/libs/*.jar /app/app.jar
 
 # ENTRYPOINT: Config Server와 Eureka가 모두 준비될 때까지 대기한 후 애플리케이션 실행
-ENTRYPOINT [
-  "/wait-for-it.sh", "config-server:8888", "--timeout=15", "--strict", "--",
-  "/wait-for-it.sh", "eureka:8761",         "--timeout=15", "--strict", "--",
-  "/wait-for-it.sh", "gateway-service:8080", "--timeout=15", "--strict", "--",
-  "java", "-jar", "/app/app.jar"
-]
+ENTRYPOINT ["/wait-for-it.sh","config-server:8888","--timeout=15","--strict","--","/wait-for-it.sh","eureka-server:8761","--timeout=15","--strict","--","/wait-for-it.sh","gateway-service:8080","--timeout=15","--strict","--","java","-jar","/app/app.jar"]
+
