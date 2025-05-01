@@ -1,8 +1,8 @@
 services:
   config-server:
     build:
-      context: ./config-server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./config-server/Dockerfile
     container_name: config-server
     restart: always
     ports:
@@ -16,8 +16,8 @@ services:
 
   eureka-server:
     build:
-      context: ./eureka-server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./eureka-server/Dockerfile
     container_name: eureka-server
     restart: always
     ports:
@@ -30,8 +30,8 @@ services:
 
   gateway-service:
     build:
-      context: ./gateway-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./gateway-service/Dockerfile
     container_name: gateway-service
     restart: always
     expose:
@@ -46,8 +46,8 @@ services:
 
   help-service:
     build:
-      context: ./help-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./help-service/Dockerfile
     container_name: help-service
     restart: always
     ports:
@@ -69,8 +69,8 @@ services:
 
   notification-service:
     build:
-      context: ./notification-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./notification-service/Dockerfile
     container_name: notification-service
     restart: always
     #    env_file:
@@ -91,8 +91,8 @@ services:
 
   review-service:
     build:
-      context: ./review-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./review-service/Dockerfile
     container_name: review-service
     restart: always
     #    env_file:
@@ -113,8 +113,8 @@ services:
 
   point-service:
     build:
-      context: ./point-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./point-service/Dockerfile
     container_name: point-service
     restart: always
     #    env_file:
@@ -137,8 +137,8 @@ services:
 
   user-service:
     build:
-      context: ./user-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./user-service/Dockerfile
     container_name: user-service
     restart: always
     #    env_file:
