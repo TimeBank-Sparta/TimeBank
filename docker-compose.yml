@@ -51,9 +51,9 @@ services:
     depends_on:
       - eureka-server
       - config-server
-      - nginx
       - help-mysql
       - zookeeper
+      - gateway-service
       - kafka
       - redis
     entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar"
@@ -75,7 +75,7 @@ services:
     depends_on:
       - eureka-server
       - config-server
-      - nginx
+      - gateway-service
       - notification-mysql
     entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar notification-service.jar"
     networks:
@@ -92,11 +92,11 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
+      - gateway-service
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
     depends_on:
       - eureka-server
       - config-server
-      - nginx
       - review-mysql
     entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar review-service.jar"
     networks:
@@ -113,12 +113,12 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
+      - gateway-service
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
     depends_on:
       - eureka-server
       - config-server
       - point-mysql
-      - nginx
       - zookeeper
       - kafka
     entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar point-service.jar"
@@ -136,11 +136,11 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - SERVER_PORT=8080
+      - gateway-service
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
     depends_on:
       - eureka-server
       - config-server
-      - nginx
       - user-mysql
     entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar user-service.jar"
     networks:
