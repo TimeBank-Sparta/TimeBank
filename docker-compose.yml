@@ -1,28 +1,10 @@
 version: '3.8'
 
 services:
-  nginx:
-    image: nginx:alpine
-    container_name: nginx
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx-conf/gw.conf:/etc/nginx/conf.d/gw.conf:ro
-    depends_on:
-      - gateway-blue
-      - gateway-green
-    networks:
-      msanet:
-        aliases:
-          - gateway-service
-
   config-server:
-    #    image: namgyu967/config-server:${TAG}
     image: namgyu967/config-server
     container_name: config-server
     restart: always
-    #    env_file:
-    #      - .env-tag
     ports:
       - "8888:8888"
     environment:
@@ -36,8 +18,6 @@ services:
     image: namgyu967/eureka-server
     container_name: eureka-server
     restart: always
-    #    env_file:
-    #      - .env-tag
     ports:
       - "8761:8761"
     environment:
@@ -46,12 +26,10 @@ services:
     networks:
       - msanet
 
-  gateway-blue:
+  gateway-service:
     image: namgyu967/gateway-service
-    container_name: gateway-blue
+    container_name: gateway-service
     restart: always
-    #    env_file:
-    #      - .env-tag
     expose:
       - "8080"
     environment:
@@ -61,27 +39,11 @@ services:
     networks:
       - msanet
 
-  gateway-green:
-    image: namgyu967/gateway-service
-    container_name: gateway-green
-    restart: always
-    #    env_file:
-    #      - .env-tag
-    expose:
-      - "8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=default
-      - SERVER_PORT=8080
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-    networks:
-      - msanet
 
   help-service:
     image: namgyu967/help-service
     container_name: help-service
     restart: always
-    #    env_file:
-    #      - .env-tag
     ports:
       - "8081:8080"
     environment:
@@ -96,15 +58,7 @@ services:
       - zookeeper
       - kafka
       - redis
-    entrypoint: >
-      sh -c "./wait-for-it.sh config-server:8888 --timeout=60 --strict -- &&
-             ./wait-for-it.sh eureka-server:8761  --timeout=60 --strict -- &&
-             ./wait-for-it.sh gateway-service:80  --timeout=60 --strict -- &&
-             ./wait-for-it.sh help-mysql:3307     --timeout=60 --strict -- &&
-             ./wait-for-it.sh zookeeper:2181      --timeout=60 --strict -- &&
-             ./wait-for-it.sh kafka:9092          --timeout=60 --strict -- &&
-             ./wait-for-it.sh redis:6379          --timeout=60 --strict -- &&
-             java -jar help-service.jar"
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar
     networks:
       - msanet
 
@@ -125,12 +79,7 @@ services:
       - config-server
       - nginx
       - notification-mysql
-    entrypoint: >
-      sh -c "./wait-for-it.sh config-server:8888 --timeout=60 --strict -- &&
-             ./wait-for-it.sh eureka-server:8761  --timeout=60 --strict -- &&
-             ./wait-for-it.sh gateway-service:80  --timeout=60 --strict -- &&
-             ./wait-for-it.sh notification-mysql:3308 --timeout=60 --strict -- &&
-             java -jar notification-service.jar"
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar
     networks:
       - msanet
 
@@ -151,12 +100,7 @@ services:
       - config-server
       - nginx
       - review-mysql
-    entrypoint: >
-      sh -c "./wait-for-it.sh config-server:8888 --timeout=60 --strict -- &&
-             ./wait-for-it.sh eureka-server:8761  --timeout=60 --strict -- &&
-             ./wait-for-it.sh gateway-service:80  --timeout=60 --strict -- &&
-             ./wait-for-it.sh review-mysql:3309    --timeout=60 --strict -- &&
-             java -jar review-service.jar"
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar
     networks:
       - msanet
 
@@ -179,14 +123,7 @@ services:
       - nginx
       - zookeeper
       - kafka
-    entrypoint: >
-      sh -c "./wait-for-it.sh config-server:8888 --timeout=60 --strict -- &&
-             ./wait-for-it.sh eureka-server:8761  --timeout=60 --strict -- &&
-             ./wait-for-it.sh gateway-service:80  --timeout=60 --strict -- &&
-             ./wait-for-it.sh point-mysql:3310     --timeout=60 --strict -- &&
-             ./wait-for-it.sh zookeeper:2181      --timeout=60 --strict -- &&
-             ./wait-for-it.sh kafka:9092          --timeout=60 --strict -- &&
-             java -jar point-service.jar"
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar
     networks:
       - msanet
 
@@ -207,12 +144,7 @@ services:
       - config-server
       - nginx
       - user-mysql
-    entrypoint: >
-      sh -c "./wait-for-it.sh config-server:8888 --timeout=60 --strict -- &&
-             ./wait-for-it.sh eureka-server:8761  --timeout=60 --strict -- &&
-             ./wait-for-it.sh gateway-service:80  --timeout=60 --strict -- &&
-             ./wait-for-it.sh user-mysql:3311      --timeout=60 --strict -- &&
-             java -jar user-service.jar"
+    entrypoint: sh -c "./wait-for-it.sh gateway-service:8080 --timeout=60 --strict -- java -jar help-service.jar
     networks:
       - msanet
 
