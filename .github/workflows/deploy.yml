@@ -90,12 +90,12 @@ jobs:
             TARGETS=($CHANGED)
           fi
           echo "Deploy targets: ${TARGETS[*]}"
-          for svc in "${TARGETS[@]}"; do
-            docker build -t namgyu967/$svc:${TAG} -f $svc/Dockerfile .
-            docker push namgyu967/$svc:${TAG}
-            docker tag namgyu967/$svc:${TAG} namgyu967/$svc:latest
-            docker push namgyu967/$svc:latest
-          done
+          # for svc in "${TARGETS[@]}"; do
+            # docker build -t namgyu967/$svc:${TAG} -f $svc/Dockerfile .
+            # docker push namgyu967/$svc:${TAG}
+            # docker tag namgyu967/$svc:${TAG} namgyu967/$svc:latest
+            # docker push namgyu967/$svc:latest
+          # done
           echo "TARGETS=${TARGETS[*]}" >> $GITHUB_ENV
       - name: EC2에 Blue-Green 및 서비스 배포
         uses: appleboy/ssh-action@master
@@ -105,10 +105,12 @@ jobs:
           key:              ${{ secrets.EC2_SSH_KEY }}
           port:             22
           protocol:         tcp
+          timeout:          30s
+          command_timeout:  10m
           sync:             true
-          debug:            true
           capture_stdout:   true
           curl_insecure:    false
+
           envs: |
             TAG=${{ env.TAG }}
             SERVICES=${{ env.SERVICES }}
@@ -117,7 +119,11 @@ jobs:
             set -e
             cd ~/timebank
             source .env-tag
+
+            # 0) nginx 보장
             docker-compose up -d nginx
+
+            # 1) Blue-Green gateway
             if docker-compose ps | grep -q gateway-blue; then
               NEW=green; OLD=blue
             else
@@ -127,21 +133,28 @@ jobs:
             docker-compose up -d gateway-$NEW
             sed -i "s/server gateway-$OLD:8080;/server gateway-$NEW:8080;/" nginx-conf/gw.conf
             docker exec nginx nginx -s reload
-            if [ "${CHANGED}" = "ALL" ] || [ -z "${CHANGED}" ]; then
-              IFS=' ' read -r -a targets <<< "${SERVICES}"
+
+            # 2) deploy 대상 계산
+            if [ "$CHANGED" = "ALL" ] || [ -z "$CHANGED" ]; then
+              IFS=' ' read -r -a targets <<< "$SERVICES"
             else
-              IFS=' ' read -r -a targets <<< "${CHANGED}"
+              IFS=' ' read -r -a targets <<< "$CHANGED"
             fi
+
             echo "=== DEBUG:Final deploy targets ==="
-            for svc in "${targets[@]}"; do
+            for svc in "${targets[*]}"; do
               echo " - $svc"
             done
+
+            # 3) 나머지 서비스 순차 배포
             for svc in "${targets[*]}"; do
               [ "$svc" = "gateway-service" ] && continue
               echo "Deploying $svc..."
               docker-compose pull $svc
               docker-compose up -d $svc
             done
+
+
       - name: 헬스체크 및 결과 수집
         id: health
         shell: bash
