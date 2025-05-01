@@ -21,8 +21,8 @@ services:
     image: namgyu967/config-server
     container_name: config-server
     restart: always
-    env_file:
-      - .env-tag
+    #    env_file:
+    #      - .env-tag
     ports:
       - "8888:8888"
     environment:
@@ -36,8 +36,8 @@ services:
     image: namgyu967/eureka-server
     container_name: eureka-server
     restart: always
-    env_file:
-      - .env-tag
+    #    env_file:
+    #      - .env-tag
     ports:
       - "8761:8761"
     environment:
@@ -50,8 +50,8 @@ services:
     image: namgyu967/gateway-service
     container_name: gateway-blue
     restart: always
-    env_file:
-      - .env-tag
+    #    env_file:
+    #      - .env-tag
     expose:
       - "8080"
     environment:
@@ -65,8 +65,8 @@ services:
     image: namgyu967/gateway-service
     container_name: gateway-green
     restart: always
-    env_file:
-      - .env-tag
+    #    env_file:
+    #      - .env-tag
     expose:
       - "8080"
     environment:
@@ -80,8 +80,8 @@ services:
     image: namgyu967/help-service
     container_name: help-service
     restart: always
-    env_file:
-      - .env-tag
+    #    env_file:
+    #      - .env-tag
     ports:
       - "8081:8080"
     environment:
@@ -112,8 +112,8 @@ services:
     image: namgyu967/notification-service
     container_name: notification-service
     restart: always
-    env_file:
-      - .env-tag
+    #    env_file:
+    #      - .env-tag
     ports:
       - "8082:8080"
     environment:
@@ -138,8 +138,8 @@ services:
     image: namgyu967/review-service
     container_name: review-service
     restart: always
-    env_file:
-      - .env-tag
+    #    env_file:
+    #      - .env-tag
     ports:
       - "8083:8080"
     environment:
@@ -164,8 +164,8 @@ services:
     image: namgyu967/point-service
     container_name: point-service
     restart: always
-    env_file:
-      - .env-tag
+    #    env_file:
+    #      - .env-tag
     ports:
       - "8084:8080"
     environment:
@@ -194,8 +194,8 @@ services:
     image: namgyu967/user-service
     container_name: user-service
     restart: always
-    env_file:
-      - .env-tag
+    #    env_file:
+    #      - .env-tag
     ports:
       - "8085:8080"
     environment:
