@@ -11,10 +11,12 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.timebank.common.infrastructure.external.notification.dto.NotificationEventType;
+import com.timebank.notification_service.application.client.SlackClient;
 import com.timebank.notification_service.application.dto.NotificationDto;
-import com.timebank.notification_service.application.event.NotificationEvent;
+import com.timebank.notification_service.application.dto.SlackBotMessage;
+import com.timebank.notification_service.application.dto.SlackWebHookMessage;
 import com.timebank.notification_service.domain.entity.Notification;
-import com.timebank.notification_service.domain.entity.NotificationEventType;
 import com.timebank.notification_service.domain.repository.NotificationRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -29,6 +31,7 @@ public class NotificationService {
 
 	private final NotificationRepository notificationRepository;
 	private final KafkaTemplate<String, Object> kafkaTemplate;
+	private final SlackClient slackClient;
 
 	/**
 	 * 알림 생성
@@ -45,10 +48,6 @@ public class NotificationService {
 			.isRead(Boolean.FALSE)
 			.build();
 		notification = notificationRepository.save(notification);
-
-		// Kafka 이벤트 발행 (CREATED)
-		NotificationEvent event = new NotificationEvent(notification, NotificationEventType.CREATED);
-		kafkaTemplate.send(NotificationEventType.CREATED.getTopic(), event);
 
 		return NotificationDto.fromEntity(notification);
 	}
@@ -96,10 +95,6 @@ public class NotificationService {
 		notification.setIsRead(true);
 		notification = notificationRepository.save(notification);
 
-		// Kafka 이벤트 발행 (UPDATED)
-		NotificationEvent event = new NotificationEvent(notification, NotificationEventType.UPDATED);
-		kafkaTemplate.send(NotificationEventType.UPDATED.getTopic(), event);
-
 		return NotificationDto.fromEntity(notification);
 	}
 
@@ -113,9 +108,9 @@ public class NotificationService {
 
 		notificationRepository.delete(notification);
 
-		// Kafka 이벤트 발행 (DELETED)
-		NotificationEvent event = new NotificationEvent(notification, NotificationEventType.DELETED);
-		kafkaTemplate.send(NotificationEventType.DELETED.getTopic(), event);
+		// // Kafka 이벤트 발행 (DELETED)
+		// NotificationEvent event = new NotificationEvent(notification, NotificationEventType.DELETED);
+		// kafkaTemplate.send(NotificationEventType.DELETED.getTopic(), event);
 	}
 
 	/**
@@ -130,5 +125,13 @@ public class NotificationService {
 		return notifications.stream()
 			.map(NotificationDto::fromEntity)
 			.collect(Collectors.toList());
+	}
+
+	public void sendMessage(SlackWebHookMessage message, String email) {
+		//채널 알림
+		slackClient.sendMessage(message);
+
+		//사용자 DM
+		slackClient.sendMessage(SlackBotMessage.of(slackClient.getUserIdByEmail(email), message.getText()));
 	}
 }
