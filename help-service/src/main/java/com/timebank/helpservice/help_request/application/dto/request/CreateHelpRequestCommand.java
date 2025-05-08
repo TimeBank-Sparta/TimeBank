@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.timebank.helpservice.help_request.domain.PostStatus;
 import com.timebank.helpservice.help_request.domain.vo.HelpRequestInfo;
+import com.timebank.helpservice.help_request.domain.vo.HelpRequestLocation;
 
 import lombok.Builder;
 
@@ -18,7 +19,7 @@ public record CreateHelpRequestCommand(
 	int recruitmentCount,
 	PostStatus postStatus
 ) {
-	public HelpRequestInfo toHelpRequestInfoWithUserID(Long userId) {
+	public HelpRequestInfo toHelpRequestInfoWithUserIdAndLocation(Long userId, HelpRequestLocation location) {
 		return HelpRequestInfo.builder()
 			.requesterId(userId)
 			.title(title)
@@ -28,6 +29,7 @@ public record CreateHelpRequestCommand(
 			.requiredTime(requiredTime)
 			.requestedPoint(requestedPoint)
 			.recruitmentCount(recruitmentCount)
+			.location(location)
 			.build();
 	}
 }

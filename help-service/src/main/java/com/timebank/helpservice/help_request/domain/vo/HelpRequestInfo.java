@@ -16,6 +16,7 @@ public record HelpRequestInfo(
 	int requiredTime,
 	int requestedPoint,
 	int recruitmentCount,
-	PostStatus postStatus
+	PostStatus postStatus,
+	HelpRequestLocation location
 ) {
 }

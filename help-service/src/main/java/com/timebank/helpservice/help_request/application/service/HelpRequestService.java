@@ -15,13 +15,17 @@ import com.timebank.common.infrastructure.external.notification.dto.Notification
 import com.timebank.helpservice.help_request.application.dto.request.CreateHelpRequestCommand;
 import com.timebank.helpservice.help_request.application.dto.request.HelpRequestToHelperKafkaDto;
 import com.timebank.helpservice.help_request.application.dto.request.HoldPointRequestDto;
+import com.timebank.helpservice.help_request.application.dto.request.NearByUserLocationQuery;
 import com.timebank.helpservice.help_request.application.dto.request.SearchHelpRequestQuery;
 import com.timebank.helpservice.help_request.application.dto.request.UpdateHelpRequestCommand;
 import com.timebank.helpservice.help_request.application.dto.response.CreateHelpRequestResponse;
 import com.timebank.helpservice.help_request.application.dto.response.HelpRequestResponse;
+import com.timebank.helpservice.help_request.application.dto.response.KakaoGeoResponse;
+import com.timebank.helpservice.help_request.application.dto.response.NearByUserLocationResponse;
 import com.timebank.helpservice.help_request.application.dto.response.UpdateHelpRequestResponse;
 import com.timebank.helpservice.help_request.domain.model.HelpRequest;
 import com.timebank.helpservice.help_request.domain.repository.HelpRequestRepository;
+import com.timebank.helpservice.help_request.domain.vo.HelpRequestLocation;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +38,7 @@ public class HelpRequestService {
 	private final HelpRequestRepository helpRequestRepository;
 	private final HelpRequestEventProducer eventProducer;
 	private final PointClient pointClient;
+	private final KakaoClient kakaoClient;
 	private final KafkaTemplate<String, Object> kafkaTemplate;
 
 	/**
@@ -41,8 +46,10 @@ public class HelpRequestService {
 	 */
 	@Transactional
 	public CreateHelpRequestResponse createHelpRequest(CreateHelpRequestCommand command, Long userId) {
+
 		HelpRequest helpRequest = helpRequestRepository.save(
-			HelpRequest.createFrom(command.toHelpRequestInfoWithUserID(userId)));
+			HelpRequest.createFrom(
+				command.toHelpRequestInfoWithUserIdAndLocation(userId, getLocation(command.address()))));
 
 		// (선택 사항) 도움 요청 글 생성 시 알림 이벤트 (예: POST_CREATED)
 		NotificationEvent event = NotificationEvent.builder()
@@ -84,7 +91,7 @@ public class HelpRequestService {
 	@Transactional
 	public UpdateHelpRequestResponse updateHelpRequest(UpdateHelpRequestCommand command, Long helpRequestId) {
 		HelpRequest helpRequest = getHelpRequestOrThrow(helpRequestId);
-		helpRequest.update(command.toHelpRequestInfo());
+		helpRequest.update(command.toHelpRequestInfoWithLocation(getLocation(command.address())));
 
 		// (선택 사항) 업데이트 알림 발행 – 필요 시
 		NotificationEvent event = NotificationEvent.builder()
@@ -133,6 +140,7 @@ public class HelpRequestService {
 	/**
 	 * 도움 요청 글 삭제 (알림 이벤트 발행 – 선택 사항)
 	 */
+	@Transactional
 	public void deleteHelpRequest(Long helpRequestId, String username) {
 		HelpRequest helpRequest = getHelpRequestOrThrow(helpRequestId);
 		helpRequest.delete(username);
@@ -148,6 +156,13 @@ public class HelpRequestService {
 		kafkaTemplate.send(NotificationEventType.DELETED.getTopic(), event);
 	}
 
+	@Transactional
+	public Page<NearByUserLocationResponse> nearByUserLocation(NearByUserLocationQuery query, Pageable pageable) {
+		double searchRangeByKm = 20;
+		return helpRequestRepository.findHelpRequestNearby(query.toQuery(), searchRangeByKm, pageable)
+			.map(NearByUserLocationResponse::from);
+	}
+
 	@Transactional(readOnly = true)
 	public boolean existHelpRequest(Long helpRequestId) {
 		return helpRequestRepository.existsById(helpRequestId);
@@ -156,6 +171,15 @@ public class HelpRequestService {
 	private HelpRequest getHelpRequestOrThrow(Long helpRequestId) {
 		return helpRequestRepository.findById(helpRequestId)
 			.orElseThrow(() -> new EntityNotFoundException("게시글이 없습니다."));
+	}
+
+	public HelpRequestLocation getLocation(String address) {
+		KakaoGeoResponse response = kakaoClient.searchAddress(address);
+		if (response.documents().isEmpty()) {
+			throw new IllegalArgumentException("해당 주소에 대한 좌표를 찾을 수 없습니다.");
+		}
+		KakaoGeoResponse.Document doc = response.documents().get(0);
+		return HelpRequestLocation.createOf(address, Double.parseDouble(doc.x()), Double.parseDouble(doc.y()));
 	}
 
 }
