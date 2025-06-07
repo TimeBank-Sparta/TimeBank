@@ -1,6 +1,8 @@
 package com.timebank.notification_service.domain.entity;
 
 import com.timebank.common.domain.Timestamped;
+import com.timebank.common.infrastructure.external.notification.dto.NotificationEventType;
+import com.timebank.common.infrastructure.external.notification.dto.NotificationType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

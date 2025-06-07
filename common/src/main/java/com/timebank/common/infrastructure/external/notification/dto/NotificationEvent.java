@@ -23,5 +23,5 @@ public class NotificationEvent {
 	private LocalDateTime sentAt;
 	private NotificationEventType eventType; // 이벤트 구분 (CREATED, UPDATED, DELETED)
 	private Map<String, String> payload;     // (추가 정보 전달용)
-
+	private String slackUserEmail;
 }

@@ -3,7 +3,9 @@ package com.timebank.notification_service.infrastructure.kafka;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import com.timebank.notification_service.application.event.NotificationEvent;
+import com.timebank.common.infrastructure.external.notification.dto.NotificationEvent;
+import com.timebank.notification_service.application.dto.SlackWebHookMessage;
+import com.timebank.notification_service.application.service.NotificationService;
 import com.timebank.notification_service.domain.entity.Notification;
 import com.timebank.notification_service.domain.repository.NotificationRepository;
 
@@ -16,20 +18,26 @@ import lombok.extern.slf4j.Slf4j;
 public class NotificationConsumer {
 
 	private final NotificationRepository notificationRepository;
+	private final NotificationService notificationService;
 
 	// CREATED 토픽 소비 메서드
 	@KafkaListener(topics = "notification.events.CREATED", groupId = "notification-group")
 	public void consumeCreated(NotificationEvent event) {
 		log.info("Consumed CREATED event: {}", event);
 		saveNotification(event);
-		// 필요시 추가 로직 처리 (예: 로깅)
+
+		notificationService.sendMessage(
+			SlackWebHookMessage.from(event.getMessage()), event.getSlackUserEmail());
 	}
 
 	// UPDATED 토픽 소비 메서드
 	@KafkaListener(topics = "notification.events.UPDATED", groupId = "notification-group")
 	public void consumeUpdated(NotificationEvent event) {
 		log.info("Consumed UPDATED event: {}", event);
-		// 업데이트 이벤트의 경우 추가 처리 로직이 있다면 구현합니다.
+
+		notificationService.sendMessage(
+			SlackWebHookMessage.from(event.getMessage()), event.getSlackUserEmail());
+
 		saveNotification(event);
 	}
 
@@ -38,7 +46,11 @@ public class NotificationConsumer {
 	public void consumeDeleted(NotificationEvent event) {
 		log.info("Consumed DELETED event: {}", event);
 		// 삭제 이벤트는 삭제 후 로깅 혹은 관련 작업 수행
+		notificationService.sendMessage(
+			SlackWebHookMessage.from(event.getMessage()), event.getSlackUserEmail());
+
 		saveNotification(event);
+
 	}
 
 	// 공통적으로 Notification DB 저장 처리

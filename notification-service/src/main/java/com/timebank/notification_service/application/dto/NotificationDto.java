@@ -1,7 +1,7 @@
 package com.timebank.notification_service.application.dto;
 
+import com.timebank.common.infrastructure.external.notification.dto.NotificationType;
 import com.timebank.notification_service.domain.entity.Notification;
-import com.timebank.notification_service.domain.entity.NotificationType;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
